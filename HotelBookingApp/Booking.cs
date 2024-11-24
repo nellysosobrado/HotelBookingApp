@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HotelBookingApp
 {
-    public class Booking
+    public class Booking//Table
     {
         public int BookingId { get; set; }
         public DateTime CheckInDate { get; set; }

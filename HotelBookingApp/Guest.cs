@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HotelBookingApp
 {
-    public  class Guest
+    public  class Guest//table
     {
         public int GuestId { get; set; }    
         public string FirstName { get; set; }

@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;//Makes it possible to use the databse that i am using from SSMS
+//aEntity frameowkr = Code first
+//Entitntyframeworkcore, a tool that will take care of datamodells and dabasstructure in the code (in this case C#). And creates the database according to the modells ('tables = calasses, properites = attributes for the tables a.k.a infodetails)
 using Microsoft.Extensions.Configuration; //Makes it possible to load my configuration information that I have stored in my Json File
 using Microsoft.Extensions.DependencyInjection; // Makes it possible to use the build in dependency injection
 using System.Threading;
