@@ -4,15 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System;
+
 namespace HotelBookingApp
 {
     public class MainMenu
     {
         private readonly BookingManager _bookingManager;
+        private readonly RegisterNewBooking _registerNewBooking;
 
-        public MainMenu(BookingManager bookingManager)
+        public MainMenu(BookingManager bookingManager, RegisterNewBooking registerNewBooking)
         {
             _bookingManager = bookingManager;
+            _registerNewBooking = registerNewBooking;
         }
 
         public void Run()
@@ -25,7 +29,8 @@ namespace HotelBookingApp
                 Console.WriteLine("1. Check In Guest");
                 Console.WriteLine("2. Check Out Guest");
                 Console.WriteLine("3. View Booking Details");
-                Console.WriteLine("4. Exit");
+                Console.WriteLine("4. Register New Booking");
+                Console.WriteLine("5. Exit");
 
                 var choice = Console.ReadLine();
 
@@ -68,6 +73,10 @@ namespace HotelBookingApp
                         break;
 
                     case "4":
+                        _registerNewBooking.Execute();
+                        break;
+
+                    case "5":
                         Console.WriteLine("Exiting program...");
                         return;
 
@@ -80,7 +89,5 @@ namespace HotelBookingApp
                 Console.ReadKey();
             }
         }
-
-      
     }
 }

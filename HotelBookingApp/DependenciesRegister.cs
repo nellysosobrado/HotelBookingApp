@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System;
 
 namespace HotelBookingApp
 {
@@ -17,13 +18,34 @@ namespace HotelBookingApp
             {
                 var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
                 optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
-                return new AppDbContext(optionsBuilder.Options);
+
+                var dbContext = new AppDbContext(optionsBuilder.Options);
+
+                // Kontrollera och skapa databasen om den inte existerar
+                try
+                {
+                    if (dbContext.Database.EnsureCreated())
+                    {
+                        Console.WriteLine("Database created successfully.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Database already exists.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"An error occurred while ensuring the database: {ex.Message}");
+                }
+
+                return dbContext;
             }).As<AppDbContext>().InstancePerLifetimeScope();
 
             // Registrera tjänster och huvudklasser
             builder.RegisterType<MainMenu>().AsSelf();
             builder.RegisterType<HotelBookingApp>().AsSelf();
             builder.RegisterType<BookingManager>().AsSelf();
+            builder.RegisterType<RegisterNewBooking>().AsSelf();
         }
     }
 }
