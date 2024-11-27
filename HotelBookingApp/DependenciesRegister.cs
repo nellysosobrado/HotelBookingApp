@@ -41,11 +41,14 @@ namespace HotelBookingApp
                 return dbContext;
             }).As<AppDbContext>().InstancePerLifetimeScope();
 
+
             // Registrera tjänster och huvudklasser
             builder.RegisterType<MainMenu>().AsSelf();
             builder.RegisterType<HotelBookingApp>().AsSelf();
             builder.RegisterType<BookingManager>().AsSelf();
             builder.RegisterType<RegisterNewBooking>().AsSelf();
+            builder.RegisterType<Admin>().AsSelf();
+
         }
     }
 }

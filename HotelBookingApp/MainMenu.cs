@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using System;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotelBookingApp
 {
@@ -12,13 +13,17 @@ namespace HotelBookingApp
     {
         private readonly BookingManager _bookingManager;
         private readonly RegisterNewBooking _registerNewBooking;
+        private readonly AppDbContext _context;
+        private readonly Admin _admin; 
 
-        public MainMenu(BookingManager bookingManager, RegisterNewBooking registerNewBooking)
+
+        public MainMenu(BookingManager bookingManager, RegisterNewBooking registerNewBooking, AppDbContext context, Admin admin)
         {
             _bookingManager = bookingManager;
             _registerNewBooking = registerNewBooking;
+            _context = context;
+            _admin = admin;
         }
-
         public void Run()
         {
             while (true)
@@ -30,7 +35,9 @@ namespace HotelBookingApp
                 Console.WriteLine("2. Check Out Guest");
                 Console.WriteLine("3. View Booking Details");
                 Console.WriteLine("4. Register New Booking");
-                Console.WriteLine("5. Exit");
+                Console.WriteLine("5. View All Guests");
+                Console.WriteLine("6. Add New Room"); // Nytt alternativ
+                Console.WriteLine("7. Exit");
 
                 var choice = Console.ReadLine();
 
@@ -77,6 +84,14 @@ namespace HotelBookingApp
                         break;
 
                     case "5":
+                        ViewAllGuests();
+                        break;
+
+                    case "6": // Ny funktionalitet
+                        _admin.AddRoom();
+                        break;
+
+                    case "7":
                         Console.WriteLine("Exiting program...");
                         return;
 
@@ -89,5 +104,59 @@ namespace HotelBookingApp
                 Console.ReadKey();
             }
         }
+
+
+
+
+        private void ViewAllGuests()
+        {
+            var guests = _context.Guests
+                .GroupJoin(
+                    _context.Bookings,
+                    g => g.GuestId,
+                    b => b.GuestId,
+                    (guest, bookings) => new
+                    {
+                        Guest = guest,
+                        Bookings = bookings.ToList()
+                    })
+                .ToList();
+
+            if (!guests.Any())
+            {
+                Console.WriteLine("No guests found.");
+                return;
+            }
+
+            Console.WriteLine("---- Guests and Bookings ----");
+            foreach (var entry in guests)
+            {
+                var guest = entry.Guest;
+                Console.WriteLine($"Guest: {guest.FirstName} {guest.LastName} (ID: {guest.GuestId})");
+                Console.WriteLine($"Email: {guest.Email}");
+                Console.WriteLine($"Phone: {guest.PhoneNumber}");
+
+                if (!entry.Bookings.Any())
+                {
+                    Console.WriteLine("No bookings for this guest.");
+                }
+                else
+                {
+                    foreach (var booking in entry.Bookings)
+                    {
+                        Console.WriteLine($"- Booking ID: {booking.BookingId}");
+                        Console.WriteLine($"  Room ID: {booking.RoomId}");
+                        Console.WriteLine($"  Check-In Date: {booking.CheckInDate}");
+                        Console.WriteLine($"  Check-Out Date: {booking.CheckOutDate}");
+                        Console.WriteLine($"  Checked In: {(booking.IsCheckedIn ? "Yes" : "No")}");
+                        Console.WriteLine($"  Checked Out: {(booking.IsCheckedOut ? "Yes" : "No")}");
+                    }
+                }
+
+                Console.WriteLine("----------------------------");
+            }
+        }
+
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,10 +14,22 @@ namespace HotelBookingApp
     public class Room//table
     {
         //backing field/properties//atributes
+        [Key]
         public int RoomId { get; set; }
+        [Required] 
         public string Type { get; set; }
         public int ExtraBeds { get; set; } 
         public bool IsAvailable { get; set; }
+
+        //--------
+        
+
+
+        [Required]
+        public decimal PricePerNight { get; set; } // Pris per natt
+
+        [Required]
+        public int SizeInSquareMeters { get; set; } // Storlek i kvadratmeter
 
     }
 }
