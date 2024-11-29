@@ -44,39 +44,18 @@ namespace HotelBookingApp
                 switch (choice)
                 {
                     case "1":
-                        Console.WriteLine("Enter Booking ID to check in:");
-                        if (int.TryParse(Console.ReadLine(), out int checkInId))
-                        {
-                            _bookingManager.CheckInGuest(checkInId);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid Booking ID.");
-                        }
+                        
+                        CheckInGuest();
                         break;
 
                     case "2":
-                        Console.WriteLine("Enter Booking ID to check out:");
-                        if (int.TryParse(Console.ReadLine(), out int checkOutId))
-                        {
-                            _bookingManager.CheckOutGuest(checkOutId);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid Booking ID.");
-                        }
+                        
+                        CheckOutGuest();
                         break;
 
                     case "3":
-                        Console.WriteLine("Enter Booking ID to view details:");
-                        if (int.TryParse(Console.ReadLine(), out int viewId))
-                        {
-                            _bookingManager.ViewBookingDetails(viewId);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Invalid Booking ID.");
-                        }
+                        
+                        ViewBookingDetails();
                         break;
 
                     case "4":
@@ -103,6 +82,99 @@ namespace HotelBookingApp
                 Console.WriteLine("Press any key to continue...");
                 Console.ReadKey();
             }
+        }
+        public void ViewBookingDetails()
+        {
+            Console.WriteLine("Enter Booking ID to view details:");
+            if (int.TryParse(Console.ReadLine(), out int viewId))
+            {
+                var booking = _context.Bookings
+               .Join(_context.Guests, b => b.GuestId, g => g.GuestId, (b, g) => new
+               {
+                   Booking = b,
+                   Guest = g
+               })
+               .FirstOrDefault(bg => bg.Booking.BookingId == viewId);
+
+                if (booking == null)
+                {
+                    Console.WriteLine("Booking not found.");
+                    return;
+                }
+
+                Console.WriteLine("---- Booking Details ----");
+                Console.WriteLine($"Booking ID: {booking.Booking.BookingId}");
+                Console.WriteLine($"Room ID: {booking.Booking.RoomId}");
+                Console.WriteLine($"Guest: {booking.Guest.FirstName} {booking.Guest.LastName}");
+                Console.WriteLine($"Check-in Date: {booking.Booking.CheckInDate}");
+                Console.WriteLine($"Check-out Date: {booking.Booking.CheckOutDate}");
+                Console.WriteLine($"Checked In: {(booking.Booking.IsCheckedIn ? "Yes" : "No")}");
+                Console.WriteLine($"Checked Out: {(booking.Booking.IsCheckedOut ? "Yes" : "No")}");
+                Console.WriteLine("--------------------------");
+            }
+            else
+            {
+                Console.WriteLine("Invalid Booking ID.");
+            }
+
+        }
+        public void CheckOutGuest()
+        {
+            Console.WriteLine("Enter Booking ID to check out:");
+            if (int.TryParse(Console.ReadLine(), out int checkOutId))
+            {
+                var booking = _context.Bookings.FirstOrDefault(b => b.BookingId == checkOutId);
+                if (booking == null)
+                {
+                    Console.WriteLine("Booking not found.");
+                    return;
+                }
+
+                if (!booking.IsCheckedIn)
+                {
+                    Console.WriteLine("Guest has not checked in yet.");
+                    return;
+                }
+
+                booking.IsCheckedIn = false;
+                booking.IsCheckedOut = true;
+                _context.SaveChanges();
+                Console.WriteLine($"Guest with Booking ID {checkOutId} has been successfully checked out.");
+            }
+            else
+            {
+                Console.WriteLine("Invalid Booking ID.");
+            }
+
+        }
+        public void CheckInGuest()
+        {
+            Console.WriteLine("Enter Booking ID to check in:");
+
+            if (int.TryParse(Console.ReadLine(), out int checkInId))
+            {
+                var booking = _context.Bookings.FirstOrDefault(b => b.BookingId == checkInId);
+                if (booking == null)
+                {
+                    Console.WriteLine("Booking not found.");
+                    return;
+                }
+
+                if (booking.IsCheckedIn)
+                {
+                    Console.WriteLine("Guest is already checked in.");
+                    return;
+                }
+
+                booking.IsCheckedIn = true;
+                _context.SaveChanges();
+                Console.WriteLine($"Guest with Booking ID {checkInId} has been successfully checked in.");
+            }
+            else
+            {
+                Console.WriteLine("Invalid Booking ID.");
+            }
+
         }
 
 
