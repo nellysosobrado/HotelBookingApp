@@ -10,7 +10,7 @@ namespace HotelBookingApp
         {
             _context = context;
         }
-
+        public void Run() { }
         public void AddRoom()
         {
             Console.WriteLine("Enter the type of room (Single/Double):");
@@ -37,14 +37,14 @@ namespace HotelBookingApp
                 return;
             }
 
-            // Skapa ett nytt rum
+           
             var newRoom = new Room
             {
                 Type = roomType,
                 PricePerNight = price,
                 SizeInSquareMeters = size,
                 ExtraBeds = extraBeds,
-                IsAvailable = true // Nya rum är alltid lediga
+                IsAvailable = true 
             };
 
             _context.Rooms.Add(newRoom);
