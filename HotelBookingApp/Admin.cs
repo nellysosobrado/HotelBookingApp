@@ -19,9 +19,10 @@ namespace HotelBookingApp
                 Console.Clear();
                 Console.WriteLine("=== ADMIN MENU ===");
                 Console.WriteLine("Choose an option:");
-                Console.WriteLine("1. Add Room");
+                Console.WriteLine("1. Register a Room");
                 Console.WriteLine("2. View All Rooms");
-                Console.WriteLine("3. Back to Main Menu");
+                Console.WriteLine("3. Edit Room");
+                Console.WriteLine("4. Back to Main Menu");
                 Console.WriteLine("===================");
 
                 var choice = Console.ReadLine()?.Trim();
@@ -35,6 +36,9 @@ namespace HotelBookingApp
                         ViewAllRooms();
                         break;
                     case "3":
+                        EditRoom();
+                        break;
+                    case "4":
                         Console.WriteLine("Returning to main menu...");
                         return; // Avslutar metoden och återgår till huvudmenyn
                     default:
@@ -100,7 +104,64 @@ namespace HotelBookingApp
             Console.WriteLine($"Room of type '{newRoom.Type}' successfully added with ID {newRoom.RoomId}.");
         }
 
+        public void EditRoom()
+        {
+            Console.Clear();
+            Console.WriteLine("=== EDIT ROOM ===");
 
+            Console.WriteLine("Enter the Room ID to edit:");
+            if (!int.TryParse(Console.ReadLine(), out int roomId))
+            {
+                Console.WriteLine("Invalid Room ID.");
+                return;
+            }
+
+            var room = _context.Rooms.FirstOrDefault(r => r.RoomId == roomId);
+            if (room == null)
+            {
+                Console.WriteLine("Room not found.");
+                return;
+            }
+
+            Console.WriteLine("Leave a field empty to keep the current value.");
+            Console.WriteLine($"Current Type: {room.Type}");
+            Console.WriteLine("Enter the new type of room (Single/Double):");
+            var roomType = Console.ReadLine()?.Trim();
+            if (!string.IsNullOrEmpty(roomType) && (roomType.ToLower() == "single" || roomType.ToLower() == "double"))
+            {
+                room.Type = char.ToUpper(roomType[0]) + roomType.Substring(1);
+            }
+
+            Console.WriteLine($"Current Price Per Night: {room.PricePerNight}");
+            Console.WriteLine("Enter the new price per night:");
+            var priceInput = Console.ReadLine()?.Trim();
+            if (!string.IsNullOrEmpty(priceInput) && decimal.TryParse(priceInput, out decimal price) && price > 0)
+            {
+                room.PricePerNight = price;
+            }
+
+            Console.WriteLine($"Current Size (m²): {room.SizeInSquareMeters}");
+            Console.WriteLine("Enter the new size in square meters:");
+            var sizeInput = Console.ReadLine()?.Trim();
+            if (!string.IsNullOrEmpty(sizeInput) && int.TryParse(sizeInput, out int size) && size > 0)
+            {
+                room.SizeInSquareMeters = size;
+            }
+
+            if (room.Type.Equals("Double", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"Current Extra Beds: {room.ExtraBeds}");
+                Console.WriteLine("Enter the new number of extra beds (0-2):");
+                var extraBedsInput = Console.ReadLine()?.Trim();
+                if (!string.IsNullOrEmpty(extraBedsInput) && int.TryParse(extraBedsInput, out int extraBeds) && extraBeds >= 0 && extraBeds <= 2)
+                {
+                    room.ExtraBeds = extraBeds;
+                }
+            }
+
+            _context.SaveChanges();
+            Console.WriteLine($"Room with ID {room.RoomId} successfully updated.");
+        }
 
         public void ViewAllRooms()
         {
@@ -160,7 +221,7 @@ namespace HotelBookingApp
 
                 Console.WriteLine(new string('-', 90));
                 Console.WriteLine("\nOptions: [N] Next Page | [P] Previous Page | [Q] Quit");
-                ConsoleKey input = Console.ReadKey(true).Key; // Läs tangenttryckning utan att visa på skärmen
+                ConsoleKey input = Console.ReadKey(true).Key; 
 
                 switch (input)
                 {
@@ -188,7 +249,7 @@ namespace HotelBookingApp
                         break;
                     case ConsoleKey.Q:
                         Console.WriteLine("Exiting room view...");
-                        return; // Gå tillbaka till huvudmenyn
+                        return; 
                     default:
                         Console.WriteLine("Invalid choice. Please use [N], [P], or [Q]. Press any key to continue...");
                         Console.ReadKey(true);
@@ -196,11 +257,6 @@ namespace HotelBookingApp
                 }
             }
         }
-
-
-
-
-
 
         private void PromptToContinue()
         {
