@@ -101,12 +101,24 @@ namespace HotelBookingApp
         }
 
 
+
         public void ViewAllRooms()
         {
             Console.Clear();
             Console.WriteLine("=== VIEW ALL ROOMS ===");
 
-            var rooms = _context.Rooms.ToList();
+            var rooms = _context.Rooms
+                .GroupJoin(
+                    _context.Bookings,
+                    room => room.RoomId,
+                    booking => booking.RoomId,
+                    (room, bookings) => new
+                    {
+                        Room = room,
+                        Booking = bookings.FirstOrDefault() // Hämtar första bokningen för rummet (om någon)
+                    })
+                .ToList();
+
             if (!rooms.Any())
             {
                 Console.WriteLine("No rooms available.");
@@ -121,23 +133,32 @@ namespace HotelBookingApp
             {
                 Console.Clear();
                 Console.WriteLine($"=== VIEW ALL ROOMS (Page {currentPage + 1}/{totalPages}) ===");
+                Console.WriteLine(new string('-', 90));
+                Console.WriteLine($"{"Room ID",-10}{"Type",-15}{"Price/Night",-15}{"Size m²",-10}{"Max People",-12}{"Booked By",-20}");
+                Console.WriteLine(new string('-', 90));
 
                 var roomsOnPage = rooms
                     .Skip(currentPage * pageSize)
                     .Take(pageSize)
                     .ToList();
 
-                foreach (var room in roomsOnPage)
+                foreach (var entry in roomsOnPage)
                 {
-                    Console.WriteLine($"Room ID: {room.RoomId}");
-                    Console.WriteLine($"Type: {room.Type}");
-                    Console.WriteLine($"Price Per Night: {room.PricePerNight:C}");
-                    Console.WriteLine($"Size: {room.SizeInSquareMeters} sqm");
-                    Console.WriteLine($"Extra Beds: {room.ExtraBeds}");
-                    Console.WriteLine($"Available: {(room.IsAvailable ? "Yes" : "No")}");
-                    Console.WriteLine("-------------------");
+                    var room = entry.Room;
+                    var booking = entry.Booking;
+
+                    // Bestäm vem som har bokat rummet
+                    var bookedBy = booking != null
+                        ? $"{booking.Guest.FirstName} {booking.Guest.LastName}" // Gästens namn
+                        : "Not Booked"; // Ingen bokning
+
+                    // Bestäm max antal personer
+                    var maxPeople = room.Type.Equals("Double", StringComparison.OrdinalIgnoreCase) ? 4 : 2;
+
+                    Console.WriteLine($"{room.RoomId,-10}{room.Type,-15}{room.PricePerNight,-15:C}{room.SizeInSquareMeters + " m²",-10}{maxPeople,-12}{bookedBy,-20}");
                 }
 
+                Console.WriteLine(new string('-', 90));
                 Console.WriteLine("\nOptions: [N] Next Page | [P] Previous Page | [Q] Quit");
                 ConsoleKey input = Console.ReadKey(true).Key; // Läs tangenttryckning utan att visa på skärmen
 
@@ -175,6 +196,8 @@ namespace HotelBookingApp
                 }
             }
         }
+
+
 
 
 
