@@ -210,9 +210,9 @@ namespace HotelBookingApp
             {
                 Console.Clear();
                 Console.WriteLine($"=== VIEW ALL GUESTS (Page {currentPage + 1}/{totalPages}) ===");
-                Console.WriteLine(new string('-', 100));
-                Console.WriteLine($"{"Guest ID",-10}{"Name",-20}{"Email",-25}{"Phone",-12}{"Room",-10}{"Checked In",-10}{"Checked Out",-10}{"Status",-10}");
-                Console.WriteLine(new string('-', 100));
+                Console.WriteLine(new string('-', 150));
+                Console.WriteLine($"{"Guest ID",-10}{"Name",-25}{"Email",-30}{"Phone",-15}{"Room",-15}{"Checked In",-12}{"Checked Out",-12}{"Status",-10}");
+                Console.WriteLine(new string('-', 150));
 
                 var guestsOnPage = guests
                     .Skip(currentPage * pageSize)
@@ -223,27 +223,29 @@ namespace HotelBookingApp
                 {
                     var guest = entry.Guest;
 
-                    // Endast rums-ID eller '-'
+                    // Endast rums-ID eller "-"
                     var roomInfo = entry.Bookings.Any()
                         ? string.Join(", ", entry.Bookings.Select(b => $"ID {b.RoomId}"))
                         : "-";
 
+                    // Markera CheckedIn och CheckedOut som "-" om ingen incheckning eller utcheckning har skett
                     var isCheckedIn = entry.Bookings.Any()
-                        ? (entry.Bookings.All(b => b.IsCheckedIn) ? "Yes" : "No")
+                        ? entry.Bookings.All(b => b.IsCheckedIn) ? "Yes" : "-"
                         : "-";
 
                     var isCheckedOut = entry.Bookings.Any()
-                        ? (entry.Bookings.All(b => b.IsCheckedOut) ? "Yes" : "No")
+                        ? entry.Bookings.All(b => b.IsCheckedOut) ? "Yes" : "-"
                         : "-";
 
                     var bookingStatus = entry.Bookings.Any()
-                        ? (entry.Bookings.All(b => b.BookingStatus) ? "Yes" : "No")
+                        ? entry.Bookings.All(b => b.BookingStatus) ? "Yes" : "-"
                         : "-";
 
-                    Console.WriteLine($"{guest.GuestId,-10}{guest.FirstName + " " + guest.LastName,-20}{guest.Email,-25}{guest.PhoneNumber,-12}{roomInfo,-10}{isCheckedIn,-10}{isCheckedOut,-10}{bookingStatus,-10}");
+                    // Justera bredden för att visa dynamiskt innehåll
+                    Console.WriteLine($"{guest.GuestId,-10}{guest.FirstName + " " + guest.LastName,-25}{guest.Email,-30}{guest.PhoneNumber,-15}{roomInfo,-15}{isCheckedIn,-12}{isCheckedOut,-12}{bookingStatus,-10}");
                 }
 
-                Console.WriteLine(new string('-', 100));
+                Console.WriteLine(new string('-', 150));
                 Console.WriteLine("\nOptions: [N] Next Page | [P] Previous Page | [Q] Quit");
                 ConsoleKey input = Console.ReadKey(true).Key;
 
@@ -281,7 +283,6 @@ namespace HotelBookingApp
                 }
             }
         }
-
 
 
 

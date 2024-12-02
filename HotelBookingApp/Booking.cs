@@ -20,6 +20,7 @@ namespace HotelBookingApp
 
         public bool BookingStatus { get; set; }
         //true if booking is done
+        public ICollection<Invoice> Invoices { get; set; }
     }
 
 }
