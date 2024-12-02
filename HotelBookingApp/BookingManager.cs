@@ -105,15 +105,7 @@ namespace HotelBookingApp
             {
                 // Hämta aktuell bokning för gästen
                 var booking = _context.Bookings
-                    .Join(_context.Guests,
-                          b => b.GuestId,
-                          g => g.GuestId,
-                          (b, g) => new
-                          {
-                              Booking = b,
-                              Guest = g
-                          })
-                    .FirstOrDefault(bg => bg.Guest.GuestId == guestId && bg.Booking.IsCheckedIn && !bg.Booking.IsCheckedOut);
+                    .FirstOrDefault(b => b.GuestId == guestId && b.IsCheckedIn && !b.IsCheckedOut);
 
                 if (booking == null)
                 {
@@ -122,39 +114,26 @@ namespace HotelBookingApp
                 }
 
                 Console.WriteLine("\nGuest Details:");
-                Console.WriteLine($"Name: {booking.Guest.FirstName} {booking.Guest.LastName}");
-                Console.WriteLine($"Booking ID: {booking.Booking.BookingId}");
-                Console.WriteLine($"Room ID: {booking.Booking.RoomId}");
-                Console.WriteLine($"Check-In Status: {(booking.Booking.IsCheckedIn ? "Checked In" : "Not Checked In")}");
-                Console.WriteLine($"Check-Out Status: {(booking.Booking.IsCheckedOut ? "Checked Out" : "Not Checked Out")}");
-
-                // Kontrollera om gästen är incheckad
-                if (!booking.Booking.IsCheckedIn)
-                {
-                    Console.WriteLine("\nThis guest has not checked in yet. Cannot check out.");
-                    return;
-                }
-
-                // Kontrollera om gästen redan är utcheckad
-                if (booking.Booking.IsCheckedOut)
-                {
-                    Console.WriteLine("\nThis guest has already checked out.");
-                    return;
-                }
+                Console.WriteLine($"Booking ID: {booking.BookingId}");
+                Console.WriteLine($"Room ID: {booking.RoomId}");
+                Console.WriteLine($"Check-In Status: {(booking.IsCheckedIn ? "Checked In" : "Not Checked In")}");
+                Console.WriteLine($"Check-Out Status: {(booking.IsCheckedOut ? "Checked Out" : "Not Checked Out")}");
 
                 // Utcheckning
-                booking.Booking.IsCheckedIn = false;
-                booking.Booking.IsCheckedOut = true;
-                booking.Booking.CheckOutDate = DateTime.Now; // Lägg till utcheckningsdatum
+                booking.IsCheckedIn = false;
+                booking.IsCheckedOut = true;
+                booking.BookingStatus = true; // Markera bokningen som slutförd
+                booking.CheckOutDate = DateTime.Now;
                 _context.SaveChanges();
 
-                Console.WriteLine($"\nGuest '{booking.Guest.FirstName} {booking.Guest.LastName}' with Booking ID {booking.Booking.BookingId} has been successfully checked out.");
+                Console.WriteLine($"\nBooking with Booking ID {booking.BookingId} has been successfully checked out and marked as completed.");
             }
             else
             {
                 Console.WriteLine("Invalid Guest ID.");
             }
         }
+
 
 
         public void ViewBookingDetails()
@@ -207,16 +186,13 @@ namespace HotelBookingApp
                     (guest, bookings) => new
                     {
                         Guest = guest,
-                        Bookings = bookings.Join(
-                            _context.Rooms,
-                            booking => booking.RoomId,
-                            room => room.RoomId,
-                            (booking, room) => new
-                            {
-                                RoomId = room.RoomId,
-                                IsCheckedIn = booking.IsCheckedIn,
-                                IsCheckedOut = booking.IsCheckedOut
-                            }).ToList()
+                        Bookings = bookings.Select(b => new
+                        {
+                            RoomId = b.RoomId,
+                            IsCheckedIn = b.IsCheckedIn,
+                            IsCheckedOut = b.IsCheckedOut,
+                            BookingStatus = b.BookingStatus // Nytt fält
+                        }).ToList()
                     })
                 .ToList();
 
@@ -226,7 +202,7 @@ namespace HotelBookingApp
                 return;
             }
 
-            const int pageSize = 5; // Antal gäster per sida
+            const int pageSize = 5;
             int currentPage = 0;
             int totalPages = (int)Math.Ceiling((double)guests.Count / pageSize);
 
@@ -234,9 +210,9 @@ namespace HotelBookingApp
             {
                 Console.Clear();
                 Console.WriteLine($"=== VIEW ALL GUESTS (Page {currentPage + 1}/{totalPages}) ===");
-                Console.WriteLine(new string('-', 100));
-                Console.WriteLine($"{"Guest ID",-10}{"Name",-25}{"Email",-30}{"Phone",-15}{"Booked Room",-15}{"Checked In",-12}{"Checked Out",-12}");
-                Console.WriteLine(new string('-', 100));
+                Console.WriteLine(new string('-', 120));
+                Console.WriteLine($"{"Guest ID",-10}{"Name",-25}{"Email",-30}{"Phone",-15}{"Booked Room",-15}{"Checked In",-12}{"Checked Out",-12}{"Completed",-10}");
+                Console.WriteLine(new string('-', 120));
 
                 var guestsOnPage = guests
                     .Skip(currentPage * pageSize)
@@ -246,9 +222,7 @@ namespace HotelBookingApp
                 foreach (var entry in guestsOnPage)
                 {
                     var guest = entry.Guest;
-
-                    // Endast rums-ID
-                    var roomInfo = entry.Bookings.Any()
+                    var bookingInfo = entry.Bookings.Any()
                         ? string.Join(", ", entry.Bookings.Select(b => $"ID {b.RoomId}"))
                         : "No Room Booked";
 
@@ -260,12 +234,16 @@ namespace HotelBookingApp
                         ? (entry.Bookings.All(b => b.IsCheckedOut) ? "Yes" : "No")
                         : "N/A";
 
-                    Console.WriteLine($"{guest.GuestId,-10}{guest.FirstName + " " + guest.LastName,-25}{guest.Email,-30}{guest.PhoneNumber,-15}{roomInfo,-15}{isCheckedIn,-12}{isCheckedOut,-12}");
+                    var bookingStatus = entry.Bookings.Any()
+                        ? (entry.Bookings.All(b => b.BookingStatus) ? "Yes" : "No")
+                        : "N/A";
+
+                    Console.WriteLine($"{guest.GuestId,-10}{guest.FirstName + " " + guest.LastName,-25}{guest.Email,-30}{guest.PhoneNumber,-15}{bookingInfo,-15}{isCheckedIn,-12}{isCheckedOut,-12}{bookingStatus,-10}");
                 }
 
-                Console.WriteLine(new string('-', 100));
+                Console.WriteLine(new string('-', 120));
                 Console.WriteLine("\nOptions: [N] Next Page | [P] Previous Page | [Q] Quit");
-                ConsoleKey input = Console.ReadKey(true).Key; // Läs tangenttryckning utan att visa på skärmen
+                ConsoleKey input = Console.ReadKey(true).Key;
 
                 switch (input)
                 {
@@ -293,7 +271,7 @@ namespace HotelBookingApp
                         break;
                     case ConsoleKey.Q:
                         Console.WriteLine("Exiting guest view...");
-                        return; // Gå tillbaka till huvudmenyn
+                        return;
                     default:
                         Console.WriteLine("Invalid choice. Please use [N], [P], or [Q]. Press any key to continue...");
                         Console.ReadKey(true);
@@ -301,6 +279,7 @@ namespace HotelBookingApp
                 }
             }
         }
+
 
 
 
