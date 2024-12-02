@@ -13,8 +13,8 @@ namespace HotelBookingApp
         public Room Room { get; set; }
         public int GuestId { get; set; }
         public Guest Guest { get; set; }
-        public DateTime CheckInDate { get; set; }
-        public DateTime CheckOutDate { get; set; }
+        public DateTime? CheckInDate { get; set; }
+        public DateTime? CheckOutDate { get; set; }
         public bool IsCheckedIn { get; set; }
         public bool IsCheckedOut { get; set; } 
 

@@ -30,6 +30,7 @@ namespace HotelBookingApp
                         break;
                     case "2":
                         CheckOutGuest();
+                        
                         break;
                     case "3":
                         ViewBookingDetails();
@@ -40,13 +41,17 @@ namespace HotelBookingApp
                     case "5":
                         ViewAllGuests();
                         break;
-                    case "6":
+                    case "6": // Hantera betalda bokningar
+                        ViewPaidBookings();
+                        break;
+                    case "7":
                         ReturnToMainMenu();
-                        return; // Avsluta och återgå till huvudmenyn
+                        return;
                     default:
                         Console.WriteLine("Invalid choice. Please try again.");
                         break;
                 }
+
 
                 PromptToContinue();
             }
@@ -61,9 +66,11 @@ namespace HotelBookingApp
             Console.WriteLine("3. View Booking Details");
             Console.WriteLine("4. Register New Booking");
             Console.WriteLine("5. View All Guests");
-            Console.WriteLine("6. Back to Main Menu");
+            Console.WriteLine("6. View Paid Bookings"); // Nytt alternativ
+            Console.WriteLine("7. Back to Main Menu");
             Console.WriteLine("========================");
         }
+
 
         public void CheckInGuest()
         {
@@ -93,44 +100,6 @@ namespace HotelBookingApp
             else
             {
                 Console.WriteLine("Invalid Booking ID.");
-            }
-        }
-
-        public void CheckOutGuest()
-        {
-            Console.Clear();
-            Console.WriteLine("=== CHECK OUT GUEST ===");
-            Console.WriteLine("Enter Guest ID to check out:");
-            if (int.TryParse(Console.ReadLine(), out int guestId))
-            {
-                // Hämta aktuell bokning för gästen
-                var booking = _context.Bookings
-                    .FirstOrDefault(b => b.GuestId == guestId && b.IsCheckedIn && !b.IsCheckedOut);
-
-                if (booking == null)
-                {
-                    Console.WriteLine("No active booking found for this guest.");
-                    return;
-                }
-
-                Console.WriteLine("\nGuest Details:");
-                Console.WriteLine($"Booking ID: {booking.BookingId}");
-                Console.WriteLine($"Room ID: {booking.RoomId}");
-                Console.WriteLine($"Check-In Status: {(booking.IsCheckedIn ? "Checked In" : "Not Checked In")}");
-                Console.WriteLine($"Check-Out Status: {(booking.IsCheckedOut ? "Checked Out" : "Not Checked Out")}");
-
-                // Utcheckning
-                booking.IsCheckedIn = false;
-                booking.IsCheckedOut = true;
-                booking.BookingStatus = true; // Markera bokningen som slutförd
-                booking.CheckOutDate = DateTime.Now;
-                _context.SaveChanges();
-
-                Console.WriteLine($"\nBooking with Booking ID {booking.BookingId} has been successfully checked out and marked as completed.");
-            }
-            else
-            {
-                Console.WriteLine("Invalid Guest ID.");
             }
         }
 
@@ -283,6 +252,231 @@ namespace HotelBookingApp
                 }
             }
         }
+
+        public void ViewPaidBookings()
+        {
+            Console.Clear();
+            Console.WriteLine("=== VIEW ALL PAID BOOKINGS ===");
+
+            // Hämtar betalda bokningar med tillhörande gäst och fakturainformation
+            var paidBookings = _context.Invoices
+                .Where(i => i.IsPaid) // Endast fakturor som är betalda
+                .Join(_context.Bookings,
+                    invoice => invoice.BookingId,
+                    booking => booking.BookingId,
+                    (invoice, booking) => new
+                    {
+                        Invoice = invoice,
+                        Booking = booking
+                    })
+                .Join(_context.Guests,
+                    bookingInvoice => bookingInvoice.Booking.GuestId,
+                    guest => guest.GuestId,
+                    (bookingInvoice, guest) => new
+                    {
+                        Guest = guest,
+                        Booking = bookingInvoice.Booking,
+                        Invoice = bookingInvoice.Invoice
+                    })
+                .ToList();
+
+            if (!paidBookings.Any())
+            {
+                Console.WriteLine("No paid bookings found.");
+                return;
+            }
+
+            const int pageSize = 5; // Antal bokningar per sida
+            int currentPage = 0;
+            int totalPages = (int)Math.Ceiling((double)paidBookings.Count / pageSize);
+
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine($"=== VIEW ALL PAID BOOKINGS (Page {currentPage + 1}/{totalPages}) ===");
+                Console.WriteLine(new string('-', 120));
+                Console.WriteLine($"{"Booking ID",-12}{"Guest Name",-25}{"Room",-10}{"Amount Paid",-15}{"Paid On",-20}{"Deadline",-15}");
+                Console.WriteLine(new string('-', 120));
+
+                var bookingsOnPage = paidBookings
+                    .Skip(currentPage * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                foreach (var entry in bookingsOnPage)
+                {
+                    var guest = entry.Guest;
+                    var booking = entry.Booking;
+                    var invoice = entry.Invoice;
+
+                    Console.WriteLine($"{booking.BookingId,-12}{guest.FirstName + " " + guest.LastName,-25}ID {booking.RoomId,-10}{invoice.TotalAmount,-15:C}{invoice.PaymentDeadline,-20:yyyy-MM-dd}{invoice.PaymentDeadline,-15:yyyy-MM-dd}");
+                }
+
+                Console.WriteLine(new string('-', 120));
+                Console.WriteLine("\nOptions: [N] Next Page | [P] Previous Page | [Q] Quit");
+                ConsoleKey input = Console.ReadKey(true).Key;
+
+                switch (input)
+                {
+                    case ConsoleKey.N:
+                        if (currentPage < totalPages - 1)
+                        {
+                            currentPage++;
+                        }
+                        else
+                        {
+                            Console.WriteLine("You are on the last page. Press any key to continue...");
+                            Console.ReadKey(true);
+                        }
+                        break;
+                    case ConsoleKey.P:
+                        if (currentPage > 0)
+                        {
+                            currentPage--;
+                        }
+                        else
+                        {
+                            Console.WriteLine("You are on the first page. Press any key to continue...");
+                            Console.ReadKey(true);
+                        }
+                        break;
+                    case ConsoleKey.Q:
+                        Console.WriteLine("Exiting paid bookings view...");
+                        return;
+                    default:
+                        Console.WriteLine("Invalid choice. Please use [N], [P], or [Q]. Press any key to continue...");
+                        Console.ReadKey(true);
+                        break;
+                }
+            }
+        }
+        public void CheckOutGuest()
+        {
+            Console.Clear();
+            Console.WriteLine("=== CHECK OUT GUEST ===");
+            Console.WriteLine("Enter Guest ID to check out:");
+            if (int.TryParse(Console.ReadLine(), out int guestId))
+            {
+                // Hämta aktuell bokning för gästen
+                var booking = _context.Bookings
+                    .FirstOrDefault(b => b.GuestId == guestId && b.IsCheckedIn && !b.IsCheckedOut);
+
+                if (booking == null)
+                {
+                    Console.WriteLine("No active booking found for this guest.");
+                    return;
+                }
+
+                // Visa bokningsinformation
+                Console.WriteLine("\nGuest Details:");
+                Console.WriteLine($"Booking ID: {booking.BookingId}");
+                Console.WriteLine($"Room ID: {booking.RoomId}");
+                Console.WriteLine($"Check-In Status: {(booking.IsCheckedIn ? "Checked In" : "Not Checked In")}");
+                Console.WriteLine($"Check-Out Status: {(booking.IsCheckedOut ? "Checked Out" : "Not Checked Out")}");
+
+                // Generera en faktura om den inte redan finns
+                var invoice = _context.Invoices.FirstOrDefault(i => i.BookingId == booking.BookingId);
+                if (invoice == null)
+                {
+                    Console.WriteLine("\nGenerating invoice...");
+                    invoice = new Invoice
+                    {
+                        BookingId = booking.BookingId,
+                        TotalAmount = CalculateTotalAmount(booking),
+                        IsPaid = false,
+                        PaymentDeadline = DateTime.Now.AddDays(7)
+                    };
+
+                    _context.Invoices.Add(invoice);
+                    _context.SaveChanges();
+
+                    Console.WriteLine("Invoice generated successfully.");
+                }
+
+                Console.WriteLine($"\nInvoice Details:");
+                Console.WriteLine($"Invoice ID: {invoice.InvoiceId}");
+                Console.WriteLine($"Total Amount: {invoice.TotalAmount:C}");
+                Console.WriteLine($"Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
+
+                // Hantera betalning
+                Console.WriteLine("\nEnter payment amount:");
+                if (decimal.TryParse(Console.ReadLine(), out decimal paymentAmount))
+                {
+                    if (paymentAmount < invoice.TotalAmount)
+                    {
+                        Console.WriteLine("Insufficient payment. The guest must pay the full amount.");
+                        return;
+                    }
+
+                    // Registrera betalning
+                    var payment = new Payment
+                    {
+                        InvoiceId = invoice.InvoiceId,
+                        PaymentDate = DateTime.Now,
+                        AmountPaid = paymentAmount
+                    };
+
+                    _context.Payments.Add(payment);
+
+                    // Markera fakturan som betald
+                    invoice.IsPaid = true;
+
+                    // Uppdatera bokningsstatus
+                    booking.IsCheckedIn = false;
+                    booking.IsCheckedOut = true;
+                    booking.BookingStatus = true;
+                    booking.CheckOutDate = DateTime.Now;
+
+                    _context.SaveChanges();
+
+                    Console.WriteLine("\nPayment processed successfully.");
+                    Console.WriteLine($"Booking with Booking ID {booking.BookingId} has been successfully checked out and marked as completed.");
+                }
+                else
+                {
+                    Console.WriteLine("Invalid payment amount.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Invalid Guest ID.");
+            }
+        }
+
+        private decimal CalculateTotalAmount(Booking booking)
+        {
+            // Kontrollera att CheckInDate har ett värde
+            if (!booking.CheckInDate.HasValue)
+            {
+                throw new Exception("Check-In Date is not set.");
+            }
+
+            // Beräkna totalbelopp baserat på bokningens varaktighet och rumspris
+            var room = _context.Rooms.FirstOrDefault(r => r.RoomId == booking.RoomId);
+            if (room == null)
+            {
+                throw new Exception("Room not found.");
+            }
+
+            // Använd DateTime.Value för att hämta värden från nullable-typer
+            var checkOutDate = booking.CheckOutDate ?? DateTime.Now;
+            var duration = checkOutDate.Date - booking.CheckInDate.Value.Date;
+
+            if (duration.Days <= 0)
+            {
+                throw new Exception("Invalid duration for booking. Check-out date must be after check-in date.");
+            }
+
+            // Definiera exempelpriser per dag
+            var dailyRate = room.Type == "Single" ? 100m : 150m;
+
+            // Beräkna totalbelopp
+            return duration.Days * dailyRate;
+        }
+
+
+
+
 
 
 

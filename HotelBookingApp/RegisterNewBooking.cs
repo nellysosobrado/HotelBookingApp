@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System;
 
 namespace HotelBookingApp
 {
@@ -18,18 +14,23 @@ namespace HotelBookingApp
 
         public void Execute()
         {
+            Console.Clear();
+            Console.WriteLine("=== REGISTER NEW BOOKING ===");
+
+            // Gästinformation
             Console.WriteLine("Enter Guest First Name:");
-            var firstName = Console.ReadLine();
+            var firstName = Console.ReadLine()?.Trim();
 
             Console.WriteLine("Enter Guest Last Name:");
-            var lastName = Console.ReadLine();
+            var lastName = Console.ReadLine()?.Trim();
 
             Console.WriteLine("Enter Guest Email:");
-            var email = Console.ReadLine();
+            var email = Console.ReadLine()?.Trim();
 
             Console.WriteLine("Enter Guest Phone Number:");
-            var phoneNumber = Console.ReadLine();
+            var phoneNumber = Console.ReadLine()?.Trim();
 
+            // Rumval
             Console.WriteLine("Enter Room ID to book:");
             if (!int.TryParse(Console.ReadLine(), out int roomId))
             {
@@ -40,22 +41,45 @@ namespace HotelBookingApp
             var room = _context.Rooms.FirstOrDefault(r => r.RoomId == roomId && r.IsAvailable);
             if (room == null)
             {
-                Console.WriteLine("Room not found or not available.");
+                Console.WriteLine("Room not found or is not currently available.");
                 return;
             }
 
-            Console.WriteLine("Enter Check-In Date (yyyy-MM-dd):");
-            if (!DateTime.TryParse(Console.ReadLine(), out DateTime checkInDate))
+            // Datumvalidering
+            DateTime checkInDate, checkOutDate;
+            while (true)
             {
-                Console.WriteLine("Invalid Check-In Date.");
-                return;
-            }
+                Console.WriteLine("Enter Check-In Date (yyyy-MM-dd):");
+                var checkInInput = Console.ReadLine();
 
-            Console.WriteLine("Enter Check-Out Date (yyyy-MM-dd):");
-            if (!DateTime.TryParse(Console.ReadLine(), out DateTime checkOutDate) || checkOutDate <= checkInDate)
-            {
-                Console.WriteLine("Invalid Check-Out Date.");
-                return;
+                if (!DateTime.TryParse(checkInInput, out checkInDate) || checkInDate.Date < DateTime.Now.Date)
+                {
+                    Console.WriteLine("Invalid Check-In Date. The date cannot be in the past.");
+                    continue;
+                }
+
+                Console.WriteLine("Enter Check-Out Date (yyyy-MM-dd):");
+                var checkOutInput = Console.ReadLine();
+
+                if (!DateTime.TryParse(checkOutInput, out checkOutDate) || checkOutDate <= checkInDate)
+                {
+                    Console.WriteLine("Invalid Check-Out Date. It must be after the Check-In Date.");
+                    continue;
+                }
+
+                // Kontrollera om datumintervallen redan är bokade
+                var isConflict = _context.Bookings.Any(b =>
+                    b.RoomId == roomId &&
+                    ((checkInDate >= b.CheckInDate && checkInDate < b.CheckOutDate) ||
+                     (checkOutDate > b.CheckInDate && checkOutDate <= b.CheckOutDate)));
+
+                if (isConflict)
+                {
+                    Console.WriteLine("The selected room is already booked for the chosen dates. Please try different dates.");
+                    continue;
+                }
+
+                break;
             }
 
             // Skapa ny gäst
@@ -78,17 +102,18 @@ namespace HotelBookingApp
                 CheckInDate = checkInDate,
                 CheckOutDate = checkOutDate,
                 IsCheckedIn = false,
-                IsCheckedOut = false
+                IsCheckedOut = false,
+                BookingStatus = false
             };
 
             _context.Bookings.Add(booking);
 
-            // Markera rummet som inte längre tillgängligt
+            // Uppdatera rummet som ej tillgängligt
             room.IsAvailable = false;
 
             _context.SaveChanges();
 
-            Console.WriteLine("Booking registered successfully!");
+            Console.WriteLine($"Booking registered successfully for Guest ID {guest.GuestId} in Room ID {room.RoomId}.");
         }
     }
 }

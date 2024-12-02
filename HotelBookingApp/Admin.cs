@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 
 namespace HotelBookingApp
@@ -17,13 +18,7 @@ namespace HotelBookingApp
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("=== ADMIN MENU ===");
-                Console.WriteLine("Choose an option:");
-                Console.WriteLine("1. Register a Room");
-                Console.WriteLine("2. View All Rooms");
-                Console.WriteLine("3. Edit Room");
-                Console.WriteLine("4. Back to Main Menu");
-                Console.WriteLine("===================");
+                DisplayMenu();
 
                 var choice = Console.ReadLine()?.Trim();
 
@@ -39,8 +34,11 @@ namespace HotelBookingApp
                         EditRoom();
                         break;
                     case "4":
+                        EditGuest(); // Ny funktion för att redigera gäster
+                        break;
+                    case "5":
                         Console.WriteLine("Returning to main menu...");
-                        return; // Avslutar metoden och återgår till huvudmenyn
+                        return;
                     default:
                         Console.WriteLine("Invalid choice. Please try again.");
                         break;
@@ -48,6 +46,18 @@ namespace HotelBookingApp
 
                 PromptToContinue();
             }
+        }
+
+        private void DisplayMenu()
+        {
+            Console.WriteLine("=== ADMIN MENU ===");
+            Console.WriteLine("Choose an option:");
+            Console.WriteLine("1. Register a Room");
+            Console.WriteLine("2. View All Rooms");
+            Console.WriteLine("3. Edit Room");
+            Console.WriteLine("4. Edit Guest"); // Nytt alternativ
+            Console.WriteLine("5. Back to Main Menu");
+            Console.WriteLine("===================");
         }
 
         public void AddRoom()
@@ -151,16 +161,101 @@ namespace HotelBookingApp
             if (room.Type.Equals("Double", StringComparison.OrdinalIgnoreCase))
             {
                 Console.WriteLine($"Current Extra Beds: {room.ExtraBeds}");
-                Console.WriteLine("Enter the new number of extra beds (0-2):");
-                var extraBedsInput = Console.ReadLine()?.Trim();
-                if (!string.IsNullOrEmpty(extraBedsInput) && int.TryParse(extraBedsInput, out int extraBeds) && extraBeds >= 0 && extraBeds <= 2)
+                Console.WriteLine("Do you want to change the number of extra beds? (yes/no):");
+                var changeExtraBeds = Console.ReadLine()?.Trim().ToLower();
+
+                if (changeExtraBeds == "yes")
                 {
-                    room.ExtraBeds = extraBeds;
+                    Console.WriteLine("Enter the new number of extra beds (0-2):");
+                    var extraBedsInput = Console.ReadLine()?.Trim();
+                    if (!string.IsNullOrEmpty(extraBedsInput) && int.TryParse(extraBedsInput, out int extraBeds))
+                    {
+                        if (room.SizeInSquareMeters < 40 && extraBeds > 1)
+                        {
+                            Console.WriteLine("Rooms smaller than 40 m² can only have 1 extra bed. No changes made to extra beds.");
+                        }
+                        else if (extraBeds >= 0 && extraBeds <= 2)
+                        {
+                            room.ExtraBeds = extraBeds;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid number of extra beds. No changes made to extra beds.");
+                        }
+                    }
                 }
+            }
+            else
+            {
+                Console.WriteLine("Extra beds can only be added to Double rooms.");
+                room.ExtraBeds = 0; // För säkerhet, nollställ extra sängar om rummet är Single
             }
 
             _context.SaveChanges();
             Console.WriteLine($"Room with ID {room.RoomId} successfully updated.");
+        }
+
+
+
+        public void EditGuest()
+        {
+            Console.Clear();
+            Console.WriteLine("=== EDIT GUEST ===");
+
+            Console.WriteLine("Enter the Guest ID to edit:");
+            if (!int.TryParse(Console.ReadLine(), out int guestId))
+            {
+                Console.WriteLine("Invalid Guest ID.");
+                return;
+            }
+
+            var guest = _context.Guests.FirstOrDefault(g => g.GuestId == guestId);
+            if (guest == null)
+            {
+                Console.WriteLine("Guest not found.");
+                return;
+            }
+
+            Console.WriteLine("Leave a field empty to keep the current value.");
+
+            // Uppdatera förnamn
+            Console.WriteLine($"Current First Name: {guest.FirstName}");
+            Console.WriteLine("Enter the new first name:");
+            var firstName = Console.ReadLine()?.Trim();
+            if (!string.IsNullOrEmpty(firstName))
+            {
+                guest.FirstName = firstName;
+            }
+
+            // Uppdatera efternamn
+            Console.WriteLine($"Current Last Name: {guest.LastName}");
+            Console.WriteLine("Enter the new last name:");
+            var lastName = Console.ReadLine()?.Trim();
+            if (!string.IsNullOrEmpty(lastName))
+            {
+                guest.LastName = lastName;
+            }
+
+            // Uppdatera e-postadress
+            Console.WriteLine($"Current Email: {guest.Email}");
+            Console.WriteLine("Enter the new email:");
+            var email = Console.ReadLine()?.Trim();
+            if (!string.IsNullOrEmpty(email))
+            {
+                guest.Email = email;
+            }
+
+            // Uppdatera telefonnummer
+            Console.WriteLine($"Current Phone Number: {guest.PhoneNumber}");
+            Console.WriteLine("Enter the new phone number:");
+            var phoneNumber = Console.ReadLine()?.Trim();
+            if (!string.IsNullOrEmpty(phoneNumber))
+            {
+                guest.PhoneNumber = phoneNumber;
+            }
+
+            _context.SaveChanges();
+            Console.WriteLine($"Guest with ID {guest.GuestId} successfully updated.");
         }
 
         public void ViewAllRooms()
@@ -170,13 +265,13 @@ namespace HotelBookingApp
 
             var rooms = _context.Rooms
                 .GroupJoin(
-                    _context.Bookings,
+                    _context.Bookings.Include(b => b.Guest), // Inkludera gästinformation
                     room => room.RoomId,
                     booking => booking.RoomId,
                     (room, bookings) => new
                     {
                         Room = room,
-                        Booking = bookings.FirstOrDefault() // Hämtar första bokningen för rummet (om någon)
+                        Booking = bookings.FirstOrDefault()
                     })
                 .ToList();
 
@@ -186,76 +281,21 @@ namespace HotelBookingApp
                 return;
             }
 
-            const int pageSize = 5; // Antal rum per sida
-            int currentPage = 0;
-            int totalPages = (int)Math.Ceiling((double)rooms.Count / pageSize);
+            Console.WriteLine(new string('-', 100));
+            Console.WriteLine($"{"Room ID",-10}{"Type",-15}{"Price/Night",-15}{"Size m²",-10}{"Availability",-15}{"Booked By",-20}");
+            Console.WriteLine(new string('-', 100));
 
-            while (true)
+            foreach (var entry in rooms)
             {
-                Console.Clear();
-                Console.WriteLine($"=== VIEW ALL ROOMS (Page {currentPage + 1}/{totalPages}) ===");
-                Console.WriteLine(new string('-', 90));
-                Console.WriteLine($"{"Room ID",-10}{"Type",-15}{"Price/Night",-15}{"Size m²",-10}{"Max People",-12}{"Booked By",-20}");
-                Console.WriteLine(new string('-', 90));
+                var room = entry.Room;
+                var bookedBy = entry.Booking?.Guest != null
+                    ? $"{entry.Booking.Guest.FirstName} {entry.Booking.Guest.LastName}"
+                    : "Not Booked";
 
-                var roomsOnPage = rooms
-                    .Skip(currentPage * pageSize)
-                    .Take(pageSize)
-                    .ToList();
-
-                foreach (var entry in roomsOnPage)
-                {
-                    var room = entry.Room;
-                    var booking = entry.Booking;
-
-                    // Bestäm vem som har bokat rummet
-                    var bookedBy = booking != null
-                        ? $"{booking.Guest.FirstName} {booking.Guest.LastName}" // Gästens namn
-                        : "Not Booked"; // Ingen bokning
-
-                    // Bestäm max antal personer
-                    var maxPeople = room.Type.Equals("Double", StringComparison.OrdinalIgnoreCase) ? 4 : 2;
-
-                    Console.WriteLine($"{room.RoomId,-10}{room.Type,-15}{room.PricePerNight,-15:C}{room.SizeInSquareMeters + " m²",-10}{maxPeople,-12}{bookedBy,-20}");
-                }
-
-                Console.WriteLine(new string('-', 90));
-                Console.WriteLine("\nOptions: [N] Next Page | [P] Previous Page | [Q] Quit");
-                ConsoleKey input = Console.ReadKey(true).Key; 
-
-                switch (input)
-                {
-                    case ConsoleKey.N:
-                        if (currentPage < totalPages - 1)
-                        {
-                            currentPage++;
-                        }
-                        else
-                        {
-                            Console.WriteLine("You are on the last page. Press any key to continue...");
-                            Console.ReadKey(true);
-                        }
-                        break;
-                    case ConsoleKey.P:
-                        if (currentPage > 0)
-                        {
-                            currentPage--;
-                        }
-                        else
-                        {
-                            Console.WriteLine("You are on the first page. Press any key to continue...");
-                            Console.ReadKey(true);
-                        }
-                        break;
-                    case ConsoleKey.Q:
-                        Console.WriteLine("Exiting room view...");
-                        return; 
-                    default:
-                        Console.WriteLine("Invalid choice. Please use [N], [P], or [Q]. Press any key to continue...");
-                        Console.ReadKey(true);
-                        break;
-                }
+                Console.WriteLine($"{room.RoomId,-10}{room.Type,-15}{room.PricePerNight,-15:C}{room.SizeInSquareMeters,-10}{(room.IsAvailable ? "Available" : "Not Available"),-15}{bookedBy,-20}");
             }
+
+            Console.WriteLine(new string('-', 100));
         }
 
         private void PromptToContinue()
