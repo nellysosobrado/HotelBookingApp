@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace HotelBookingApp
@@ -8,22 +7,11 @@ namespace HotelBookingApp
     {
         private readonly AppDbContext _context;
         private readonly RegisterNewBooking _registerNewBooking;
-        private readonly Dictionary<string, Action> _menuActions;
 
         public BookingManager(AppDbContext context, RegisterNewBooking registerNewBooking)
         {
             _context = context;
             _registerNewBooking = registerNewBooking;
-
-            _menuActions = new Dictionary<string, Action>
-            {
-                { "1", CheckInGuest },
-                { "2", CheckOutGuest },
-                { "3", ViewBookingDetails },
-                { "4", _registerNewBooking.Execute },
-                { "5", ViewAllGuests },
-                { "6", ReturnToMainMenu }
-            };
         }
 
         public void Run()
@@ -31,38 +19,56 @@ namespace HotelBookingApp
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("BOOKING MANAGER");
-                Console.WriteLine("Choose an option:");
-                Console.WriteLine("1. Check In Guest");
-                Console.WriteLine("2. Check Out Guest");
-                Console.WriteLine("3. View Booking Details");
-                Console.WriteLine("4. Register New Booking");
-                Console.WriteLine("5. View All Guests");
-                Console.WriteLine("6. Back to Main Menu");
+                DisplayMenu();
 
-                var choice = Console.ReadLine();
+                var choice = Console.ReadLine()?.Trim();
 
-                if (_menuActions.ContainsKey(choice))
+                switch (choice)
                 {
-                    _menuActions[choice]();
-                }
-                else
-                {
-                    Console.WriteLine("Invalid choice. Please try again.");
+                    case "1":
+                        CheckInGuest();
+                        break;
+                    case "2":
+                        CheckOutGuest();
+                        break;
+                    case "3":
+                        ViewBookingDetails();
+                        break;
+                    case "4":
+                        _registerNewBooking.Execute();
+                        break;
+                    case "5":
+                        ViewAllGuests();
+                        break;
+                    case "6":
+                        ReturnToMainMenu();
+                        return; // Avsluta och återgå till huvudmenyn
+                    default:
+                        Console.WriteLine("Invalid choice. Please try again.");
+                        break;
                 }
 
-                Console.WriteLine("Press any key to continue...");
-                Console.ReadKey();
+                PromptToContinue();
             }
         }
 
-        private void ReturnToMainMenu()
+        private void DisplayMenu()
         {
-            Console.WriteLine("Returning to main menu...");
+            Console.WriteLine("=== BOOKING MANAGER ===");
+            Console.WriteLine("Choose an option:");
+            Console.WriteLine("1. Check In Guest");
+            Console.WriteLine("2. Check Out Guest");
+            Console.WriteLine("3. View Booking Details");
+            Console.WriteLine("4. Register New Booking");
+            Console.WriteLine("5. View All Guests");
+            Console.WriteLine("6. Back to Main Menu");
+            Console.WriteLine("========================");
         }
 
         public void CheckInGuest()
         {
+            Console.Clear();
+            Console.WriteLine("=== CHECK IN GUEST ===");
             Console.WriteLine("Enter Booking ID to check in:");
             if (int.TryParse(Console.ReadLine(), out int checkInId))
             {
@@ -80,7 +86,7 @@ namespace HotelBookingApp
                 }
 
                 booking.IsCheckedIn = true;
-                booking.CheckInDate = DateTime.Now; // 
+                booking.CheckInDate = DateTime.Now;
                 _context.SaveChanges();
                 Console.WriteLine($"Guest with Booking ID {checkInId} has been successfully checked in.");
             }
@@ -90,9 +96,10 @@ namespace HotelBookingApp
             }
         }
 
-
         public void CheckOutGuest()
         {
+            Console.Clear();
+            Console.WriteLine("=== CHECK OUT GUEST ===");
             Console.WriteLine("Enter Booking ID to check out:");
             if (int.TryParse(Console.ReadLine(), out int checkOutId))
             {
@@ -122,6 +129,8 @@ namespace HotelBookingApp
 
         public void ViewBookingDetails()
         {
+            Console.Clear();
+            Console.WriteLine("=== VIEW BOOKING DETAILS ===");
             Console.WriteLine("Enter Booking ID to view details:");
             if (int.TryParse(Console.ReadLine(), out int viewId))
             {
@@ -157,6 +166,8 @@ namespace HotelBookingApp
 
         public void ViewAllGuests()
         {
+            Console.Clear();
+            Console.WriteLine("=== VIEW ALL GUESTS ===");
             var guests = _context.Guests
                 .GroupJoin(
                     _context.Bookings,
@@ -203,6 +214,16 @@ namespace HotelBookingApp
                 Console.WriteLine("----------------------------");
             }
         }
+
+        private void ReturnToMainMenu()
+        {
+            Console.WriteLine("Returning to main menu...");
+        }
+
+        private void PromptToContinue()
+        {
+            Console.WriteLine("\nPress any key to return to the menu...");
+            Console.ReadKey();
+        }
     }
 }
-
