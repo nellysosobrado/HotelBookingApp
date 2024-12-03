@@ -49,6 +49,7 @@ namespace HotelBookingApp
             builder.RegisterType<RegisterNewBooking>().AsSelf();
             builder.RegisterType<Admin>().AsSelf();
             builder.RegisterType<RoomService>().AsSelf();
+            builder.RegisterType<GuestServices>().AsSelf();
 
         }
     }
