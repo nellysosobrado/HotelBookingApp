@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Manager\MainMenuManager\" />
     <Folder Include="NewFolder\" />
   </ItemGroup>
 

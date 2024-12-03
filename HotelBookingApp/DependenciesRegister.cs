@@ -43,11 +43,12 @@ namespace HotelBookingApp
 
 
             // Registrera tjänster och huvudklasser
-            builder.RegisterType<MainMenu>().AsSelf();
+            builder.RegisterType<MainMenuManager>().AsSelf();
             builder.RegisterType<HotelBookingApp>().AsSelf();
             builder.RegisterType<BookingManager>().AsSelf();
             builder.RegisterType<RegisterNewBooking>().AsSelf();
             builder.RegisterType<Admin>().AsSelf();
+            builder.RegisterType<RoomService>().AsSelf();
 
         }
     }

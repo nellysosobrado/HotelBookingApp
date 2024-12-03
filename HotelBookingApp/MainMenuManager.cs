@@ -2,15 +2,17 @@
 
 namespace HotelBookingApp
 {
-    public class MainMenu
+    public class MainMenuManager
     {
         private readonly BookingManager _bookingManager;
         private readonly Admin _admin;
+        private readonly RoomService _roomService;
 
-        public MainMenu(BookingManager bookingManager, Admin admin)
+        public MainMenuManager(BookingManager bookingManager, Admin admin, RoomService roomService)
         {
             _bookingManager = bookingManager;
             _admin = admin;
+            _roomService = roomService;
         }
 
         public void Run()
@@ -21,7 +23,7 @@ namespace HotelBookingApp
                 Console.WriteLine("HOTEL BOOKING APP");
                 Console.WriteLine("Choose an option:");
                 Console.WriteLine("1. Booking");
-                Console.WriteLine("2. Admin");
+                Console.WriteLine("2. Room");
                 Console.WriteLine("3. Exit");
 
                 var choice = Console.ReadLine();
@@ -33,7 +35,7 @@ namespace HotelBookingApp
                         break;
 
                     case "2":
-                        _admin.Run();
+                        _roomService.Menu();
                         break;
 
                     case "3":

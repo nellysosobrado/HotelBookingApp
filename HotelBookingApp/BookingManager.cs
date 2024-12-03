@@ -35,9 +35,6 @@ namespace HotelBookingApp
                     case "3":
                         ViewBookingDetails();
                         break;
-                    case "4":
-                        _registerNewBooking.Execute();
-                        break;
                     case "5":
                         ViewAllGuests();
                         break;
