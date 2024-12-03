@@ -15,13 +15,15 @@ namespace HotelBookingApp
         }
         public void Menu()
         {
-            string[] options = { "Register New Room", "Edit Room", "View All Rooms", "Exit" };
+            string[] options = { "Register New Room", "Edit Room", "View All Rooms", "Main Menu" };
 
             while (true)
             {
+                
                 int selectedOption = NavigateMenu(options);
 
                 Console.Clear();
+                
                 switch (selectedOption)
                 {
                     case 0:
@@ -50,7 +52,7 @@ namespace HotelBookingApp
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("=== ROOM SERVICE MENU ===");
+                Console.WriteLine("RoomServices.cs");
 
                 // Visa alternativen och markera det valda alternativet
                 for (int i = 0; i < options.Length; i++)
@@ -288,21 +290,76 @@ namespace HotelBookingApp
                 return;
             }
 
-            Console.WriteLine(new string('-', 100));
-            Console.WriteLine($"{"Room ID",-10}{"Type",-15}{"Price/Night",-15}{"Size m²",-10}{"Availability",-15}{"Booked By",-20}");
-            Console.WriteLine(new string('-', 100));
+            const int pageSize = 5; // Antal rader per sida
+            int currentPage = 0;
+            int totalPages = (int)Math.Ceiling((double)rooms.Count / pageSize);
 
-            foreach (var entry in rooms)
+            while (true)
             {
-                var room = entry.Room;
-                var bookedBy = entry.Booking?.Guest != null
-                    ? $"{entry.Booking.Guest.FirstName} {entry.Booking.Guest.LastName}"
-                    : "Not Booked";
+                Console.Clear();
+                Console.WriteLine($"=== VIEW ALL ROOMS (Page {currentPage + 1} of {totalPages}) ===");
 
-                Console.WriteLine($"{room.RoomId,-10}{room.Type,-15}{room.PricePerNight,-15:C}{room.SizeInSquareMeters,-10}{(room.IsAvailable ? "Available" : "Not Available"),-15}{bookedBy,-20}");
+                Console.WriteLine(new string('-', 100));
+                Console.WriteLine($"{"Room ID",-10}{"Type",-15}{"Price/Night",-15}{"Size m²",-10}{"Availability",-15}{"Booked By",-20}");
+                Console.WriteLine(new string('-', 100));
+
+                var roomsOnPage = rooms.Skip(currentPage * pageSize).Take(pageSize);
+
+                foreach (var entry in roomsOnPage)
+                {
+                    var room = entry.Room;
+                    var bookedBy = entry.Booking?.Guest != null
+                        ? $"{entry.Booking.Guest.FirstName} {entry.Booking.Guest.LastName}"
+                        : "Not Booked";
+
+                    Console.WriteLine($"{room.RoomId,-10}{room.Type,-15}{room.PricePerNight,-15:C}{room.SizeInSquareMeters,-10}{(room.IsAvailable ? "Available" : "Not Available"),-15}{bookedBy,-20}");
+                }
+
+                Console.WriteLine(new string('-', 100));
+                Console.WriteLine("\nOptions: [N] Next Page | [P] Previous Page | [Q] Quit");
+
+                var key = Console.ReadKey(true).Key;
+
+                switch (key)
+                {
+                    case ConsoleKey.N:
+                        if (currentPage < totalPages - 1)
+                        {
+                            currentPage++;
+                        }
+                        else
+                        {
+                            Console.WriteLine("You are on the last page.");
+                            Console.WriteLine("Press any key to continue...");
+                            Console.ReadKey(true);
+                        }
+                        break;
+
+                    case ConsoleKey.P:
+                        if (currentPage > 0)
+                        {
+                            currentPage--;
+                        }
+                        else
+                        {
+                            Console.WriteLine("You are on the first page.");
+                            Console.WriteLine("Press any key to continue...");
+                            Console.ReadKey(true);
+                        }
+                        break;
+
+                    case ConsoleKey.Q:
+                        Console.WriteLine("Exiting room view...");
+                        return;
+
+                    default:
+                        Console.WriteLine("Invalid input. Please use [N], [P], or [Q].");
+                        Console.WriteLine("Press any key to continue...");
+                        Console.ReadKey(true);
+                        break;
+                }
             }
-
-            Console.WriteLine(new string('-', 100));
         }
+
     }
 }
