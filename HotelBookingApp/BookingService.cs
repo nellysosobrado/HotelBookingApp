@@ -14,14 +14,13 @@ namespace HotelBookingApp
             _context = context;
             _registerNewBooking = registerNewBooking;
         }
-       
+
         public void Menu()
         {
-            string[] options = { "Check in guest", "Check out guest", "Search booking id","View all guests", "View paid bookings", "main menu" };
+            string[] options = { "Check in guest", "Check out guest", "Search booking id", "View all guests", "View paid bookings", "Edit or cancel booking","Search for available room", "Main menu" };
 
             while (true)
             {
-
                 int selectedOption = NavigateMenu(options);
 
                 Console.Clear();
@@ -44,13 +43,17 @@ namespace HotelBookingApp
                         ViewPaidBookings();
                         break;
                     case 5:
-                        ReturnToMainMenu();
+                        ModifyOrCancelBooking();
                         break;
-                    default:
-                        Console.WriteLine("Invalid choisem try again");
+                    case 6:
+                        RoomSearching();
                         break;
-
+                    case 7:
                         return;
+
+                    default:
+                        Console.WriteLine("Invalid choice, try again.");
+                        break;
                 }
 
                 // Ge användaren tid att se resultatet innan menyn visas igen
@@ -58,6 +61,7 @@ namespace HotelBookingApp
                 Console.ReadKey(true);
             }
         }
+
         public int NavigateMenu(string[] options)
         {
             int selectedOption = 0;
@@ -98,9 +102,195 @@ namespace HotelBookingApp
             }
         }
 
-       
+        public void RoomSearching()
+        {
+            Console.Clear();
+            Console.WriteLine("=== SEARCH AVAILABLE ROOMS ===");
 
-        
+            // Ange startdatum
+            Console.WriteLine("Enter start date (yyyy-MM-dd):");
+            if (!DateTime.TryParse(Console.ReadLine(), out DateTime startDate))
+            {
+                Console.WriteLine("Invalid date format.");
+                return;
+            }
+
+            // Ange slutdatum
+            Console.WriteLine("Enter end date (yyyy-MM-dd):");
+            if (!DateTime.TryParse(Console.ReadLine(), out DateTime endDate) || endDate < startDate)
+            {
+                Console.WriteLine("Invalid date format or end date is earlier than start date.");
+                return;
+            }
+
+            // Ange antal personer
+            Console.WriteLine("Enter the number of guests:");
+            if (!int.TryParse(Console.ReadLine(), out int guestCount) || guestCount <= 0)
+            {
+                Console.WriteLine("Invalid number of guests.");
+                return;
+            }
+
+            // Hämta alla rum som inte är bokade under det givna intervallet och som har kapacitet för antalet gäster
+            var availableRooms = _context.Rooms
+                .Where(room => room.TotalPeople >= guestCount &&
+                               !_context.Bookings.Any(b => b.RoomId == room.RoomId &&
+                                                           ((b.CheckInDate <= endDate && b.CheckOutDate >= startDate))))
+                .ToList();
+
+            // Visa resultaten
+            if (!availableRooms.Any())
+            {
+                Console.WriteLine("No available rooms found for the given criteria.");
+            }
+            else
+            {
+                Console.WriteLine($"\nAvailable rooms from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd} for {guestCount} guest(s):");
+                Console.WriteLine(new string('-', 50));
+                Console.WriteLine($"{"Room ID",-10}{"Type",-15}{"TotalPeople",-10}{"Price/Night",-10}");
+                Console.WriteLine(new string('-', 50));
+
+                foreach (var room in availableRooms)
+                {
+                    Console.WriteLine($"{room.RoomId,-10}{room.Type,-15}{room.TotalPeople,-10}{room.PricePerNight,-10:C}");
+                }
+            }
+
+            Console.WriteLine("\nPress any key to return to the menu...");
+            Console.ReadKey();
+        }
+
+
+        public void ModifyOrCancelBooking()
+        {
+            Console.Clear();
+            Console.WriteLine("=== MODIFY OR CANCEL BOOKING ===");
+            Console.WriteLine("Enter Booking ID to modify or cancel:");
+
+            if (int.TryParse(Console.ReadLine(), out int bookingId))
+            {
+                // Hämta bokningen baserat på ID
+                var booking = _context.Bookings.FirstOrDefault(b => b.BookingId == bookingId);
+                if (booking == null)
+                {
+                    Console.WriteLine("Booking not found.");
+                    return;
+                }
+
+                // Visa bokningsinformation
+                Console.WriteLine("\n--- Current Booking Details ---");
+                Console.WriteLine($"Booking ID: {booking.BookingId}");
+                Console.WriteLine($"Room ID: {booking.RoomId}");
+                Console.WriteLine($"Guest ID: {booking.GuestId}");
+                Console.WriteLine($"Check-in Date: {booking.CheckInDate}");
+                Console.WriteLine($"Check-out Date: {booking.CheckOutDate}");
+                Console.WriteLine($"Checked In: {(booking.IsCheckedIn ? "Yes" : "No")}");
+                Console.WriteLine($"Checked Out: {(booking.IsCheckedOut ? "Yes" : "No")}");
+                Console.WriteLine("--------------------------------");
+
+                Console.WriteLine("\nOptions:");
+                Console.WriteLine("1. Cancel booking");
+                Console.WriteLine("2. Modify booking details");
+                Console.Write("Choose an option: ");
+
+                var choice = Console.ReadLine()?.Trim();
+                switch (choice)
+                {
+                    case "1":
+                        CancelBooking(booking);
+                        break;
+                    case "2":
+                        ModifyBookingDetails(booking);
+                        break;
+                    default:
+                        Console.WriteLine("Invalid choice. Returning to menu...");
+                        break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Invalid Booking ID.");
+            }
+        }
+
+        // Funktion för att avboka en bokning
+        private void CancelBooking(Booking booking)
+        {
+            if (booking.IsCheckedIn || booking.IsCheckedOut)
+            {
+                Console.WriteLine("Cannot cancel the booking.");
+
+                if (booking.IsCheckedIn && !booking.IsCheckedOut)
+                {
+                    Console.WriteLine("Reason: The guest has already checked in.");
+                }
+                else if (booking.IsCheckedOut)
+                {
+                    Console.WriteLine("Reason: The booking has already been completed with a check-out.");
+                }
+
+                Console.WriteLine("Cancellation is only allowed for bookings that have not started.");
+                return;
+            }
+
+            // Ta bort relaterade fakturor och betalningar
+            var invoice = _context.Invoices.FirstOrDefault(i => i.BookingId == booking.BookingId);
+            if (invoice != null)
+            {
+                var payments = _context.Payments.Where(p => p.InvoiceId == invoice.InvoiceId).ToList();
+                _context.Payments.RemoveRange(payments); // Ta bort betalningar
+                _context.Invoices.Remove(invoice);       // Ta bort fakturan
+            }
+
+            // Ta bort bokningen
+            _context.Bookings.Remove(booking);
+            _context.SaveChanges();
+
+            Console.WriteLine($"Booking with ID {booking.BookingId} has been successfully canceled.");
+        }
+
+        // Funktion för att ändra bokningsdetaljer
+        private void ModifyBookingDetails(Booking booking)
+        {
+            Console.Clear();
+            Console.WriteLine("=== MODIFY BOOKING DETAILS ===");
+
+            Console.WriteLine("Enter new Room ID (leave blank to keep current):");
+            var newRoomIdInput = Console.ReadLine()?.Trim();
+            if (!string.IsNullOrWhiteSpace(newRoomIdInput) && int.TryParse(newRoomIdInput, out int newRoomId))
+            {
+                var room = _context.Rooms.FirstOrDefault(r => r.RoomId == newRoomId);
+                if (room == null)
+                {
+                    Console.WriteLine("Room not found. Keeping current room.");
+                }
+                else
+                {
+                    booking.RoomId = newRoomId;
+                }
+            }
+
+            Console.WriteLine("Enter new Check-in Date (yyyy-MM-dd, leave blank to keep current):");
+            var newCheckInDateInput = Console.ReadLine()?.Trim();
+            if (!string.IsNullOrWhiteSpace(newCheckInDateInput) && DateTime.TryParse(newCheckInDateInput, out DateTime newCheckInDate))
+            {
+                booking.CheckInDate = newCheckInDate;
+            }
+
+            Console.WriteLine("Enter new Check-out Date (yyyy-MM-dd, leave blank to keep current):");
+            var newCheckOutDateInput = Console.ReadLine()?.Trim();
+            if (!string.IsNullOrWhiteSpace(newCheckOutDateInput) && DateTime.TryParse(newCheckOutDateInput, out DateTime newCheckOutDate))
+            {
+                booking.CheckOutDate = newCheckOutDate;
+            }
+
+            _context.SaveChanges();
+            Console.WriteLine($"Booking with ID {booking.BookingId} has been successfully updated.");
+        }
+
+
+
+
 
 
         public void CheckInGuest()

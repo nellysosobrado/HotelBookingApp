@@ -31,34 +31,41 @@ namespace HotelBookingApp
             // Seed-data
             SeedData(modelBuilder);
         }
-
         private void SeedData(ModelBuilder modelBuilder)
         {
+            // Dynamiskt generera datum baserat på dagens datum
+            DateTime today = DateTime.Now.Date;
+            DateTime futureCheckInDate = today.AddDays(1); // Check-in startar imorgon
+            DateTime futureCheckOutDate = futureCheckInDate.AddDays(3); // Tre dagar efter incheckning
+
+            // Seed Rooms
             modelBuilder.Entity<Room>().HasData(
-                new Room { RoomId = 1, Type = "Single", ExtraBeds = 0, IsAvailable = false , PricePerNight = 1500, SizeInSquareMeters=20},
+                new Room { RoomId = 1, Type = "Single", ExtraBeds = 0, IsAvailable = false, PricePerNight = 1500, SizeInSquareMeters = 20 },
                 new Room { RoomId = 2, Type = "Double", ExtraBeds = 1, IsAvailable = false, PricePerNight = 3500, SizeInSquareMeters = 80 },
                 new Room { RoomId = 3, Type = "Double", ExtraBeds = 2, IsAvailable = true, PricePerNight = 3500, SizeInSquareMeters = 70 },
-                new Room { RoomId = 4, Type = "Single", ExtraBeds = 0, IsAvailable = true,PricePerNight = 1500, SizeInSquareMeters = 215 }
+                new Room { RoomId = 4, Type = "Single", ExtraBeds = 0, IsAvailable = true, PricePerNight = 1500, SizeInSquareMeters = 215 }
             );
 
+            // Seed Guests
             modelBuilder.Entity<Guest>().HasData(
-                new Guest { GuestId = 1, FirstName = "Person2", LastName = "lastname1", Email = "234p@example.com", PhoneNumber = "234" },
-                new Guest { GuestId = 2, FirstName = "Person2", LastName = "lastname2", Email = "342p@example.com", PhoneNumber = "3453" },
-                new Guest { GuestId = 3, FirstName = "Person3", LastName = "lastname3", Email = "p234@example.com", PhoneNumber = "3453" },
-                new Guest { GuestId = 4, FirstName = "Person4", LastName = "lastname4", Email = "243p@example.com", PhoneNumber = "43" }
+                new Guest { GuestId = 1, FirstName = "Person1", LastName = "Lastname1", Email = "234p@example.com", PhoneNumber = "234" },
+                new Guest { GuestId = 2, FirstName = "Person2", LastName = "Lastname2", Email = "342p@example.com", PhoneNumber = "3453" },
+                new Guest { GuestId = 3, FirstName = "Person3", LastName = "Lastname3", Email = "p234@example.com", PhoneNumber = "3453" },
+                new Guest { GuestId = 4, FirstName = "Person4", LastName = "Lastname4", Email = "243p@example.com", PhoneNumber = "43" }
             );
-            
+
+            // Seed Bookings
             modelBuilder.Entity<Booking>().HasData(
                 new Booking
                 {
                     BookingId = 1,
                     GuestId = 1,
                     RoomId = 1,
-                    IsCheckedIn = true,
+                    IsCheckedIn = false,
                     IsCheckedOut = true,
-                    BookingStatus = true, // Completed
-                    CheckInDate = DateTime.Now.AddDays(-5),
-                    CheckOutDate = DateTime.Now.AddDays(-1)
+                    BookingStatus = true, // test Check out!
+                    CheckInDate = futureCheckInDate,
+                    CheckOutDate = futureCheckOutDate
                 },
                 new Booking
                 {
@@ -68,41 +75,45 @@ namespace HotelBookingApp
                     IsCheckedIn = true,
                     IsCheckedOut = false,
                     BookingStatus = false, // Not completed
-                    CheckInDate = DateTime.Now.AddDays(-2),
-                    CheckOutDate = null
+                    CheckInDate = futureCheckInDate,
+                    CheckOutDate = futureCheckOutDate
                 }
             );
 
-            modelBuilder.Entity<Invoice>().HasData(
-                new Invoice
-                {
-                    InvoiceId = 1,
-                    BookingId = 1,
-                    TotalAmount = 500.00m,
-                    IsPaid = true,
-                    PaymentDeadline = DateTime.Now.AddDays(-3)
-                },
-                new Invoice
-                {
-                    InvoiceId = 2,
-                    BookingId = 2,
-                    TotalAmount = 300.00m,
-                    IsPaid = false,
-                    PaymentDeadline = DateTime.Now.AddDays(5)
-                }
-            );
-
-            modelBuilder.Entity<Payment>().HasData(
-                new Payment
-                {
-                    PaymentId = 1,
-                    InvoiceId = 1,
-                    PaymentDate = DateTime.Now.AddDays(-4),
-                    AmountPaid = 500.00m
-                }
-            );
+            // Seed Invoices
+            var invoices = new[]
+            {
+        new Invoice
+        {
+            InvoiceId = 1,
+            BookingId = 1,
+            TotalAmount = 1500m,
+            IsPaid = false,
+            PaymentDeadline = futureCheckOutDate.AddDays(7)
+        },
+        new Invoice
+        {
+            InvoiceId = 2,
+            BookingId = 2,
+            TotalAmount = 10500.00m,
+            IsPaid = false,
+            PaymentDeadline = futureCheckOutDate.AddDays(7)
         }
+    };
 
+            modelBuilder.Entity<Invoice>().HasData(invoices);
+
+            // Seed Payments dynamically linked to invoices
+            var payments = invoices.Select(invoice => new Payment
+            {
+                PaymentId = invoice.InvoiceId, 
+                InvoiceId = invoice.InvoiceId,
+                PaymentDate = today,
+                AmountPaid = invoice.TotalAmount 
+            }).ToArray();
+
+            modelBuilder.Entity<Payment>().HasData(payments);
+        }
 
 
 

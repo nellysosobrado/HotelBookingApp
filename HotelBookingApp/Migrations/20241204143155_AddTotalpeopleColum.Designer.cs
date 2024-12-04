@@ -4,6 +4,7 @@ using HotelBookingApp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBookingApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241204143155_AddTotalpeopleColum")]
+    partial class AddTotalpeopleColum
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,8 +67,8 @@ namespace HotelBookingApp.Migrations
                         {
                             BookingId = 1,
                             BookingStatus = true,
-                            CheckInDate = new DateTime(2024, 11, 29, 15, 38, 28, 594, DateTimeKind.Local).AddTicks(2563),
-                            CheckOutDate = new DateTime(2024, 12, 3, 15, 38, 28, 595, DateTimeKind.Local).AddTicks(5171),
+                            CheckInDate = new DateTime(2024, 11, 29, 15, 31, 55, 18, DateTimeKind.Local).AddTicks(7191),
+                            CheckOutDate = new DateTime(2024, 12, 3, 15, 31, 55, 20, DateTimeKind.Local).AddTicks(22),
                             GuestId = 1,
                             IsCheckedIn = true,
                             IsCheckedOut = true,
@@ -75,7 +78,7 @@ namespace HotelBookingApp.Migrations
                         {
                             BookingId = 2,
                             BookingStatus = false,
-                            CheckInDate = new DateTime(2024, 12, 2, 15, 38, 28, 595, DateTimeKind.Local).AddTicks(5379),
+                            CheckInDate = new DateTime(2024, 12, 2, 15, 31, 55, 20, DateTimeKind.Local).AddTicks(226),
                             GuestId = 2,
                             IsCheckedIn = true,
                             IsCheckedOut = false,
@@ -178,7 +181,7 @@ namespace HotelBookingApp.Migrations
                             InvoiceId = 1,
                             BookingId = 1,
                             IsPaid = true,
-                            PaymentDeadline = new DateTime(2024, 12, 1, 15, 38, 28, 595, DateTimeKind.Local).AddTicks(6270),
+                            PaymentDeadline = new DateTime(2024, 12, 1, 15, 31, 55, 20, DateTimeKind.Local).AddTicks(1088),
                             TotalAmount = 500.00m
                         },
                         new
@@ -186,7 +189,7 @@ namespace HotelBookingApp.Migrations
                             InvoiceId = 2,
                             BookingId = 2,
                             IsPaid = false,
-                            PaymentDeadline = new DateTime(2024, 12, 9, 15, 38, 28, 595, DateTimeKind.Local).AddTicks(6408),
+                            PaymentDeadline = new DateTime(2024, 12, 9, 15, 31, 55, 20, DateTimeKind.Local).AddTicks(1219),
                             TotalAmount = 300.00m
                         });
                 });
@@ -220,7 +223,7 @@ namespace HotelBookingApp.Migrations
                             PaymentId = 1,
                             AmountPaid = 500.00m,
                             InvoiceId = 1,
-                            PaymentDate = new DateTime(2024, 11, 30, 15, 38, 28, 595, DateTimeKind.Local).AddTicks(6921)
+                            PaymentDate = new DateTime(2024, 11, 30, 15, 31, 55, 20, DateTimeKind.Local).AddTicks(1717)
                         });
                 });
 

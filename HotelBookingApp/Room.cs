@@ -21,6 +21,8 @@ namespace HotelBookingApp
         public int ExtraBeds { get; set; } 
         public bool IsAvailable { get; set; }
 
+        public decimal TotalPeople { get; set; }
+
         //--------
         
 
