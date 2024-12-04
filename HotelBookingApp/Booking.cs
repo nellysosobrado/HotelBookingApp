@@ -18,7 +18,7 @@ namespace HotelBookingApp
         public bool IsCheckedIn { get; set; }
         public bool IsCheckedOut { get; set; } 
 
-        public bool CompletedBooking { get; set; }
+        public bool BookingStatus { get; set; }
         //true if booking is done
         public ICollection<Invoice> Invoices { get; set; }
     }
