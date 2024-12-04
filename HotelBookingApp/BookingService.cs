@@ -1,72 +1,106 @@
-﻿using System;
+﻿using HotelBookingApp.Interfaces;
+using System;
 using System.Linq;
 
 namespace HotelBookingApp
 {
-    public class BookingManager
+    public class BookingService : IMenu, IMenuNavigation
     {
         private readonly AppDbContext _context;
         private readonly RegisterNewBooking _registerNewBooking;
 
-        public BookingManager(AppDbContext context, RegisterNewBooking registerNewBooking)
+        public BookingService(AppDbContext context, RegisterNewBooking registerNewBooking)
         {
             _context = context;
             _registerNewBooking = registerNewBooking;
         }
-
-        public void Run()
+       
+        public void Menu()
         {
+            string[] options = { "Check in guest", "Check out guest", "Search booking id","View all guests", "View paid bookings", "main menu" };
+
+            while (true)
+            {
+
+                int selectedOption = NavigateMenu(options);
+
+                Console.Clear();
+
+                switch (selectedOption)
+                {
+                    case 0:
+                        CheckInGuest();
+                        break;
+                    case 1:
+                        CheckOutGuest();
+                        break;
+                    case 2:
+                        ViewBookingDetails();
+                        break;
+                    case 3:
+                        ViewAllGuests();
+                        break;
+                    case 4:
+                        ViewPaidBookings();
+                        break;
+                    case 5:
+                        ReturnToMainMenu();
+                        break;
+                    default:
+                        Console.WriteLine("Invalid choisem try again");
+                        break;
+
+                        return;
+                }
+
+                // Ge användaren tid att se resultatet innan menyn visas igen
+                Console.WriteLine("\nPress any key to return to the menu...");
+                Console.ReadKey(true);
+            }
+        }
+        public int NavigateMenu(string[] options)
+        {
+            int selectedOption = 0;
+
             while (true)
             {
                 Console.Clear();
-                DisplayMenu();
+                Console.WriteLine("BookingService.cs");
 
-                var choice = Console.ReadLine()?.Trim();
-
-                switch (choice)
+                // Visa alternativen och markera det valda alternativet
+                for (int i = 0; i < options.Length; i++)
                 {
-                    case "1":
-                        CheckInGuest();
-                        break;
-                    case "2":
-                        CheckOutGuest();
-                        
-                        break;
-                    case "3":
-                        ViewBookingDetails();
-                        break;
-                    case "5":
-                        ViewAllGuests();
-                        break;
-                    case "6": // Hantera betalda bokningar
-                        ViewPaidBookings();
-                        break;
-                    case "7":
-                        ReturnToMainMenu();
-                        return;
-                    default:
-                        Console.WriteLine("Invalid choice. Please try again.");
-                        break;
+                    if (i == selectedOption)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green; // Markera det valda alternativet
+                        Console.WriteLine($"> {options[i]}");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"  {options[i]}");
+                    }
                 }
 
-
-                PromptToContinue();
+                // Hantera knapptryckningar
+                ConsoleKey key = Console.ReadKey(true).Key;
+                switch (key)
+                {
+                    case ConsoleKey.UpArrow:
+                        selectedOption = (selectedOption - 1 + options.Length) % options.Length; // Flytta upp
+                        break;
+                    case ConsoleKey.DownArrow:
+                        selectedOption = (selectedOption + 1) % options.Length; // Flytta ner
+                        break;
+                    case ConsoleKey.Enter:
+                        return selectedOption; // Returnera det valda alternativet
+                }
             }
         }
 
-        private void DisplayMenu()
-        {
-            Console.WriteLine("=== BOOKING MANAGER ===");
-            Console.WriteLine("Choose an option:");
-            Console.WriteLine("1. Check In Guest");
-            Console.WriteLine("2. Check Out Guest");
-            Console.WriteLine("3. View Booking Details");
-            Console.WriteLine("4. Register New Booking");
-            Console.WriteLine("5. View All Guests");
-            Console.WriteLine("6. View Paid Bookings"); // Nytt alternativ
-            Console.WriteLine("7. Back to Main Menu");
-            Console.WriteLine("========================");
-        }
+       
+
+        
 
 
         public void CheckInGuest()
@@ -154,10 +188,10 @@ namespace HotelBookingApp
                         Guest = guest,
                         Bookings = bookings.Select(b => new
                         {
-                            RoomId = b.RoomId,
-                            IsCheckedIn = b.IsCheckedIn,
-                            IsCheckedOut = b.IsCheckedOut,
-                            BookingStatus = b.BookingStatus
+                            b.RoomId,
+                            b.IsCheckedIn,
+                            b.IsCheckedOut,
+                            b.BookingStatus
                         }).ToList()
                     })
                 .ToList();
@@ -176,9 +210,9 @@ namespace HotelBookingApp
             {
                 Console.Clear();
                 Console.WriteLine($"=== VIEW ALL GUESTS (Page {currentPage + 1}/{totalPages}) ===");
-                Console.WriteLine(new string('-', 150));
-                Console.WriteLine($"{"Guest ID",-10}{"Name",-25}{"Email",-30}{"Phone",-15}{"Room",-15}{"Checked In",-12}{"Checked Out",-12}{"Status",-10}");
-                Console.WriteLine(new string('-', 150));
+                Console.WriteLine(new string('-', 100));
+                Console.WriteLine($"{"GuestID",-10}{"Name",-20}{"Email",-25}{"Phone",-15}{"RoomID",-8}{"In",-5}{"Out",-5}{"Status",-7}");
+                Console.WriteLine(new string('-', 100));
 
                 var guestsOnPage = guests
                     .Skip(currentPage * pageSize)
@@ -189,29 +223,18 @@ namespace HotelBookingApp
                 {
                     var guest = entry.Guest;
 
-                    // Endast rums-ID eller "-"
                     var roomInfo = entry.Bookings.Any()
-                        ? string.Join(", ", entry.Bookings.Select(b => $"ID {b.RoomId}"))
+                        ? string.Join(", ", entry.Bookings.Select(b => b.RoomId.ToString()))
                         : "-";
 
-                    // Markera CheckedIn och CheckedOut som "-" om ingen incheckning eller utcheckning har skett
-                    var isCheckedIn = entry.Bookings.Any()
-                        ? entry.Bookings.All(b => b.IsCheckedIn) ? "Yes" : "-"
-                        : "-";
+                    var isCheckedIn = entry.Bookings.Any() && entry.Bookings.All(b => b.IsCheckedIn) ? "Yes" : "-";
+                    var isCheckedOut = entry.Bookings.Any() && entry.Bookings.All(b => b.IsCheckedOut) ? "Yes" : "-";
+                    var bookingStatus = entry.Bookings.Any() && entry.Bookings.All(b => b.BookingStatus) ? "Yes" : "-";
 
-                    var isCheckedOut = entry.Bookings.Any()
-                        ? entry.Bookings.All(b => b.IsCheckedOut) ? "Yes" : "-"
-                        : "-";
-
-                    var bookingStatus = entry.Bookings.Any()
-                        ? entry.Bookings.All(b => b.BookingStatus) ? "Yes" : "-"
-                        : "-";
-
-                    // Justera bredden för att visa dynamiskt innehåll
-                    Console.WriteLine($"{guest.GuestId,-10}{guest.FirstName + " " + guest.LastName,-25}{guest.Email,-30}{guest.PhoneNumber,-15}{roomInfo,-15}{isCheckedIn,-12}{isCheckedOut,-12}{bookingStatus,-10}");
+                    Console.WriteLine($"{guest.GuestId,-10}{guest.FirstName + " " + guest.LastName,-20}{guest.Email,-25}{guest.PhoneNumber,-15}{roomInfo,-8}{isCheckedIn,-5}{isCheckedOut,-5}{bookingStatus,-7}");
                 }
 
-                Console.WriteLine(new string('-', 150));
+                Console.WriteLine(new string('-', 100));
                 Console.WriteLine("\nOptions: [N] Next Page | [P] Previous Page | [Q] Quit");
                 ConsoleKey input = Console.ReadKey(true).Key;
 
@@ -249,6 +272,7 @@ namespace HotelBookingApp
                 }
             }
         }
+
 
         public void ViewPaidBookings()
         {
