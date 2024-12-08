@@ -1,4 +1,5 @@
 ﻿using HotelBookingApp.Data;
+using HotelBookingApp.Entities;
 using System;
 
 namespace HotelBookingApp

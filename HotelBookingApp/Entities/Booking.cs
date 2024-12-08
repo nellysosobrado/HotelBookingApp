@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HotelBookingApp
+namespace HotelBookingApp.Entities
 {
     public class Booking
     {
@@ -16,7 +16,7 @@ namespace HotelBookingApp
         public DateTime? CheckInDate { get; set; }
         public DateTime? CheckOutDate { get; set; }
         public bool IsCheckedIn { get; set; }
-        public bool IsCheckedOut { get; set; } 
+        public bool IsCheckedOut { get; set; }
 
         public bool BookingStatus { get; set; }
         //true if booking is done
