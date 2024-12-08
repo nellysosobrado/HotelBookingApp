@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 
-namespace HotelBookingApp
+namespace HotelBookingApp.Data
 {
     public class AppDbContext : DbContext
     {
@@ -106,10 +106,10 @@ namespace HotelBookingApp
             // Seed Payments dynamically linked to invoices
             var payments = invoices.Select(invoice => new Payment
             {
-                PaymentId = invoice.InvoiceId, 
+                PaymentId = invoice.InvoiceId,
                 InvoiceId = invoice.InvoiceId,
                 PaymentDate = today,
-                AmountPaid = invoice.TotalAmount 
+                AmountPaid = invoice.TotalAmount
             }).ToArray();
 
             modelBuilder.Entity<Payment>().HasData(payments);

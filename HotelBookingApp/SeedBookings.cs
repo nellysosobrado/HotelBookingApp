@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HotelBookingApp.Data;
+using System;
 
 namespace HotelBookingApp
 {

@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using HotelBookingApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -10,7 +11,7 @@ namespace HotelBookingApp
         protected override void Load(ContainerBuilder builder)
         {
             var configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile("Data/appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
             // Registrera DbContext

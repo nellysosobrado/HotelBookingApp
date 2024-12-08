@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using HotelBookingApp.Data;
 using HotelBookingApp.Interfaces;
 using Microsoft.EntityFrameworkCore;
 

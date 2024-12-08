@@ -1,4 +1,5 @@
-﻿using HotelBookingApp.Interfaces;
+﻿using HotelBookingApp.Data;
+using HotelBookingApp.Interfaces;
 using System;
 using System.Linq;
 
@@ -9,6 +10,7 @@ namespace HotelBookingApp
         private readonly AppDbContext _context;
         private readonly RegisterNewBooking _registerNewBooking;
 
+
         public BookingService(AppDbContext context, RegisterNewBooking registerNewBooking)
         {
             _context = context;
@@ -17,7 +19,7 @@ namespace HotelBookingApp
 
         public void Menu()
         {
-            string[] options = { "Check in guest", "Check out guest", "Search booking id", "View all guests", "View paid bookings", "Edit or cancel booking","Search for available room", "Main menu" };
+            string[] options = { "Check in guest", "Check out guest", "Search booking id", "View all guests", "View paid bookings", "Edit or cancel booking", "Search for available room", "Main menu" };
 
             while (true)
             {
@@ -143,7 +145,7 @@ namespace HotelBookingApp
             var availableRooms = _context.Rooms
                 .Where(room => room.TotalPeople >= guestCount &&
                                !_context.Bookings.Any(b => b.RoomId == room.RoomId &&
-                                                           ((b.CheckInDate <= endDate && b.CheckOutDate >= startDate))))
+                                                           b.CheckInDate <= endDate && b.CheckOutDate >= startDate))
                 .ToList();
 
             if (!availableRooms.Any())
@@ -493,8 +495,8 @@ namespace HotelBookingApp
                     (bookingInvoice, guest) => new
                     {
                         Guest = guest,
-                        Booking = bookingInvoice.Booking,
-                        Invoice = bookingInvoice.Invoice
+                        bookingInvoice.Booking,
+                        bookingInvoice.Invoice
                     })
                 .ToList();
 
