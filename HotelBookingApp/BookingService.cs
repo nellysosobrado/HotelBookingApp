@@ -46,7 +46,7 @@ namespace HotelBookingApp
                         ModifyOrCancelBooking();
                         break;
                     case 6:
-                        RoomSearching();
+                        FindAvailableRoom();
                         break;
                     case 7:
                         return;
@@ -102,12 +102,11 @@ namespace HotelBookingApp
             }
         }
 
-        public void RoomSearching()
+        public void FindAvailableRoom()
         {
             Console.Clear();
-            Console.WriteLine("=== SEARCH AVAILABLE ROOMS ===");
+            Console.WriteLine("Function: Find available room");
 
-            // Ange startdatum
             Console.WriteLine("Enter start date (yyyy-MM-dd):");
             if (!DateTime.TryParse(Console.ReadLine(), out DateTime startDate))
             {
@@ -115,15 +114,25 @@ namespace HotelBookingApp
                 return;
             }
 
-            // Ange slutdatum
-            Console.WriteLine("Enter end date (yyyy-MM-dd):");
-            if (!DateTime.TryParse(Console.ReadLine(), out DateTime endDate) || endDate < startDate)
+            if (startDate.Date < DateTime.Now.Date)
             {
-                Console.WriteLine("Invalid date format or end date is earlier than start date.");
+                Console.WriteLine("Start date cannot be in the past.");
                 return;
             }
 
-            // Ange antal personer
+            Console.WriteLine("Enter end date (yyyy-MM-dd):");
+            if (!DateTime.TryParse(Console.ReadLine(), out DateTime endDate))
+            {
+                Console.WriteLine("Invalid date format.");
+                return;
+            }
+
+            if (endDate.Date < startDate.Date)
+            {
+                Console.WriteLine("End date cannot be earlier than start date.");
+                return;
+            }
+
             Console.WriteLine("Enter the number of guests:");
             if (!int.TryParse(Console.ReadLine(), out int guestCount) || guestCount <= 0)
             {
@@ -131,14 +140,12 @@ namespace HotelBookingApp
                 return;
             }
 
-            // Hämta alla rum som inte är bokade under det givna intervallet och som har kapacitet för antalet gäster
             var availableRooms = _context.Rooms
                 .Where(room => room.TotalPeople >= guestCount &&
                                !_context.Bookings.Any(b => b.RoomId == room.RoomId &&
                                                            ((b.CheckInDate <= endDate && b.CheckOutDate >= startDate))))
                 .ToList();
 
-            // Visa resultaten
             if (!availableRooms.Any())
             {
                 Console.WriteLine("No available rooms found for the given criteria.");
@@ -155,10 +162,10 @@ namespace HotelBookingApp
                     Console.WriteLine($"{room.RoomId,-10}{room.Type,-15}{room.TotalPeople,-10}{room.PricePerNight,-10:C}");
                 }
             }
-
             Console.WriteLine("\nPress any key to return to the menu...");
             Console.ReadKey();
         }
+
 
 
         public void ModifyOrCancelBooking()
