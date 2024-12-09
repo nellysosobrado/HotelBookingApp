@@ -1,12 +1,13 @@
 ﻿using HotelBookingApp.Data;
 using HotelBookingApp.Entities;
 using HotelBookingApp.Interfaces;
+using HotelBookingApp.Interfaces.InterfaceBooking;
 using System;
 using System.Linq;
 
 namespace HotelBookingApp.Services.BookingService
 {
-    public class BookingService : IMenu, IMenuNavigation
+    public class BookingService : IMenu, IMenuNavigation, ICheckIn,ICheckOut
     {
         private readonly AppDbContext _context;
         private readonly RegisterNewBooking _registerNewBooking;
@@ -63,7 +64,6 @@ namespace HotelBookingApp.Services.BookingService
                         break;
                 }
 
-                // Ge användaren tid att se resultatet innan menyn visas igen
                 Console.WriteLine("\nPress any key to return to the menu...");
                 Console.ReadKey(true);
             }
@@ -78,12 +78,11 @@ namespace HotelBookingApp.Services.BookingService
                 Console.Clear();
                 Console.WriteLine("BookingService.cs");
 
-                // Visa alternativen och markera det valda alternativet
                 for (int i = 0; i < options.Length; i++)
                 {
                     if (i == selectedOption)
                     {
-                        Console.ForegroundColor = ConsoleColor.Green; // Markera det valda alternativet
+                        Console.ForegroundColor = ConsoleColor.Green; 
                         Console.WriteLine($"> {options[i]}");
                         Console.ResetColor();
                     }
@@ -93,18 +92,17 @@ namespace HotelBookingApp.Services.BookingService
                     }
                 }
 
-                // Hantera knapptryckningar
                 ConsoleKey key = Console.ReadKey(true).Key;
                 switch (key)
                 {
                     case ConsoleKey.UpArrow:
-                        selectedOption = (selectedOption - 1 + options.Length) % options.Length; // Flytta upp
+                        selectedOption = (selectedOption - 1 + options.Length) % options.Length; 
                         break;
                     case ConsoleKey.DownArrow:
-                        selectedOption = (selectedOption + 1) % options.Length; // Flytta ner
+                        selectedOption = (selectedOption + 1) % options.Length; 
                         break;
                     case ConsoleKey.Enter:
-                        return selectedOption; // Returnera det valda alternativet
+                        return selectedOption; 
                 }
             }
         }
@@ -227,7 +225,6 @@ namespace HotelBookingApp.Services.BookingService
             }
         }
 
-        // Funktion för att avboka en bokning
         public void CancelBooking(Booking booking)
         {
             if (booking.IsCheckedIn || booking.IsCheckedOut)
@@ -247,23 +244,20 @@ namespace HotelBookingApp.Services.BookingService
                 return;
             }
 
-            // Ta bort relaterade fakturor och betalningar
             var invoice = _context.Invoices.FirstOrDefault(i => i.BookingId == booking.BookingId);
             if (invoice != null)
             {
                 var payments = _context.Payments.Where(p => p.InvoiceId == invoice.InvoiceId).ToList();
-                _context.Payments.RemoveRange(payments); // Ta bort betalningar
-                _context.Invoices.Remove(invoice);       // Ta bort fakturan
+                _context.Payments.RemoveRange(payments); 
+                _context.Invoices.Remove(invoice);       
             }
 
-            // Ta bort bokningen
             _context.Bookings.Remove(booking);
             _context.SaveChanges();
 
             Console.WriteLine($"Booking with ID {booking.BookingId} has been successfully canceled.");
         }
 
-        // Funktion för att ändra bokningsdetaljer
         private void ModifyBookingDetails(Booking booking)
         {
             Console.Clear();
@@ -674,11 +668,10 @@ namespace HotelBookingApp.Services.BookingService
         public void CheckOut()
         {
             Console.Clear();
-            Console.WriteLine("=== CHECK OUT GUEST ===");
+            Console.WriteLine("Page: Checkout()");
             Console.WriteLine("Enter Guest ID to check out:");
             if (int.TryParse(Console.ReadLine(), out int guestId))
             {
-                // Hämta aktuell bokning för gästen
                 var booking = _context.Bookings
                     .FirstOrDefault(b => b.GuestId == guestId && b.IsCheckedIn && !b.IsCheckedOut);
 
@@ -688,14 +681,12 @@ namespace HotelBookingApp.Services.BookingService
                     return;
                 }
 
-                // Visa bokningsinformation
                 Console.WriteLine("\nGuest Details:");
                 Console.WriteLine($"Booking ID: {booking.BookingId}");
                 Console.WriteLine($"Room ID: {booking.RoomId}");
                 Console.WriteLine($"Check-In Status: {(booking.IsCheckedIn ? "Checked In" : "Not Checked In")}");
                 Console.WriteLine($"Check-Out Status: {(booking.IsCheckedOut ? "Checked Out" : "Not Checked Out")}");
 
-                // Generera en faktura om den inte redan finns
                 var invoice = _context.Invoices.FirstOrDefault(i => i.BookingId == booking.BookingId);
                 if (invoice == null)
                 {
@@ -719,7 +710,6 @@ namespace HotelBookingApp.Services.BookingService
                 Console.WriteLine($"Total Amount: {invoice.TotalAmount:C}");
                 Console.WriteLine($"Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
 
-                // Hantera betalning
                 Console.WriteLine("\nEnter payment amount:");
                 if (decimal.TryParse(Console.ReadLine(), out decimal paymentAmount))
                 {
@@ -729,7 +719,6 @@ namespace HotelBookingApp.Services.BookingService
                         return;
                     }
 
-                    // Registrera betalning
                     var payment = new Payment
                     {
                         InvoiceId = invoice.InvoiceId,
@@ -739,10 +728,8 @@ namespace HotelBookingApp.Services.BookingService
 
                     _context.Payments.Add(payment);
 
-                    // Markera fakturan som betald
                     invoice.IsPaid = true;
 
-                    // Uppdatera bokningsstatus
                     booking.IsCheckedIn = false;
                     booking.IsCheckedOut = true;
                     booking.BookingStatus = true;
@@ -766,20 +753,17 @@ namespace HotelBookingApp.Services.BookingService
 
         private decimal CalculateTotalAmount(Booking booking)
         {
-            // Kontrollera att CheckInDate har ett värde
             if (!booking.CheckInDate.HasValue)
             {
                 throw new Exception("Check-In Date is not set.");
             }
 
-            // Beräkna totalbelopp baserat på bokningens varaktighet och rumspris
             var room = _context.Rooms.FirstOrDefault(r => r.RoomId == booking.RoomId);
             if (room == null)
             {
                 throw new Exception("Room not found.");
             }
 
-            // Använd DateTime.Value för att hämta värden från nullable-typer
             var checkOutDate = booking.CheckOutDate ?? DateTime.Now;
             var duration = checkOutDate.Date - booking.CheckInDate.Value.Date;
 
@@ -788,10 +772,8 @@ namespace HotelBookingApp.Services.BookingService
                 throw new Exception("Invalid duration for booking. Check-out date must be after check-in date.");
             }
 
-            // Definiera exempelpriser per dag
             var dailyRate = room.Type == "Single" ? 100m : 150m;
 
-            // Beräkna totalbelopp
             return duration.Days * dailyRate;
         }
 
