@@ -10,13 +10,11 @@ namespace HotelBookingApp.Services.BookingService
     public class BookingService : IMenu, IMenuNavigation, ICheckIn,ICheckOut, ISearchBookingById, IDisplayAllGuestInfo, IDisplayPaidBooking, IDisplayNonPaidBooking
     {
         private readonly AppDbContext _context;
-        private readonly RegisterNewBooking _registerNewBooking;
 
 
-        public BookingService(AppDbContext context, RegisterNewBooking registerNewBooking)
+        public BookingService(AppDbContext context)
         {
             _context = context;
-            _registerNewBooking = registerNewBooking;
         }
 
         public void Menu()

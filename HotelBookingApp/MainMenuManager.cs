@@ -6,14 +6,12 @@ namespace HotelBookingApp
     public class MainMenuManager
     {
         private readonly BookingService _bookingService;
-        private readonly Admin _admin;
         private readonly RoomService _roomService;
         private readonly GuestServices _guestServices;
 
-        public MainMenuManager(BookingService bookingManager, Admin admin, RoomService roomService,GuestServices guestServices )
+        public MainMenuManager(BookingService bookingManager, RoomService roomService,GuestServices guestServices )
         {
             _bookingService = bookingManager;
-            _admin = admin;
             _roomService = roomService;
             _guestServices = guestServices;
             
