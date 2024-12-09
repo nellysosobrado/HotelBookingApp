@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace HotelBookingApp.Services.BookingService
 {
-    public class BookingService : IMenu, IMenuNavigation, ICheckIn,ICheckOut, ISearchBookingById, IDisplayAllGuestInfo, IDisplayPaidBooking
+    public class BookingService : IMenu, IMenuNavigation, ICheckIn,ICheckOut, ISearchBookingById, IDisplayAllGuestInfo, IDisplayPaidBooking, IDisplayNonPaidBooking
     {
         private readonly AppDbContext _context;
         private readonly RegisterNewBooking _registerNewBooking;
@@ -55,7 +55,7 @@ namespace HotelBookingApp.Services.BookingService
                     case 7:
                         return;
                     case 8:
-                        DisplayNonPaidBookings();
+                        DisplayNonPaidBooking();
                         break;
 
 
@@ -470,10 +470,10 @@ namespace HotelBookingApp.Services.BookingService
                 }
             }
         }
-        public void DisplayNonPaidBookings()
+        public void DisplayNonPaidBooking()
         {
             Console.Clear();
-            Console.WriteLine("page: DisplayNonPaidBookings");
+            Console.WriteLine("page: DisplayNonPaidBooking");
 
             var nonPaidBookings = _context.Invoices
                 .Where(i => !i.IsPaid) 
