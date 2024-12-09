@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace HotelBookingApp.Services.BookingService
 {
-    public class BookingService : IMenu, IMenuNavigation, ICheckIn,ICheckOut, ISearchBookingById, IDisplayAllGuestInfo
+    public class BookingService : IMenu, IMenuNavigation, ICheckIn,ICheckOut, ISearchBookingById, IDisplayAllGuestInfo, IDisplayPaidBooking
     {
         private readonly AppDbContext _context;
         private readonly RegisterNewBooking _registerNewBooking;
@@ -44,7 +44,7 @@ namespace HotelBookingApp.Services.BookingService
                         DisplayAllGuestInfo();
                         break;
                     case 4:
-                        DisplayPaidBookings();
+                        DisplayPaidBooking();
                         break;
                     case 5:
                         EditBooking();
@@ -568,10 +568,10 @@ namespace HotelBookingApp.Services.BookingService
         }
 
 
-        public void DisplayPaidBookings()
+        public void DisplayPaidBooking()
         {
             Console.Clear();
-            Console.WriteLine("page: DisplayPaidBookings");
+            Console.WriteLine("page: DisplayPaidBooking");
 
      
             var paidBookings = _context.Invoices
