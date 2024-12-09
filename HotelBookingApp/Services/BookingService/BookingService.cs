@@ -31,29 +31,29 @@ namespace HotelBookingApp.Services.BookingService
                 switch (selectedOption)
                 {
                     case 0:
-                        CheckInGuest();
+                        CheckIn();
                         break;
                     case 1:
-                        CheckOutGuest();
+                        CheckOut();
                         break;
                     case 2:
-                        ViewBookingDetails();
+                        SearchBookingId();
                         break;
                     case 3:
-                        ViewAllGuests();
+                        DisplayAllGuestInfo();
                         break;
                     case 4:
-                        ViewPaidBookings();
+                        DisplayPaidBookings();
                         break;
                     case 5:
-                        ModifyOrCancelBooking();
+                        EditBooking();
                         break;
                     case 6:
-                        FindAvailableRoom();
+                        SearchAvailableRooms();
                         break;
                     case 7:
                         return;
-
+      
                     default:
                         Console.WriteLine("Invalid choice, try again.");
                         break;
@@ -105,7 +105,7 @@ namespace HotelBookingApp.Services.BookingService
             }
         }
 
-        public void FindAvailableRoom()
+        public void SearchAvailableRooms()
         {
             Console.Clear();
             Console.WriteLine("Function: Find available room");
@@ -171,7 +171,7 @@ namespace HotelBookingApp.Services.BookingService
 
 
 
-        public void ModifyOrCancelBooking()
+        public void EditBooking()
         {
             Console.Clear();
             Console.WriteLine("=== MODIFY OR CANCEL BOOKING ===");
@@ -303,7 +303,7 @@ namespace HotelBookingApp.Services.BookingService
 
 
 
-        public void CheckInGuest()
+        public void CheckIn()
         {
             Console.Clear();
             Console.WriteLine("=== CHECK IN GUEST ===");
@@ -336,10 +336,10 @@ namespace HotelBookingApp.Services.BookingService
 
 
 
-        public void ViewBookingDetails()
+        public void SearchBookingId()
         {
             Console.Clear();
-            Console.WriteLine("=== VIEW BOOKING DETAILS ===");
+            Console.WriteLine("Page: SearchBookingID()");
             Console.WriteLine("Enter Booking ID to view details:");
             if (int.TryParse(Console.ReadLine(), out int viewId))
             {
@@ -373,7 +373,7 @@ namespace HotelBookingApp.Services.BookingService
             }
         }
 
-        public void ViewAllGuests()
+        public void DisplayAllGuestInfo()
         {
             Console.Clear();
             Console.WriteLine("=== VIEW ALL GUESTS ===");
@@ -474,10 +474,10 @@ namespace HotelBookingApp.Services.BookingService
         }
 
 
-        public void ViewPaidBookings()
+        public void DisplayPaidBookings()
         {
             Console.Clear();
-            Console.WriteLine("=== VIEW ALL PAID BOOKINGS ===");
+            Console.WriteLine("page: DisplayPaidBookings");
 
             // Hämtar betalda bokningar med tillhörande gäst och fakturainformation
             var paidBookings = _context.Invoices
@@ -571,7 +571,7 @@ namespace HotelBookingApp.Services.BookingService
                 }
             }
         }
-        public void CheckOutGuest()
+        public void CheckOut()
         {
             Console.Clear();
             Console.WriteLine("=== CHECK OUT GUEST ===");
