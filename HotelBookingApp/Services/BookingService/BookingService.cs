@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace HotelBookingApp.Services.BookingService
 {
-    public class BookingService : IMenu, IMenuNavigation, ICheckIn,ICheckOut, ISearchBookingById
+    public class BookingService : IMenu, IMenuNavigation, ICheckIn,ICheckOut, ISearchBookingById, IDisplayAllGuestInfo
     {
         private readonly AppDbContext _context;
         private readonly RegisterNewBooking _registerNewBooking;
