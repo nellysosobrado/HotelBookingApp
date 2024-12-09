@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace HotelBookingApp.Services.BookingService
 {
-    public class BookingService : IMenu, IMenuNavigation, ICheckIn,ICheckOut
+    public class BookingService : IMenu, IMenuNavigation, ICheckIn,ICheckOut, ISearchBookingById
     {
         private readonly AppDbContext _context;
         private readonly RegisterNewBooking _registerNewBooking;
@@ -38,7 +38,7 @@ namespace HotelBookingApp.Services.BookingService
                         CheckOut();
                         break;
                     case 2:
-                        SearchBookingId();
+                        SearchBookingById();
                         break;
                     case 3:
                         DisplayAllGuestInfo();
@@ -334,7 +334,7 @@ namespace HotelBookingApp.Services.BookingService
 
 
 
-        public void SearchBookingId()
+        public void SearchBookingById()
         {
             Console.Clear();
             Console.WriteLine("Page: SearchBookingID()");
