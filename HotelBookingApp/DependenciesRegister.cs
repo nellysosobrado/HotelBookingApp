@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using HotelBookingApp.Data;
+using HotelBookingApp.Services.BookingService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;

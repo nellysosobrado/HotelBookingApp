@@ -4,7 +4,7 @@ using HotelBookingApp.Interfaces;
 using System;
 using System.Linq;
 
-namespace HotelBookingApp
+namespace HotelBookingApp.Services.BookingService
 {
     public class BookingService : IMenu, IMenuNavigation
     {
@@ -224,7 +224,7 @@ namespace HotelBookingApp
         }
 
         // Funktion för att avboka en bokning
-        private void CancelBooking(Booking booking)
+        public void CancelBooking(Booking booking)
         {
             if (booking.IsCheckedIn || booking.IsCheckedOut)
             {
