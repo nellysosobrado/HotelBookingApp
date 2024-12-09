@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 
-namespace HotelBookingApp
+namespace HotelBookingApp.DI
 {
     public class DependencyRegistrar : Module
     {

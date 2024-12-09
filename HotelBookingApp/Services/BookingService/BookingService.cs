@@ -62,8 +62,8 @@ namespace HotelBookingApp.Services.BookingService
                         break;
                 }
 
-                Console.WriteLine("\nPress any key to return to the menu...");
-                Console.ReadKey(true);
+                //Console.WriteLine("\nPress any key to return to the menu...");
+                //Console.ReadKey(true);
             }
         }
 
@@ -301,34 +301,101 @@ namespace HotelBookingApp.Services.BookingService
 
         public void CheckIn()
         {
-            Console.Clear();
-            Console.WriteLine("=== CHECK IN GUEST ===");
-            Console.WriteLine("Enter Booking ID to check in:");
-            if (int.TryParse(Console.ReadLine(), out int checkInId))
+            while (true)
             {
-                var booking = _context.Bookings.FirstOrDefault(b => b.BookingId == checkInId);
-                if (booking == null)
+                Console.Clear();
+                Console.WriteLine("CHECK IN GUEST");
+
+                DisplayAllBookings();
+
+                Console.WriteLine("Enter 'Exit' to go back to main menu");
+                Console.Write("Enter Booking ID to check in: ");
+
+                string input = Console.ReadLine()?.Trim();
+
+                if (input?.ToLower() == "exit")
                 {
-                    Console.WriteLine("Booking not found.");
-                    return;
+                    break;
                 }
 
-                if (booking.IsCheckedIn)
+                if (int.TryParse(input, out int checkInId))
                 {
-                    Console.WriteLine("Guest is already checked in.");
-                    return;
-                }
+                    var booking = _context.Bookings.FirstOrDefault(b => b.BookingId == checkInId);
+                    if (booking == null)
+                    {
+                        Console.WriteLine("Booking not found. Press any key to try again...");
+                        Console.ReadKey();
+                        continue;
+                    }
 
-                booking.IsCheckedIn = true;
-                booking.CheckInDate = DateTime.Now;
-                _context.SaveChanges();
-                Console.WriteLine($"Guest with Booking ID {checkInId} has been successfully checked in.");
-            }
-            else
-            {
-                Console.WriteLine("Invalid Booking ID.");
+                    if (booking.IsCheckedIn)
+                    {
+                        Console.WriteLine("Guest is already checked in. Press any key to try again...");
+                        Console.ReadKey();
+                        continue;
+                    }
+
+                    booking.IsCheckedIn = true;
+                    booking.CheckInDate = DateTime.Now;
+                    _context.SaveChanges();
+
+                    var guest = _context.Guests.FirstOrDefault(g => g.GuestId == booking.GuestId);
+                    var room = _context.Rooms.FirstOrDefault(r => r.RoomId == booking.RoomId);
+
+                    Console.Clear();
+                    Console.WriteLine($"\nGuest {guest?.FirstName + " " + guest?.LastName} has been successfully checked in.");
+                    Console.WriteLine(new string('-', 60));
+                    Console.WriteLine($"{"Booking ID",-15}{"Guest",-20}{"Room ID",-10}{"Check-In Date",-15}");
+                    Console.WriteLine(new string('-', 60));
+                    Console.WriteLine($"{booking.BookingId,-15}{guest?.FirstName + " " + guest?.LastName,-20}{room?.RoomId,-10}{booking.CheckInDate,-15:yyyy-MM-dd HH:mm}");
+                    Console.WriteLine(new string('-', 60));
+
+                    Console.WriteLine("\nPress any key to continue...");
+                    Console.ReadKey();
+                }
+                else if (input == string.Empty)
+                {
+                    Console.WriteLine("Input cannot be empty. Press any key to try again..");
+                    Console.ReadKey();
+                }
+                else
+                {
+                    Console.WriteLine("Invalid Booking ID. Press any key to try again...");
+                    Console.ReadKey();
+                }
             }
         }
+
+        private void DisplayAllBookings()
+        {
+            var bookings = _context.Bookings
+                .Join(_context.Guests, b => b.GuestId, g => g.GuestId, (b, g) => new
+                {
+                    BookingId = b.BookingId,
+                    GuestName = g.FirstName + " " + g.LastName,
+                    RoomId = b.RoomId,
+                    IsCheckedIn = b.IsCheckedIn
+                })
+                .ToList();
+
+            if (!bookings.Any())
+            {
+                Console.WriteLine("No bookings found.");
+                return;
+            }
+
+            Console.WriteLine(new string('-', 60));
+            Console.WriteLine($"{"Booking ID",-15}{"Guest",-20}{"Room ID",-10}{"Checked In",-10}");
+            Console.WriteLine(new string('-', 60));
+
+            foreach (var booking in bookings)
+            {
+                Console.WriteLine($"{booking.BookingId,-15}{booking.GuestName,-20}{booking.RoomId,-10}{(booking.IsCheckedIn ? "Yes" : "No"),-10}");
+            }
+
+            Console.WriteLine(new string('-', 60));
+        }
+
 
 
 
