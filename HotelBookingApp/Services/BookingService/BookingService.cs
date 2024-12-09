@@ -20,7 +20,7 @@ namespace HotelBookingApp.Services.BookingService
 
         public void Menu()
         {
-            string[] options = { "Check in guest", "Check out guest", "Search booking id", "View all guests", "View paid bookings", "Edit or cancel booking", "Search for available room", "Main menu" };
+            string[] options = { "Check in guest", "Check out guest", "Search booking id", "View all guests", "View paid bookings", "Edit or cancel booking", "Search for available room", "Main menu", "Display non-paid bookings"};
 
             while (true)
             {
@@ -53,7 +53,11 @@ namespace HotelBookingApp.Services.BookingService
                         break;
                     case 7:
                         return;
-      
+                    case 8:
+                        DisplayNonPaidBookings();
+                        break;
+
+
                     default:
                         Console.WriteLine("Invalid choice, try again.");
                         break;
@@ -472,6 +476,102 @@ namespace HotelBookingApp.Services.BookingService
                 }
             }
         }
+        public void DisplayNonPaidBookings()
+        {
+            Console.Clear();
+            Console.WriteLine("page: DisplayNonPaidBookings");
+
+            var nonPaidBookings = _context.Invoices
+                .Where(i => !i.IsPaid) 
+                .Join(_context.Bookings,
+                    invoice => invoice.BookingId,
+                    booking => booking.BookingId,
+                    (invoice, booking) => new
+                    {
+                        Invoice = invoice,
+                        Booking = booking
+                    })
+                .Join(_context.Guests,
+                    bookingInvoice => bookingInvoice.Booking.GuestId,
+                    guest => guest.GuestId,
+                    (bookingInvoice, guest) => new
+                    {
+                        Guest = guest,
+                        bookingInvoice.Booking,
+                        bookingInvoice.Invoice
+                    })
+                .ToList();
+
+            if (!nonPaidBookings.Any())
+            {
+                Console.WriteLine("No non-paid bookings found.");
+                return;
+            }
+
+            const int pageSize = 5; 
+            int currentPage = 0;
+            int totalPages = (int)Math.Ceiling((double)nonPaidBookings.Count / pageSize);
+
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine($"=== VIEW ALL NON-PAID BOOKINGS (Page {currentPage + 1}/{totalPages}) ===");
+                Console.WriteLine(new string('-', 120));
+                Console.WriteLine($"{"Booking ID",-12}{"Guest Name",-25}{"Room",-10}{"Amount Due",-15}{"Payment Deadline",-20}");
+                Console.WriteLine(new string('-', 120));
+
+                var bookingsOnPage = nonPaidBookings
+                    .Skip(currentPage * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                foreach (var entry in bookingsOnPage)
+                {
+                    var guest = entry.Guest;
+                    var booking = entry.Booking;
+                    var invoice = entry.Invoice;
+
+                    Console.WriteLine($"{booking.BookingId,-12}{guest.FirstName + " " + guest.LastName,-25}ID {booking.RoomId,-10}{invoice.TotalAmount,-15:C}{invoice.PaymentDeadline,-20:yyyy-MM-dd}");
+                }
+
+                Console.WriteLine(new string('-', 120));
+                Console.WriteLine("\nOptions: [N] Next Page | [P] Previous Page | [Q] Quit");
+                ConsoleKey input = Console.ReadKey(true).Key;
+
+                switch (input)
+                {
+                    case ConsoleKey.N:
+                        if (currentPage < totalPages - 1)
+                        {
+                            currentPage++;
+                        }
+                        else
+                        {
+                            Console.WriteLine("You are on the last page. Press any key to continue...");
+                            Console.ReadKey(true);
+                        }
+                        break;
+                    case ConsoleKey.P:
+                        if (currentPage > 0)
+                        {
+                            currentPage--;
+                        }
+                        else
+                        {
+                            Console.WriteLine("You are on the first page. Press any key to continue...");
+                            Console.ReadKey(true);
+                        }
+                        break;
+                    case ConsoleKey.Q:
+                        Console.WriteLine("Exiting non-paid bookings view...");
+                        return;
+                    default:
+                        Console.WriteLine("Invalid choice. Please use [N], [P], or [Q]. Press any key to continue...");
+                        Console.ReadKey(true);
+                        break;
+                }
+            }
+        }
 
 
         public void DisplayPaidBookings()
@@ -479,9 +579,9 @@ namespace HotelBookingApp.Services.BookingService
             Console.Clear();
             Console.WriteLine("page: DisplayPaidBookings");
 
-            // Hämtar betalda bokningar med tillhörande gäst och fakturainformation
+     
             var paidBookings = _context.Invoices
-                .Where(i => i.IsPaid) // Endast fakturor som är betalda
+                .Where(i => i.IsPaid) 
                 .Join(_context.Bookings,
                     invoice => invoice.BookingId,
                     booking => booking.BookingId,
@@ -507,7 +607,7 @@ namespace HotelBookingApp.Services.BookingService
                 return;
             }
 
-            const int pageSize = 5; // Antal bokningar per sida
+            const int pageSize = 5; 
             int currentPage = 0;
             int totalPages = (int)Math.Ceiling((double)paidBookings.Count / pageSize);
 
