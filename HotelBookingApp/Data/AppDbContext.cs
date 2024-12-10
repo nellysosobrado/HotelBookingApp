@@ -29,15 +29,14 @@ namespace HotelBookingApp.Data
                 .HasForeignKey(p => p.InvoiceId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Seed-data
             SeedData(modelBuilder);
         }
         private void SeedData(ModelBuilder modelBuilder)
         {
-            // Dynamiskt generera datum baserat på dagens datum
+            
             DateTime today = DateTime.Now.Date;
-            DateTime futureCheckInDate = today.AddDays(1); // Check-in startar imorgon
-            DateTime futureCheckOutDate = futureCheckInDate.AddDays(3); // Tre dagar efter incheckning
+            DateTime futureCheckInDate = today.AddDays(1); 
+            DateTime futureCheckOutDate = futureCheckInDate.AddDays(3); 
 
             // Seed Rooms
             modelBuilder.Entity<Room>().HasData(
@@ -64,7 +63,7 @@ namespace HotelBookingApp.Data
                     RoomId = 1,
                     IsCheckedIn = false,
                     IsCheckedOut = true,
-                    BookingStatus = true, // test Check out!
+                    BookingStatus = true, 
                     CheckInDate = futureCheckInDate,
                     CheckOutDate = futureCheckOutDate
                 },
@@ -75,7 +74,7 @@ namespace HotelBookingApp.Data
                     RoomId = 2,
                     IsCheckedIn = true,
                     IsCheckedOut = false,
-                    BookingStatus = false, // Not completed
+                    BookingStatus = false, 
                     CheckInDate = futureCheckInDate,
                     CheckOutDate = futureCheckOutDate
                 }
