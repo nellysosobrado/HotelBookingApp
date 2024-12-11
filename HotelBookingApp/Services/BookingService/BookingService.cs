@@ -2,6 +2,7 @@
 using HotelBookingApp.Entities;
 using HotelBookingApp.Interfaces;
 using HotelBookingApp.Interfaces.InterfaceBooking;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 
@@ -535,6 +536,16 @@ namespace HotelBookingApp.Services.BookingService
                 }
             }
         }
+        public List<Booking> GetGuestsWithCheckInStatus()
+        {
+            return _context.Bookings
+                .Include(b => b.Guest) 
+                .Where(b => b.Guest != null) 
+                .ToList();
+        }
+
+
+
         public void DisplayNonPaidBooking()
         {
             Console.Clear();

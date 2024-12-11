@@ -39,7 +39,7 @@ namespace HotelBookingApp
                 Console.WriteLine("Press any key to continue...");
                 Console.ReadKey(); // Vänta på att användaren trycker på en tangent
 
-                var app = scope.ServiceProvider.GetService<HotelBookingApp>();
+                var app = scope.ServiceProvider.GetService<App>();
                 app?.Run();
             }
         }

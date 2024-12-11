@@ -46,7 +46,7 @@ namespace HotelBookingApp.DI
 
             // Registrera tjänster och huvudklasser
             builder.RegisterType<MainMenuManager>().AsSelf();
-            builder.RegisterType<HotelBookingApp>().AsSelf();
+            builder.RegisterType<App>().AsSelf();
             builder.RegisterType<BookingService>().AsSelf();
             builder.RegisterType<RoomService>().AsSelf();
             builder.RegisterType<GuestServices>().AsSelf();

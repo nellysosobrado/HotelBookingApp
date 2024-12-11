@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace HotelBookingApp
 {
-    public class HotelBookingApp
+    public class App
     {
         private readonly MainMenuManager _mainMenu;
 
-        public HotelBookingApp(MainMenuManager mainMenu)
+        public App(MainMenuManager mainMenu)
         {
             _mainMenu = mainMenu;
         }

@@ -29,7 +29,7 @@ namespace HotelBookingApp
                     case 0:
                         ViewAllGuests();
                         break;
-                    case 3:
+                    case 1:
                         Console.WriteLine("Exiting menu...");
                         return;
                 }
