@@ -15,7 +15,7 @@ namespace HotelBookingApp
         }
         public void Menu()
         {
-            string[] options = { "View All Guests","Update guest information", "Main Menu" };
+            string[] options = { "View All Guests","Update guest information","Main Menu", "Register new guest" };
 
             while (true)
             {
@@ -35,6 +35,9 @@ namespace HotelBookingApp
                     case 2:
                         Console.WriteLine("Exiting menu...");
                         return;
+                    case 3:
+                        RegisterNewGuest();
+                        break;
                 }
 
                 Console.WriteLine("\nPress any key to return to the menu...");
@@ -64,12 +67,12 @@ namespace HotelBookingApp
                     }
                 }
 
-                // Hantera knapptryckningar
+
                 ConsoleKey key = Console.ReadKey(true).Key;
                 switch (key)
                 {
                     case ConsoleKey.UpArrow:
-                        selectedOption = (selectedOption - 1 + options.Length) % options.Length; // Flytta upp
+                        selectedOption = (selectedOption - 1 + options.Length) % options.Length; 
                         break;
                     case ConsoleKey.DownArrow:
                         selectedOption = (selectedOption + 1) % options.Length; 
@@ -79,6 +82,47 @@ namespace HotelBookingApp
                 }
             }
         }
+        public void RegisterNewGuest()
+        {
+            Console.Clear();
+            Console.WriteLine("Register new guest");
+
+            Console.Write("Enter First Name: ");
+            string firstName = Console.ReadLine();
+
+            Console.Write("Enter Last Name: ");
+            string lastName = Console.ReadLine();
+
+            Console.Write("Enter Email: ");
+            string email = Console.ReadLine();
+
+            Console.Write("Enter Phone Number: ");
+            string phone = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(phone))
+            {
+                Console.WriteLine("All fields are required. Registration failed.");
+                Console.WriteLine("Press any key to return to the menu...");
+                Console.ReadKey(true);
+                return;
+            }
+
+            var newGuest = new Guest
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                Email = email,
+                PhoneNumber = phone
+            };
+
+            _context.Guests.Add(newGuest);
+            _context.SaveChanges();
+
+            Console.WriteLine("Guest registered successfully!");
+            Console.WriteLine("Press any key to return to the menu...");
+            Console.ReadKey(true);
+        }
+
         public void UpdateGuestInformation()
         {
             Console.Clear();

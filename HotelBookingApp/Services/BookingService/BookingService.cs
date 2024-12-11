@@ -20,7 +20,11 @@ namespace HotelBookingApp.Services.BookingService
 
         public void Menu()
         {
-            string[] options = { "Check in guest", "Check out guest", "Search booking id", "View all guests", "View paid bookings", "Edit or cancel booking", "Search for available room", "Main menu", "Display non-paid bookings"};
+            string[] options = { 
+                "Check in guest", "Check out guest", 
+                "Search booking id", "View all guests", "View paid bookings", 
+                "Edit or cancel booking", "Search for available room", 
+                "Main menu", "Display non-paid bookings"};
 
             while (true)
             {
@@ -105,7 +109,7 @@ namespace HotelBookingApp.Services.BookingService
                 }
             }
         }
-
+        
         public void SearchAvailableRooms()
         {
             Console.Clear();
@@ -852,15 +856,6 @@ namespace HotelBookingApp.Services.BookingService
 
             return duration.Days * dailyRate;
         }
-
-
-
-
-
-
-
-
-
 
 
         private void ReturnToMainMenu()
