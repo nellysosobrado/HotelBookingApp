@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using HotelBookingApp.Data;
 using HotelBookingApp.Services.BookingService;
+using HotelBookingApp.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -15,7 +16,6 @@ namespace HotelBookingApp.DI
                 .AddJsonFile("Data/appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
-            // Registrera DbContext
             builder.Register(context =>
             {
                 var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
@@ -23,7 +23,6 @@ namespace HotelBookingApp.DI
 
                 var dbContext = new AppDbContext(optionsBuilder.Options);
 
-                // Kontrollera och skapa databasen om den inte existerar
                 try
                 {
                     if (dbContext.Database.EnsureCreated())
@@ -44,12 +43,14 @@ namespace HotelBookingApp.DI
             }).As<AppDbContext>().InstancePerLifetimeScope();
 
 
-            // Registrera tjänster och huvudklasser
-            builder.RegisterType<MainMenuManager>().AsSelf();
+            builder.RegisterType<DisplayMainMenu>().AsSelf();
             builder.RegisterType<App>().AsSelf();
             builder.RegisterType<BookingService>().AsSelf();
             builder.RegisterType<RoomService>().AsSelf();
             builder.RegisterType<GuestServices>().AsSelf();
+            builder.RegisterType<DisplayBookingMenu>().AsSelf();
+            builder.RegisterType<BookingController>().AsSelf();
+            builder.RegisterType<BookingRepository>().AsSelf();
 
         }
     }

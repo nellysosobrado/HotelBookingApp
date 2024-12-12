@@ -8,8 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\**" />
     <Compile Remove="Manager\**" />
+    <EmbeddedResource Remove="Controllers\**" />
     <EmbeddedResource Remove="Manager\**" />
+    <None Remove="Controllers\**" />
     <None Remove="Manager\**" />
   </ItemGroup>
 
@@ -30,10 +33,6 @@
     <None Update="Data\appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\" />
   </ItemGroup>
 
 </Project>

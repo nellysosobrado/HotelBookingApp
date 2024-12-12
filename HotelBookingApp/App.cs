@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HotelBookingApp.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,9 +9,9 @@ namespace HotelBookingApp
 {
     public class App
     {
-        private readonly MainMenuManager _mainMenu;
+        private readonly DisplayMainMenu _mainMenu;
 
-        public App(MainMenuManager mainMenu)
+        public App(DisplayMainMenu mainMenu)
         {
             _mainMenu = mainMenu;
         }

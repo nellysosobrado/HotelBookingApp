@@ -3,20 +3,20 @@ using HotelBookingApp.Services.BookingService;
 using Microsoft.EntityFrameworkCore;
 using System;
 
-namespace HotelBookingApp
+namespace HotelBookingApp.Utilities
 {
-    public class MainMenuManager
+    public class DisplayMainMenu
     {
         private readonly BookingService _bookingService;
         private readonly RoomService _roomService;
         private readonly GuestServices _guestServices;
-
-        public MainMenuManager(BookingService bookingManager, RoomService roomService,GuestServices guestServices )
+        private readonly DisplayBookingMenu _displayBookingMenu;
+        public DisplayMainMenu(BookingService bookingManager, RoomService roomService, GuestServices guestServices, DisplayBookingMenu displayBookingMenu)
         {
             _bookingService = bookingManager;
             _roomService = roomService;
             _guestServices = guestServices;
-            
+            _displayBookingMenu = displayBookingMenu;
         }
 
         public void Run()
@@ -39,7 +39,7 @@ namespace HotelBookingApp
                 switch (choice)
                 {
                     case "1":
-                        _bookingService.Menu();
+                        _displayBookingMenu.Menu();
                         break;
 
                     case "2":
