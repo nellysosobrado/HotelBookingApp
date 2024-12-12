@@ -22,7 +22,7 @@ namespace HotelBookingApp.Utilities
         {
             Console.WriteLine("You are in DisplayBookingMenu.cs");
             string[] options = { 
-            "Check in guest", "Check out guest", "main menu"
+            "Check in guest", "Check out guest","Search available rooms", "display all guest info", "Display non paid bookings", "Display paid bookings", "edit booking", "Cancelbooking" ,"main menu"
             };
 
             while (true)
@@ -39,10 +39,27 @@ namespace HotelBookingApp.Utilities
                         _bookingController.CheckOut();
                         break;
                     case 2:
-                        return;
+                        _bookingController.SearchAvailableRooms();
+                        break;
+                    case 3:
+                        _bookingController.DisplayAllGuestInfo();
+                        break;
+                    case 4:
+                        _bookingController.DisplayNonPaidBookings();
+                        break;
+                    case 5:
+                        _bookingController.DisplayPaidBookings();
+                        break;
+                    case 6:
+                        _bookingController.EditBooking();
+                        break;
+                    case 7:
+                        _bookingController.CancelBooking();
+                        break;
+                       
                     default:
                         Console.WriteLine("error");
-                        break;
+                        return;
                 }
             }
         }

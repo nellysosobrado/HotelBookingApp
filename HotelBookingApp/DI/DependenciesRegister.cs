@@ -1,6 +1,6 @@
 ﻿using Autofac;
 using HotelBookingApp.Data;
-using HotelBookingApp.Services.BookingService;
+using HotelBookingApp.Repositories;
 using HotelBookingApp.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -45,7 +45,7 @@ namespace HotelBookingApp.DI
 
             builder.RegisterType<DisplayMainMenu>().AsSelf();
             builder.RegisterType<App>().AsSelf();
-            builder.RegisterType<BookingService>().AsSelf();
+           // builder.RegisterType<BookingService>().AsSelf();
             builder.RegisterType<RoomService>().AsSelf();
             builder.RegisterType<GuestServices>().AsSelf();
             builder.RegisterType<DisplayBookingMenu>().AsSelf();

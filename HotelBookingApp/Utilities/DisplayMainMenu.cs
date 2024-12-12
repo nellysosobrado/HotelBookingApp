@@ -1,5 +1,4 @@
 ﻿using HotelBookingApp.Entities;
-using HotelBookingApp.Services.BookingService;
 using Microsoft.EntityFrameworkCore;
 using System;
 
@@ -7,13 +6,11 @@ namespace HotelBookingApp.Utilities
 {
     public class DisplayMainMenu
     {
-        private readonly BookingService _bookingService;
         private readonly RoomService _roomService;
         private readonly GuestServices _guestServices;
         private readonly DisplayBookingMenu _displayBookingMenu;
-        public DisplayMainMenu(BookingService bookingManager, RoomService roomService, GuestServices guestServices, DisplayBookingMenu displayBookingMenu)
+        public DisplayMainMenu( RoomService roomService, GuestServices guestServices, DisplayBookingMenu displayBookingMenu)
         {
-            _bookingService = bookingManager;
             _roomService = roomService;
             _guestServices = guestServices;
             _displayBookingMenu = displayBookingMenu;
@@ -24,8 +21,6 @@ namespace HotelBookingApp.Utilities
             while (true)
             {
                 Console.Clear();
-
-                DisplayGuestTable();
 
                 Console.WriteLine("\nHOTEL BOOKING APP");
                 Console.WriteLine("Choose an option:");
@@ -62,36 +57,5 @@ namespace HotelBookingApp.Utilities
                 }
             }
         }
-
-        private void DisplayGuestTable()
-        {
-            Console.WriteLine("=== VIEW ALL GUESTS ===");
-
-            var bookings = _bookingService.GetGuestsWithCheckInStatus();
-
-            if (!bookings.Any())
-            {
-                Console.WriteLine("No guests found.");
-                return;
-            }
-
-            Console.WriteLine(new string('-', 60));
-            Console.WriteLine($"{"BookingId",-15}{"Name",-30}{"Checked In",-15}");
-            Console.WriteLine(new string('-', 60));
-
-            foreach (var booking in bookings)
-            {
-                string checkedInStatus = booking.IsCheckedIn ? "Yes" : "No";
-                Console.WriteLine($"{booking.BookingId,-15}{booking.Guest.FirstName + " " + booking.Guest.LastName,-30}{checkedInStatus,-15}");
-            }
-
-            Console.WriteLine(new string('-', 60));
-        }
-
-
-
-
-
-
     }
 }
