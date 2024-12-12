@@ -22,7 +22,7 @@ namespace HotelBookingApp.Utilities
         {
             Console.WriteLine("You are in DisplayBookingMenu.cs");
             string[] options = { 
-            "Check in guest", "Check out guest"
+            "Check in guest", "Check out guest", "main menu"
             };
 
             while (true)
@@ -38,6 +38,8 @@ namespace HotelBookingApp.Utilities
                     case 1: 
                         _bookingController.CheckOut();
                         break;
+                    case 2:
+                        return;
                     default:
                         Console.WriteLine("error");
                         break;
