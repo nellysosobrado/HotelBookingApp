@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
+
+namespace HotelBookingApp;
 
 public class BookingController
 {
@@ -72,5 +75,94 @@ public class BookingController
                 Console.ReadKey();
             }
         }
+
     }
+    public void CheckOut()
+    {
+        Console.Clear();
+        Console.WriteLine("Page: Checkout()");
+        Console.WriteLine("Enter Guest ID to check out:");
+
+        if (int.TryParse(Console.ReadLine(), out int guestId))
+        {
+            var booking = _bookingRepository.GetActiveBookingByGuestId(guestId);
+
+            if (booking == null)
+            {
+                Console.WriteLine("No active booking found for this guest.");
+                return;
+            }
+
+            Console.WriteLine("\nGuest Details:");
+            Console.WriteLine($"Booking ID: {booking.BookingId}");
+            Console.WriteLine($"Room ID: {booking.RoomId}");
+            Console.WriteLine($"Check-In Status: {(booking.IsCheckedIn ? "Checked In" : "Not Checked In")}");
+            Console.WriteLine($"Check-Out Status: {(booking.IsCheckedOut ? "Checked Out" : "Not Checked Out")}");
+
+            var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId);
+
+            if (invoice == null)
+            {
+                Console.WriteLine("\nGenerating invoice...");
+                invoice = new Invoice
+                {
+                    BookingId = booking.BookingId,
+                    TotalAmount = _bookingRepository.CalculateTotalAmount(booking),
+                    IsPaid = false,
+                    PaymentDeadline = DateTime.Now.AddDays(7)
+                };
+
+                _bookingRepository.AddInvoice(invoice);
+                _bookingRepository.UpdateBookingAndInvoice(booking, invoice);
+
+                Console.WriteLine("Invoice generated successfully.");
+            }
+
+            Console.WriteLine($"\nInvoice Details:");
+            Console.WriteLine($"Invoice ID: {invoice.InvoiceId}");
+            Console.WriteLine($"Total Amount: {invoice.TotalAmount:C}");
+            Console.WriteLine($"Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
+
+            Console.WriteLine("\nEnter payment amount:");
+            if (decimal.TryParse(Console.ReadLine(), out decimal paymentAmount))
+            {
+                if (paymentAmount < invoice.TotalAmount)
+                {
+                    Console.WriteLine("Insufficient payment. The guest must pay the full amount.");
+                    return;
+                }
+
+                var payment = new Payment
+                {
+                    InvoiceId = invoice.InvoiceId,
+                    PaymentDate = DateTime.Now,
+                    AmountPaid = paymentAmount
+                };
+
+                _bookingRepository.AddPayment(payment);
+
+                invoice.IsPaid = true;
+
+                booking.IsCheckedIn = false;
+                booking.IsCheckedOut = true;
+                booking.BookingStatus = true;
+                booking.CheckOutDate = DateTime.Now;
+
+                _bookingRepository.UpdateBookingAndInvoice(booking, invoice);
+
+                Console.WriteLine("\nPayment processed successfully.");
+                Console.WriteLine($"Booking with Booking ID {booking.BookingId} has been successfully checked out and marked as completed.");
+                Console.ReadKey();
+            }
+            else
+            {
+                Console.WriteLine("Invalid payment amount.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Invalid Guest ID.");
+        }
+    }
+
 }

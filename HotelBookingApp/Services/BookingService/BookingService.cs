@@ -37,9 +37,9 @@ namespace HotelBookingApp.Services.BookingService
                     //case 0:
                     //    CheckIn();
                     //    break;
-                    case 1:
-                        CheckOut();
-                        break;
+                    //case 1:
+                    //    CheckOut();
+                    //    break;
                     case 2:
                         SearchBookingById();
                         break;
@@ -325,7 +325,7 @@ namespace HotelBookingApp.Services.BookingService
 
         //        if (int.TryParse(input, out int checkInId))
         //        {
-        //            var booking = _context.Bookings.FirstOrDefault(b => b.BookingId == checkInId);
+        //            var booking = _appDbContext.Bookings.FirstOrDefault(b => b.BookingId == checkInId);
         //            if (booking == null)
         //            {
         //                Console.WriteLine("Booking not found. Press any key to try again...");
@@ -342,10 +342,10 @@ namespace HotelBookingApp.Services.BookingService
 
         //            booking.IsCheckedIn = true;
         //            booking.CheckInDate = DateTime.Now;
-        //            _context.SaveChanges();
+        //            _appDbContext.SaveChanges();
 
-        //            var guest = _context.Guests.FirstOrDefault(g => g.GuestId == booking.GuestId);
-        //            var room = _context.Rooms.FirstOrDefault(r => r.RoomId == booking.RoomId);
+        //            var guest = _appDbContext.Guests.FirstOrDefault(g => g.GuestId == booking.GuestId);
+        //            var room = _appDbContext.Rooms.FirstOrDefault(r => r.RoomId == booking.RoomId);
 
         //            Console.Clear();
         //            Console.WriteLine($"\nGuest {guest?.FirstName + " " + guest?.LastName} has been successfully checked in.");
@@ -745,91 +745,91 @@ namespace HotelBookingApp.Services.BookingService
                 }
             }
         }
-        public void CheckOut()
-        {
-            Console.Clear();
-            Console.WriteLine("Page: Checkout()");
-            Console.WriteLine("Enter Guest ID to check out:");
-            if (int.TryParse(Console.ReadLine(), out int guestId))
-            {
-                var booking = _context.Bookings
-                    .FirstOrDefault(b => b.GuestId == guestId && b.IsCheckedIn && !b.IsCheckedOut);
+        //public void CheckOut()
+        //{
+        //    Console.Clear();
+        //    Console.WriteLine("Page: Checkout()");
+        //    Console.WriteLine("Enter Guest ID to check out:");
+        //    if (int.TryParse(Console.ReadLine(), out int guestId))
+        //    {
+        //        var booking = _context.Bookings
+        //            .FirstOrDefault(b => b.GuestId == guestId && b.IsCheckedIn && !b.IsCheckedOut);
 
-                if (booking == null)
-                {
-                    Console.WriteLine("No active booking found for this guest.");
-                    return;
-                }
+        //        if (booking == null)
+        //        {
+        //            Console.WriteLine("No active booking found for this guest.");
+        //            return;
+        //        }
 
-                Console.WriteLine("\nGuest Details:");
-                Console.WriteLine($"Booking ID: {booking.BookingId}");
-                Console.WriteLine($"Room ID: {booking.RoomId}");
-                Console.WriteLine($"Check-In Status: {(booking.IsCheckedIn ? "Checked In" : "Not Checked In")}");
-                Console.WriteLine($"Check-Out Status: {(booking.IsCheckedOut ? "Checked Out" : "Not Checked Out")}");
+        //        Console.WriteLine("\nGuest Details:");
+        //        Console.WriteLine($"Booking ID: {booking.BookingId}");
+        //        Console.WriteLine($"Room ID: {booking.RoomId}");
+        //        Console.WriteLine($"Check-In Status: {(booking.IsCheckedIn ? "Checked In" : "Not Checked In")}");
+        //        Console.WriteLine($"Check-Out Status: {(booking.IsCheckedOut ? "Checked Out" : "Not Checked Out")}");
 
-                var invoice = _context.Invoices.FirstOrDefault(i => i.BookingId == booking.BookingId);
-                if (invoice == null)
-                {
-                    Console.WriteLine("\nGenerating invoice...");
-                    invoice = new Invoice
-                    {
-                        BookingId = booking.BookingId,
-                        TotalAmount = CalculateTotalAmount(booking),
-                        IsPaid = false,
-                        PaymentDeadline = DateTime.Now.AddDays(7)
-                    };
+        //        var invoice = _context.Invoices.FirstOrDefault(i => i.BookingId == booking.BookingId);
+        //        if (invoice == null)
+        //        {
+        //            Console.WriteLine("\nGenerating invoice...");
+        //            invoice = new Invoice
+        //            {
+        //                BookingId = booking.BookingId,
+        //                TotalAmount = CalculateTotalAmount(booking),
+        //                IsPaid = false,
+        //                PaymentDeadline = DateTime.Now.AddDays(7)
+        //            };
 
-                    _context.Invoices.Add(invoice);
-                    _context.SaveChanges();
+        //            _context.Invoices.Add(invoice);
+        //            _context.SaveChanges();
 
-                    Console.WriteLine("Invoice generated successfully.");
-                }
+        //            Console.WriteLine("Invoice generated successfully.");
+        //        }
 
-                Console.WriteLine($"\nInvoice Details:");
-                Console.WriteLine($"Invoice ID: {invoice.InvoiceId}");
-                Console.WriteLine($"Total Amount: {invoice.TotalAmount:C}");
-                Console.WriteLine($"Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
+        //        Console.WriteLine($"\nInvoice Details:");
+        //        Console.WriteLine($"Invoice ID: {invoice.InvoiceId}");
+        //        Console.WriteLine($"Total Amount: {invoice.TotalAmount:C}");
+        //        Console.WriteLine($"Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
 
-                Console.WriteLine("\nEnter payment amount:");
-                if (decimal.TryParse(Console.ReadLine(), out decimal paymentAmount))
-                {
-                    if (paymentAmount < invoice.TotalAmount)
-                    {
-                        Console.WriteLine("Insufficient payment. The guest must pay the full amount.");
-                        return;
-                    }
+        //        Console.WriteLine("\nEnter payment amount:");
+        //        if (decimal.TryParse(Console.ReadLine(), out decimal paymentAmount))
+        //        {
+        //            if (paymentAmount < invoice.TotalAmount)
+        //            {
+        //                Console.WriteLine("Insufficient payment. The guest must pay the full amount.");
+        //                return;
+        //            }
 
-                    var payment = new Payment
-                    {
-                        InvoiceId = invoice.InvoiceId,
-                        PaymentDate = DateTime.Now,
-                        AmountPaid = paymentAmount
-                    };
+        //            var payment = new Payment
+        //            {
+        //                InvoiceId = invoice.InvoiceId,
+        //                PaymentDate = DateTime.Now,
+        //                AmountPaid = paymentAmount
+        //            };
 
-                    _context.Payments.Add(payment);
+        //            _context.Payments.Add(payment);
 
-                    invoice.IsPaid = true;
+        //            invoice.IsPaid = true;
 
-                    booking.IsCheckedIn = false;
-                    booking.IsCheckedOut = true;
-                    booking.BookingStatus = true;
-                    booking.CheckOutDate = DateTime.Now;
+        //            booking.IsCheckedIn = false;
+        //            booking.IsCheckedOut = true;
+        //            booking.BookingStatus = true;
+        //            booking.CheckOutDate = DateTime.Now;
 
-                    _context.SaveChanges();
+        //            _context.SaveChanges();
 
-                    Console.WriteLine("\nPayment processed successfully.");
-                    Console.WriteLine($"Booking with Booking ID {booking.BookingId} has been successfully checked out and marked as completed.");
-                }
-                else
-                {
-                    Console.WriteLine("Invalid payment amount.");
-                }
-            }
-            else
-            {
-                Console.WriteLine("Invalid Guest ID.");
-            }
-        }
+        //            Console.WriteLine("\nPayment processed successfully.");
+        //            Console.WriteLine($"Booking with Booking ID {booking.BookingId} has been successfully checked out and marked as completed.");
+        //        }
+        //        else
+        //        {
+        //            Console.WriteLine("Invalid payment amount.");
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Invalid Guest ID.");
+        //    }
+        //}
 
         private decimal CalculateTotalAmount(Booking booking)
         {
