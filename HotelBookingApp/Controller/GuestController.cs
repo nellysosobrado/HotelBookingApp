@@ -1,4 +1,5 @@
 ﻿using HotelBookingApp.Data;
+using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
 using System;
 using System.Linq;
@@ -43,9 +44,85 @@ namespace HotelBookingApp.Controllers
             _guestRepository.AddGuest(newGuest);
 
             Console.WriteLine("\nGuest registered successfully!");
-            Console.WriteLine("Press any key to continue...");
+
+            // Fråga om användaren vill skapa en bokning
+            Console.Write("\nDo you want to create a booking for this guest now? (Y/N): ");
+            var choice = Console.ReadLine()?.Trim().ToUpper();
+
+            if (choice == "Y")
+            {
+                // Hämta antal personer och datum
+                int guestCount = PromptForInt("Enter number of guests: ");
+                DateTime startDate = PromptForDate("Enter start date (yyyy-MM-dd): ");
+                DateTime endDate = PromptForDate("Enter end date (yyyy-MM-dd): ");
+
+                // Hämta tillgängliga rum
+                var availableRooms = _guestRepository.GetAvailableRooms(startDate, endDate, guestCount);
+
+                if (!availableRooms.Any())
+                {
+                    Console.WriteLine("No available rooms found for the selected dates and number of guests.");
+                    Console.ReadKey(true);
+                    return;
+                }
+
+                Console.WriteLine("\nAvailable Rooms:");
+                foreach (var room in availableRooms)
+                {
+                    string extraBedInfo = room.Type == "Double" ? $"Extra Beds: {room.ExtraBeds}" : "No extra beds";
+                    Console.WriteLine($"Room ID: {room.RoomId} | Type: {room.Type} | Price: {room.PricePerNight:C} | {extraBedInfo}");
+                }
+
+                // Välj rum
+                Console.Write("Enter Room ID to book: ");
+                if (!int.TryParse(Console.ReadLine(), out int roomId) || !availableRooms.Any(r => r.RoomId == roomId))
+                {
+                    Console.WriteLine("Invalid Room ID. Booking not created.");
+                    Console.ReadKey(true);
+                    return;
+                }
+
+                // Skapa bokning
+                var newBooking = new Booking
+                {
+                    GuestId = newGuest.GuestId,
+                    RoomId = roomId,
+                    CheckInDate = startDate,
+                    CheckOutDate = endDate,
+                    IsCheckedIn = false,
+                    IsCheckedOut = false,
+                    BookingStatus = false
+                };
+
+                _guestRepository.AddBooking(newBooking);
+
+                Console.WriteLine("\nBooking created successfully!");
+            }
+
+            Console.WriteLine("\nPress any key to continue...");
             Console.ReadKey(true);
         }
+        private DateTime PromptForDate(string message)
+        {
+            while (true)
+            {
+                Console.Write(message);
+                if (DateTime.TryParse(Console.ReadLine(), out DateTime date))
+                {
+                    if (date.Date < DateTime.Now.Date)
+                    {
+                        Console.WriteLine("The date cannot be in the past. Please enter a valid future date.");
+                        continue;
+                    }
+                    return date;
+                }
+                Console.WriteLine("Invalid date format. Please use yyyy-MM-dd.");
+            }
+        }
+
+
+
+
 
         public void UpdateGuestInformation()
         {

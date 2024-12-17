@@ -28,10 +28,10 @@ namespace HotelBookingApp.Entities
 
 
         [Required]
-        public decimal PricePerNight { get; set; } // Pris per natt
+        public decimal PricePerNight { get; set; } 
 
         [Required]
-        public int SizeInSquareMeters { get; set; } // Storlek i kvadratmeter
+        public int SizeInSquareMeters { get; set; } 
 
     }
 }

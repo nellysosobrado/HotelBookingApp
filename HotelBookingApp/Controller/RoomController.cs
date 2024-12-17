@@ -22,40 +22,64 @@ namespace HotelBookingApp.Controllers
             Console.Write("Enter Room Type (Single/Double): ");
             var roomType = Console.ReadLine()?.Trim();
 
+            if (string.IsNullOrWhiteSpace(roomType) ||
+                (roomType.ToLower() != "single" && roomType.ToLower() != "double"))
+            {
+                Console.WriteLine("Invalid Room Type. Please enter 'Single' or 'Double'.");
+                return;
+            }
+
             Console.Write("Enter Price Per Night: ");
-            if (!decimal.TryParse(Console.ReadLine(), out var price))
+            if (!decimal.TryParse(Console.ReadLine(), out var price) || price <= 0)
             {
                 Console.WriteLine("Invalid price.");
                 return;
             }
 
             Console.Write("Enter Size in Square Meters: ");
-            if (!int.TryParse(Console.ReadLine(), out var size))
+            if (!int.TryParse(Console.ReadLine(), out var size) || size <= 0)
             {
                 Console.WriteLine("Invalid size.");
                 return;
             }
 
-            Console.Write("Enter Number of Extra Beds: ");
-            if (!int.TryParse(Console.ReadLine(), out var extraBeds))
+            int extraBeds = 0;
+            int maxPeople = 0;
+
+            if (roomType.ToLower() == "double")
             {
-                Console.WriteLine("Invalid extra beds.");
-                return;
+                Console.Write("Enter Number of Extra Beds (0, 1, or 2): ");
+                if (!int.TryParse(Console.ReadLine(), out extraBeds) || extraBeds < 0 || extraBeds > 2)
+                {
+                    Console.WriteLine("Invalid number of extra beds. Allowed values for Double rooms are 0, 1, or 2.");
+                    return;
+                }
+                maxPeople = 2 + extraBeds; 
+            }
+            else if (roomType.ToLower() == "single")
+            {
+                extraBeds = 0;
+                maxPeople = 1; 
             }
 
             var newRoom = new Room
             {
-                Type = char.ToUpper(roomType[0]) + roomType.Substring(1),
+                Type = char.ToUpper(roomType[0]) + roomType.Substring(1).ToLower(),
                 PricePerNight = price,
                 SizeInSquareMeters = size,
                 ExtraBeds = extraBeds,
-                IsAvailable = true
+                IsAvailable = true,
+                TotalPeople = maxPeople
             };
 
             _roomRepository.AddRoom(newRoom);
 
-            Console.WriteLine($"Room '{newRoom.Type}' successfully added with ID {newRoom.RoomId}.");
+            Console.WriteLine($"\nRoom '{newRoom.Type}' successfully added with ID {newRoom.RoomId}.");
+            Console.WriteLine($"Max People Allowed: {newRoom.TotalPeople}");
+            Console.WriteLine("\nPress any key to continue...");
+            Console.ReadKey();
         }
+
 
         public void EditRoom()
         {

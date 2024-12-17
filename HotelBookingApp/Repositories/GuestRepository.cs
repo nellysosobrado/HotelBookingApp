@@ -1,4 +1,5 @@
 ﻿using HotelBookingApp.Data;
+using HotelBookingApp.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,6 +66,27 @@ namespace HotelBookingApp.Repositories
                 _appDbContext.Guests.Remove(guest);
                 _appDbContext.SaveChanges();
             }
+        }
+        public void AddBooking(Booking booking)
+        {
+            _appDbContext.Bookings.Add(booking);
+            _appDbContext.SaveChanges();
+        }
+
+        public Room GetRoomById(int roomId)
+        {
+            return _appDbContext.Rooms.FirstOrDefault(r => r.RoomId == roomId);
+        }
+
+        public List<Room> GetAvailableRooms(DateTime startDate, DateTime endDate, int guestCount)
+        {
+            return _appDbContext.Rooms
+                .Where(room => room.IsAvailable &&
+                               room.TotalPeople >= guestCount &&
+                               !_appDbContext.Bookings.Any(b => b.RoomId == room.RoomId &&
+                                                               b.CheckInDate < endDate &&
+                                                               b.CheckOutDate > startDate))
+                .ToList();
         }
 
 
