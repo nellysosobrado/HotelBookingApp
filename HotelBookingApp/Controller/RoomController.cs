@@ -139,6 +139,8 @@ namespace HotelBookingApp.Controllers
 
                 Console.WriteLine($"ID: {room.RoomId} | Type: {room.Type} | Price: {room.PricePerNight:C} | Booked By: {bookedBy}");
             }
+            Console.WriteLine("press any key to contionue");
+            Console.ReadKey();
         }
         public void DeleteRoom()
         {
