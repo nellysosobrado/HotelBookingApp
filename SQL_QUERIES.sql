@@ -1,11 +1,37 @@
-USE HotelBookingDB
+USE HotelBookingDB;
+GO
 
-
+-- Invoices/Payments
 SELECT * FROM Rooms
 SELECT * FROM Guests
-SELECT * FROM Invoices
-SELECT * FROM Payments
-SELECT * FROM Bookings
+SELECT * FROm Bookings
+SELECT * FROM Invoices;
+SELECT * FROM Payments;
+
+SELECT 
+    g.GuestId,
+    g.FirstName + ' ' + g.LastName AS GuestName,
+    b.BookingId,
+    r.RoomId,
+    r.Type AS RoomType,
+    i.TotalAmount,
+    CASE 
+        WHEN i.IsPaid = 1 THEN 'Paid'
+        ELSE 'Unpaid'
+    END AS PaymentStatus
+FROM Guests g
+JOIN Bookings b ON g.GuestId = b.GuestId
+JOIN Rooms r ON b.RoomId = r.RoomId
+LEFT JOIN Invoices i ON b.BookingId = i.BookingId
+ORDER BY g.GuestId;
+
+
+
+SELECT i.InvoiceId
+FROM Invoices i
+LEFT JOIN Payments p ON i.InvoiceId = p.InvoiceId
+WHERE p.InvoiceId IS NULL;
+
 
 SELECT 
     i.InvoiceId,
@@ -15,11 +41,47 @@ SELECT
     p.PaymentId,
     p.PaymentDate,
     p.AmountPaid
-FROM Invoices i
-LEFT JOIN Payments p ON i.InvoiceId = p.InvoiceId
-ORDER BY i.InvoiceId;
+FROM 
+    Invoices i
+LEFT JOIN 
+    Payments p ON i.InvoiceId = p.InvoiceId
+ORDER BY 
+    i.InvoiceId;
 
+-- ========================
+-- 2. ÖVERSIKT AV GÄSTER, BOKNINGAR, BETALNINGSSTATUS
+-- ========================
+SELECT 
+    g.GuestId,
+    g.FirstName,
+    g.LastName,
+    g.Email,
+    g.PhoneNumber,
+    b.BookingId,
+    b.RoomId,
+    b.CheckInDate,
+    b.CheckOutDate,
+    b.IsCheckedIn,
+    b.IsCheckedOut,
+    b.BookingStatus,
+    i.TotalAmount AS InvoiceAmount,
+    CASE 
+        WHEN i.IsPaid = 1 THEN 'Paid'
+        WHEN i.IsPaid = 0 THEN 'Unpaid'
+        ELSE 'No Invoice'
+    END AS PaymentStatus
+FROM 
+    Guests g
+LEFT JOIN 
+    Bookings b ON g.GuestId = b.GuestId
+LEFT JOIN 
+    Invoices i ON b.BookingId = i.BookingId
+ORDER BY 
+    g.GuestId;
 
+-- ========================
+-- 3. ALLMÄN GÄST- OCH BOKNINGSINFORMATION
+-- ========================
 SELECT 
     g.GuestId,
     g.FirstName,
@@ -33,23 +95,32 @@ SELECT
     b.IsCheckedIn,
     b.IsCheckedOut,
     b.BookingStatus
-FROM Guests g
-LEFT JOIN Bookings b ON g.GuestId = b.GuestId
-ORDER BY g.GuestId;
+FROM 
+    Guests g
+LEFT JOIN 
+    Bookings b ON g.GuestId = b.GuestId
+ORDER BY 
+    g.GuestId;
 
+-- ========================
+-- 4. STANDARD SELECT-STATEMENTS
+-- ========================
+SELECT * FROM Guests;
+SELECT * FROM Invoices;
+SELECT * FROM Payments;
+SELECT * FROM Bookings;
+SELECT * FROM Rooms;
 
-SELECT * FROM Guests
-SELECT * FROM Invoices
-SELECT * FROM Payments
-SELECT * FROM Bookings
+-- ========================
+-- 5. ADMINISTRATIVA UPPGIFTER
+-- ========================
+UPDATE Rooms SET IsAvailable = 1; -- Gör alla rum tillgängliga
+DELETE FROM Bookings; -- Tar bort alla aktuella bokningar
+DBCC CHECKIDENT ('Bookings', RESEED, 0); -- Återställ ID-sekvens för tabellen 'Bookings'
 
-UPDATE Rooms SET IsAvailable =1; -- All room available
-DELETE FROM Bookings; --Remove all current bookings
-DBCC CHECKIDENT ('Bookings', RESEED, 0); -- resetest the ID seeding 
-
--- G
-
--- SELECT
+-- ========================
+-- 6. GÄST- OCH RUMSINFORMATION MED CHECKINS
+-- ========================
 SELECT 
     B.BookingId, 
     G.FirstName + ' ' + G.LastName AS GuestName, 
@@ -67,8 +138,9 @@ WHERE
     G.LastName = 'Lastname2' 
     AND B.IsCheckedOut = 0;
 
--- SORT
-
+-- ========================
+-- 7. SORTERA TILLGÄNGLIGA RUM EFTER PRIS
+-- ========================
 SELECT 
     RoomId, 
     Type AS RoomType, 
@@ -82,7 +154,9 @@ WHERE
 ORDER BY 
     PricePerNight ASC;
 
---where
+-- ========================
+-- 8. BOKNINGAR INOM EN SPECIFIK PERIOD
+-- ========================
 SELECT 
     B.BookingId, 
     G.FirstName + ' ' + G.LastName AS GuestName, 
@@ -100,8 +174,9 @@ WHERE
 ORDER BY 
     B.CheckInDate ASC;
 
-
---WHERE
+-- ========================
+-- 9. GÄSTER MED EFTERNAMN SOM BÖRJAR MED 'J'
+-- ========================
 SELECT 
     GuestId, 
     FirstName, 
@@ -115,22 +190,9 @@ WHERE
 ORDER BY 
     LastName ASC;
 
-
--- SELECT & WHERE
-SELECT
-    RoomId, 
-    Type AS RoomType, 
-    PricePerNight
-FROM 
-    Rooms
-WHERE 
-    Type IN ('Single', 'Double')
-ORDER BY 
-    PricePerNight DESC;
-
-
--- SELECT & WHERE
-
+-- ========================
+-- 10. BOKNINGAR MED NULL CHECKOUT-DATUM
+-- ========================
 SELECT 
     BookingId, 
     RoomId, 
@@ -144,12 +206,9 @@ WHERE
 ORDER BY 
     CheckInDate DESC;
 
-
-
-
--- JOINS
--- information om gäster, deras bokningar och vilka rum de har bokat.
-
+-- ========================
+-- 11. JOINS: AKTIVA BOKNINGAR MED RUMSINFORMATION
+-- ========================
 SELECT 
     G.GuestId, 
     G.FirstName + ' ' + G.LastName AS GuestName,
@@ -170,9 +229,9 @@ WHERE
 ORDER BY 
     G.GuestId;
 
-
--- GROUP BY 
--- totala antalet bokningar och det totala intäktsvärdet per rumstyp.
+-- ========================
+-- 12. GROUP BY: BOKNINGAR OCH TOTAL INTÄKT PER RUMSTYP
+-- ========================
 SELECT 
     R.Type AS RoomType,
     COUNT(B.BookingId) AS TotalBookings,
@@ -186,9 +245,9 @@ GROUP BY
 ORDER BY 
     TotalRevenue DESC;
 
-
--- Unpaid bookings
--- hämta alla obetalda bokningar med fakturor som är äldre än 10 dagar
+-- ========================
+-- 13. OBEGLIGNA BOKNINGAR ÄLDRE ÄN 10 DAGAR
+-- ========================
 SELECT 
     B.BookingId,
     G.FirstName + ' ' + G.LastName AS GuestName,

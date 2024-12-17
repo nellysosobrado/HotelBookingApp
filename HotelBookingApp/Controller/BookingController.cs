@@ -200,18 +200,34 @@ namespace HotelBookingApp
         public void DisplayAllGuestInfo()
         {
             Console.Clear();
-            Console.WriteLine("=== VIEW ALL GUESTS ===");
+            Console.WriteLine("GUESTS AND BOOKING INFORMATION");
+            Console.WriteLine(new string('-', 60));
+
             var bookings = _bookingRepository.GetAllBookings();
 
             foreach (var booking in bookings)
             {
+                string checkInStatus = booking.IsCheckedIn ? "Checked In" : "Not Checked In";
+
+                // Kontrollera betalningsstatus
+                string paymentStatus = "No Invoice";
+                if (booking.Invoices != null && booking.Invoices.Any())
+                {
+                    var latestInvoice = booking.Invoices.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
+                    paymentStatus = latestInvoice.IsPaid ? "Paid" : "Not Paid";
+                }
+
                 Console.WriteLine($"Guest: {booking.Guest.FirstName} {booking.Guest.LastName}");
-                Console.WriteLine($"Booking ID: {booking.BookingId}, Room: {booking.RoomId}, Checked In: {booking.IsCheckedIn}");
+                Console.WriteLine($"Booking ID: {booking.BookingId}\tRoom: {booking.RoomId}");
+                Console.WriteLine($"Status: {checkInStatus}\tPayment: {paymentStatus}");
+                Console.WriteLine(new string('-', 60));
             }
 
             Console.WriteLine("\nPress any key to return to the menu...");
             Console.ReadKey();
         }
+
+
 
         public void DisplayNonPaidBookings()
         {
