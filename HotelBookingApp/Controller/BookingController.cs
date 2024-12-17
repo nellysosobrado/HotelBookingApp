@@ -147,7 +147,6 @@ namespace HotelBookingApp
 
             _bookingRepository.UpdateBookingAndInvoice(booking, invoice);
 
-            // Display checkout confirmation
             Console.WriteLine("\nPayment processed successfully.");
             Console.WriteLine($"Booking with Booking ID {booking.BookingId} has been successfully checked out and marked as completed.");
             Console.WriteLine("\nPress any key to return...");
@@ -258,11 +257,19 @@ namespace HotelBookingApp
                 foreach (var booking in activeBookings)
                 {
                     // Bestäm status: Checked In eller Upcoming
-                    string status = booking.IsCheckedIn ? "Checked In" : "Not Cheked in";
+                    string status = booking.IsCheckedIn ? "Checked In" : "Not Checked In";
+
+                    // Hämta pris från senaste fakturan om det finns en
+                    var latestInvoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
+                    string invoiceAmount = latestInvoice != null ? $"{latestInvoice.TotalAmount:C}" : "No Invoice";
+                    string paymentStatus = latestInvoice != null
+                        ? (latestInvoice.IsPaid ? "Paid" : "Not Paid")
+                        : "No Invoice";
 
                     Console.WriteLine($"Guest: {booking.Guest.FirstName} {booking.Guest.LastName}");
                     Console.WriteLine($"Booking ID: {booking.BookingId}\tRoom: {booking.RoomId}");
                     Console.WriteLine($"Status: {status}\tCheck-In Date: {booking.CheckInDate:yyyy-MM-dd}");
+                    Console.WriteLine($"Invoice Amount: {invoiceAmount}\tPayment Status: {paymentStatus}");
                     Console.WriteLine(new string('-', 60));
                 }
             }
@@ -270,6 +277,8 @@ namespace HotelBookingApp
             Console.WriteLine("\nPress any key to return...");
             Console.ReadKey();
         }
+
+
 
 
 
@@ -328,7 +337,7 @@ namespace HotelBookingApp
             Console.ReadKey();
         }
 
-        private void DisplayAllRegisteredGuests()
+        public void DisplayAllRegisteredGuests()
         {
             Console.Clear();
             Console.WriteLine("ALL REGISTERED GUESTS");
@@ -357,77 +366,6 @@ namespace HotelBookingApp
             Console.WriteLine("\nPress any key to return...");
             Console.ReadKey();
         }
-
-
-
-
-        //public void DisplayAllGuestInfo()
-        //{
-        //    Console.Clear();
-        //    Console.WriteLine("GUESTS AND BOOKING INFORMATION");
-        //    Console.WriteLine(new string('-', 60));
-
-        //    var bookings = _bookingRepository.GetAllBookings();
-
-        //    foreach (var booking in bookings)
-        //    {
-        //        string checkInStatus = booking.IsCheckedIn ? "Checked In" : "Not Checked In";
-
-        //        string paymentStatus = "No Invoice";
-        //        if (booking.Invoices != null && booking.Invoices.Any())
-        //        {
-        //            var latestInvoice = booking.Invoices.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
-        //            paymentStatus = latestInvoice.IsPaid ? "Paid" : "Not Paid";
-
-        //            if (latestInvoice.Payments != null && latestInvoice.Payments.Any())
-        //            {
-        //                var payment = latestInvoice.Payments.First();
-        //                Console.WriteLine($"Latest Payment: {payment.AmountPaid:C} on {payment.PaymentDate:yyyy-MM-dd}");
-        //            }
-        //        }
-
-        //        Console.WriteLine($"Guest: {booking.Guest.FirstName} {booking.Guest.LastName}");
-        //        Console.WriteLine($"Booking ID: {booking.BookingId}\tRoom: {booking.RoomId}");
-        //        Console.WriteLine($"Status: {checkInStatus}\tPayment: {paymentStatus}");
-        //        Console.WriteLine(new string('-', 60));
-        //    }
-
-        //    Console.WriteLine("\nPress any key to return to the menu...");
-        //    Console.ReadKey();
-        //}
-
-
-
-
-        public void DisplayNonPaidBookings()
-        {
-            Console.Clear();
-            Console.WriteLine("=== NON-PAID BOOKINGS ===");
-            var nonPaidBookings = _bookingRepository.GetNonPaidBookings();
-
-            foreach (var booking in nonPaidBookings)
-            {
-                Console.WriteLine($"Booking ID: {booking.BookingId}, Room: {booking.RoomId}");
-            }
-
-            Console.WriteLine("\nPress any key to return to the menu...");
-            Console.ReadKey();
-        }
-
-        //public void DisplayPaidBookings()
-        //{
-        //    Console.Clear();
-        //    Console.WriteLine("=== PAID BOOKINGS ===");
-        //    var paidBookings = _bookingRepository.GetPaidBookings();
-
-        //    foreach (var booking in paidBookings)
-        //    {
-        //        Console.WriteLine($"Booking ID: {booking.BookingId}, Room: {booking.RoomId}");
-        //    }
-
-        //    Console.WriteLine("\nPress any key to return to the menu...");
-        //    Console.ReadKey();
-        //}
 
         public void EditBooking()
         {
@@ -492,7 +430,7 @@ namespace HotelBookingApp
             Console.WriteLine($"Booking {bookingId} cancelled successfully. Press any key to return...");
             Console.ReadKey();
         }
-        public void CancelExpiredUnpaidBookings()
+        public void DisplayExpiredBookings()
         {
             Console.Clear();
             Console.WriteLine("Unpaid Bookings");
@@ -516,6 +454,79 @@ namespace HotelBookingApp
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }
+        public void PayInvoiceBeforeCheckout()
+        {
+            Console.Clear();
+            Console.WriteLine("PAY INVOICE BEFORE CHECKOUT");
+            Console.WriteLine(new string('-', 60));
+
+            Console.Write("Enter Booking ID: ");
+            if (!int.TryParse(Console.ReadLine(), out int bookingId))
+            {
+                Console.WriteLine("Invalid Booking ID. Press any key to return...");
+                Console.ReadKey();
+                return;
+            }
+
+            // Hämta bokningen och dess faktura
+            var booking = _bookingRepository.GetBookingById(bookingId);
+            if (booking == null)
+            {
+                Console.WriteLine("Booking not found. Press any key to return...");
+                Console.ReadKey();
+                return;
+            }
+
+            var invoice = _bookingRepository.GetInvoiceByBookingId(bookingId);
+            if (invoice == null)
+            {
+                Console.WriteLine("No invoice found for this booking. Press any key to return...");
+                Console.ReadKey();
+                return;
+            }
+
+            if (invoice.IsPaid)
+            {
+                Console.WriteLine("Invoice is already paid. Press any key to return...");
+                Console.ReadKey();
+                return;
+            }
+
+            // Visa fakturadetaljer
+            Console.WriteLine($"Invoice ID: {invoice.InvoiceId}");
+            Console.WriteLine($"Total Amount: {invoice.TotalAmount:C}");
+            Console.WriteLine($"Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
+            Console.WriteLine(new string('-', 60));
+
+            // Ange betalningsbelopp
+            Console.Write("Enter payment amount: ");
+            if (!decimal.TryParse(Console.ReadLine(), out decimal paymentAmount) || paymentAmount < invoice.TotalAmount)
+            {
+                Console.WriteLine("Invalid or insufficient payment amount. Press any key to return...");
+                Console.ReadKey();
+                return;
+            }
+
+            // Skapa och spara betalning
+            var payment = new Payment
+            {
+                InvoiceId = invoice.InvoiceId,
+                PaymentDate = DateTime.Now,
+                AmountPaid = paymentAmount
+            };
+
+            _bookingRepository.AddPayment(payment);
+
+            // Uppdatera fakturan
+            invoice.IsPaid = true;
+            _bookingRepository.UpdateInvoice(invoice);
+
+            Console.WriteLine("\nPayment processed successfully.");
+            Console.WriteLine($"Invoice {invoice.InvoiceId} marked as Paid.");
+            Console.WriteLine("Press any key to return...");
+            Console.ReadKey();
+        }
+
 
     }
 }
