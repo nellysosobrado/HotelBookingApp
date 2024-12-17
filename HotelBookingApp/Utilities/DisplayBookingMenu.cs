@@ -22,7 +22,7 @@ namespace HotelBookingApp.Utilities
         {
             Console.WriteLine("You are in DisplayBookingMenu.cs");
             string[] options = { 
-            "Check in guest", "Check out guest","Search available rooms", "display all guest info", "Display non paid bookings", "Display paid bookings", "edit booking", "Cancelbooking" ,"main menu"
+            "Check in guest", "Check out guest","Search available rooms", "display all guest info", "Display non paid bookings", "Display paid bookings", "edit booking", "Cancelbooking","Unpaid bookings that havent been paid after 10 days" ,"main menu"
             };
 
             while (true)
@@ -56,7 +56,10 @@ namespace HotelBookingApp.Utilities
                     case 7:
                         _bookingController.CancelBooking();
                         break;
-                       
+                    case 8:
+                        _bookingController.CancelExpiredUnpaidBookings();
+                        break;
+
                     default:
                         Console.WriteLine("error");
                         return;

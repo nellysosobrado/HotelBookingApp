@@ -306,6 +306,30 @@ namespace HotelBookingApp
             Console.WriteLine($"Booking {bookingId} cancelled successfully. Press any key to return...");
             Console.ReadKey();
         }
+        public void CancelExpiredUnpaidBookings()
+        {
+            Console.Clear();
+            Console.WriteLine("Unpaid Bookings");
+
+            var expiredBookings = _bookingRepository.GetExpiredUnpaidBookings();
+
+            if (!expiredBookings.Any())
+            {
+                Console.WriteLine("No expired unpaid bookings found.");
+                Console.ReadKey();
+                return;
+            }
+
+            foreach (var booking in expiredBookings)
+            {
+                _bookingRepository.CancelBooking(booking);
+                Console.WriteLine($"Booking ID {booking.BookingId} for Guest ID {booking.GuestId} has been cancelled due to non-payment.");
+            }
+
+            Console.WriteLine("\nAll expired unpaid bookings have been processed.");
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
+        }
 
     }
 }

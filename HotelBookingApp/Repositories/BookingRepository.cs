@@ -158,5 +158,30 @@ namespace HotelBookingApp.Repositories
                 throw new Exception($"An error occurred while saving changes to the database: {ex.Message}");
             }
         }
+
+        public List<Booking> GetExpiredUnpaidBookings()
+        {
+            var tenDaysAgo = DateTime.Now.AddDays(-10);
+
+            return _appDbContext.Bookings
+                .Where(b => b.BookingStatus == false
+                            && b.Invoices.Any(i => !i.IsPaid && i.PaymentDeadline < tenDaysAgo))
+                .ToList();
+        }
+
+        public void CancelBooking(Booking booking)
+        {
+            booking.BookingStatus = false;
+            booking.IsCheckedIn = false;
+            booking.IsCheckedOut = true;
+
+            var room = _appDbContext.Rooms.FirstOrDefault(r => r.RoomId == booking.RoomId);
+            if (room != null)
+            {
+                room.IsAvailable = true;
+            }
+
+            _appDbContext.SaveChanges();
+        }
     }
 }
