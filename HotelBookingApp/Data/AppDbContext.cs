@@ -16,45 +16,24 @@ namespace HotelBookingApp.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Define relations for Invoice and Payment tables
-            modelBuilder.Entity<Invoice>()
-                .HasOne(i => i.Booking)
-                .WithMany(b => b.Invoices)
-                .HasForeignKey(i => i.BookingId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.Invoice)
-                .WithMany(i => i.Payments)
-                .HasForeignKey(p => p.InvoiceId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            SeedData(modelBuilder);
-        }
-        private void SeedData(ModelBuilder modelBuilder)
-        {
-            
             DateTime today = DateTime.Now.Date;
-            DateTime futureCheckInDate = today.AddDays(1); 
-            DateTime futureCheckOutDate = futureCheckInDate.AddDays(3); 
+            DateTime futureCheckInDate = today.AddDays(1);
+            DateTime futureCheckOutDate = futureCheckInDate.AddDays(3);
 
-            // Seed Rooms
             modelBuilder.Entity<Room>().HasData(
                 new Room { RoomId = 1, Type = "Single", ExtraBeds = 0, IsAvailable = false, PricePerNight = 1500, SizeInSquareMeters = 20 },
                 new Room { RoomId = 2, Type = "Double", ExtraBeds = 1, IsAvailable = false, PricePerNight = 3500, SizeInSquareMeters = 80 },
-                new Room { RoomId = 3, Type = "Double", ExtraBeds = 2, IsAvailable = true, PricePerNight = 3500, SizeInSquareMeters = 70 },
-                new Room { RoomId = 4, Type = "Single", ExtraBeds = 0, IsAvailable = true, PricePerNight = 1500, SizeInSquareMeters = 215 }
+                new Room { RoomId = 3, Type = "Single", ExtraBeds = 0, IsAvailable = true, PricePerNight = 2000, SizeInSquareMeters = 25 },
+                new Room { RoomId = 4, Type = "Double", ExtraBeds = 2, IsAvailable = true, PricePerNight = 4000, SizeInSquareMeters = 90 }
             );
 
-            // Seed Guests
             modelBuilder.Entity<Guest>().HasData(
-                new Guest { GuestId = 1, FirstName = "Person1", LastName = "Lastname1", Email = "234p@example.com", PhoneNumber = "234" },
-                new Guest { GuestId = 2, FirstName = "Person2", LastName = "Lastname2", Email = "342p@example.com", PhoneNumber = "3453" },
-                new Guest { GuestId = 3, FirstName = "Person3", LastName = "Lastname3", Email = "p234@example.com", PhoneNumber = "3453" },
-                new Guest { GuestId = 4, FirstName = "Person4", LastName = "Lastname4", Email = "243p@example.com", PhoneNumber = "43" }
+                new Guest { GuestId = 1, FirstName = "p1", LastName = "l1", Email = "gmail.com1", PhoneNumber = "11111" },
+                new Guest { GuestId = 2, FirstName = "p2", LastName = "l2", Email = "gmail.com2", PhoneNumber = "22222" },
+                new Guest { GuestId = 3, FirstName = "p3", LastName = "l3", Email = "gmail.com3", PhoneNumber = "33333" },
+                new Guest { GuestId = 4, FirstName = "p4", LastName = "l4", Email = "gmail.com4", PhoneNumber = "44444" }
             );
 
-            // Seed Bookings
             modelBuilder.Entity<Booking>().HasData(
                 new Booking
                 {
@@ -62,8 +41,8 @@ namespace HotelBookingApp.Data
                     GuestId = 1,
                     RoomId = 1,
                     IsCheckedIn = false,
-                    IsCheckedOut = true,
-                    BookingStatus = true, 
+                    IsCheckedOut = false,
+                    BookingStatus = false,
                     CheckInDate = futureCheckInDate,
                     CheckOutDate = futureCheckOutDate
                 },
@@ -72,49 +51,83 @@ namespace HotelBookingApp.Data
                     BookingId = 2,
                     GuestId = 2,
                     RoomId = 2,
-                    IsCheckedIn = true,
+                    IsCheckedIn = false,
                     IsCheckedOut = false,
-                    BookingStatus = false, 
+                    BookingStatus = false,
                     CheckInDate = futureCheckInDate,
                     CheckOutDate = futureCheckOutDate
+                },
+                new Booking
+                {
+                    BookingId = 3,
+                    GuestId = 3,
+                    RoomId = 3,
+                    IsCheckedIn = true,
+                    IsCheckedOut = false,
+                    BookingStatus = false,
+                    CheckInDate = today.AddDays(-2),
+                    CheckOutDate = today.AddDays(1)
+                },
+                new Booking
+                {
+                    BookingId = 4,
+                    GuestId = 4,
+                    RoomId = 4,
+                    IsCheckedIn = false,
+                    IsCheckedOut = true,
+                    BookingStatus = true,
+                    CheckInDate = today.AddDays(-5),
+                    CheckOutDate = today.AddDays(-1)
                 }
             );
 
-            // Seed Invoices
-            var invoices = new[]
-            {
-        new Invoice
-        {
-            InvoiceId = 1,
-            BookingId = 1,
-            TotalAmount = 1500m,
-            IsPaid = false,
-            PaymentDeadline = futureCheckOutDate.AddDays(7)
-        },
-        new Invoice
-        {
-            InvoiceId = 2,
-            BookingId = 2,
-            TotalAmount = 10500.00m,
-            IsPaid = false,
-            PaymentDeadline = futureCheckOutDate.AddDays(7)
+            modelBuilder.Entity<Invoice>().HasData(
+                new Invoice
+                {
+                    InvoiceId = 1,
+                    BookingId = 1,
+                    TotalAmount = 4500,
+                    IsPaid = false,
+                    PaymentDeadline = futureCheckOutDate.AddDays(7)
+                },
+                new Invoice
+                {
+                    InvoiceId = 2,
+                    BookingId = 2,
+                    TotalAmount = 7000,
+                    IsPaid = false,
+                    PaymentDeadline = futureCheckOutDate.AddDays(7)
+                },
+                new Invoice
+                {
+                    InvoiceId = 3,
+                    BookingId = 3,
+                    TotalAmount = 6000,
+                    IsPaid = false,
+                    PaymentDeadline = today.AddDays(7)
+                },
+                new Invoice
+                {
+                    InvoiceId = 4,
+                    BookingId = 4,
+                    TotalAmount = 8000,
+                    IsPaid = true,
+                    PaymentDeadline = today.AddDays(-2)
+                }
+            );
+
+            modelBuilder.Entity<Payment>().HasData(
+                new Payment
+                {
+                    PaymentId = 1,
+                    InvoiceId = 4,
+                    PaymentDate = today.AddDays(-2),
+                    AmountPaid = 8000
+                }
+            );
+
+            base.OnModelCreating(modelBuilder);
         }
-    };
-
-            modelBuilder.Entity<Invoice>().HasData(invoices);
-
-            // Seed Payments dynamically linked to invoices
-            var payments = invoices.Select(invoice => new Payment
-            {
-                PaymentId = invoice.InvoiceId,
-                InvoiceId = invoice.InvoiceId,
-                PaymentDate = today,
-                AmountPaid = invoice.TotalAmount
-            }).ToArray();
-
-            modelBuilder.Entity<Payment>().HasData(payments);
-        }
-
 
 
 

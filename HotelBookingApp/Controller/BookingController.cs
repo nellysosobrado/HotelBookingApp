@@ -197,35 +197,205 @@ namespace HotelBookingApp
             Console.WriteLine("\nPress any key to return to the menu...");
             Console.ReadKey();
         }
+
         public void DisplayAllGuestInfo()
         {
+            DisplayGuestOptions();
+        }
+
+        public void DisplayGuestOptions()
+        {
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("SELECT WHAT TO VIEW:");
+                Console.WriteLine(new string('-', 40));
+                Console.WriteLine("1. Active Bookings");
+                Console.WriteLine("2. History of Previous Guests");
+                Console.WriteLine("3. All Registered Guests");
+                Console.WriteLine("4. Return to Main Menu");
+                Console.WriteLine(new string('-', 40));
+
+                Console.Write("Enter your choice (1-4): ");
+                var choice = Console.ReadLine();
+
+                switch (choice)
+                {
+                    case "1":
+                        DisplayActiveBookings();
+                        break;
+                    case "2":
+                        DisplayPreviousGuestHistory();
+                        break;
+                    case "3":
+                        DisplayAllRegisteredGuests();
+                        break;
+                    case "4":
+                        return;
+                    default:
+                        Console.WriteLine("Invalid choice. Please try again.");
+                        Console.ReadKey();
+                        break;
+                }
+            }
+        }
+        private void DisplayActiveBookings()
+        {
             Console.Clear();
-            Console.WriteLine("GUESTS AND BOOKING INFORMATION");
+            Console.WriteLine("ACTIVE BOOKINGS (Checked In and Upcoming Guests)");
             Console.WriteLine(new string('-', 60));
 
-            var bookings = _bookingRepository.GetAllBookings();
+            var activeBookings = _bookingRepository.GetAllBookings()
+                .Where(b => !b.IsCheckedOut) // Alla bokningar som inte är utcheckade
+                .ToList();
 
-            foreach (var booking in bookings)
+            if (!activeBookings.Any())
             {
-                string checkInStatus = booking.IsCheckedIn ? "Checked In" : "Not Checked In";
-
-                // Kontrollera betalningsstatus
-                string paymentStatus = "No Invoice";
-                if (booking.Invoices != null && booking.Invoices.Any())
+                Console.WriteLine("No active or upcoming bookings found.");
+            }
+            else
+            {
+                foreach (var booking in activeBookings)
                 {
-                    var latestInvoice = booking.Invoices.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
-                    paymentStatus = latestInvoice.IsPaid ? "Paid" : "Not Paid";
-                }
+                    // Bestäm status: Checked In eller Upcoming
+                    string status = booking.IsCheckedIn ? "Checked In" : "Not Cheked in";
 
-                Console.WriteLine($"Guest: {booking.Guest.FirstName} {booking.Guest.LastName}");
-                Console.WriteLine($"Booking ID: {booking.BookingId}\tRoom: {booking.RoomId}");
-                Console.WriteLine($"Status: {checkInStatus}\tPayment: {paymentStatus}");
-                Console.WriteLine(new string('-', 60));
+                    Console.WriteLine($"Guest: {booking.Guest.FirstName} {booking.Guest.LastName}");
+                    Console.WriteLine($"Booking ID: {booking.BookingId}\tRoom: {booking.RoomId}");
+                    Console.WriteLine($"Status: {status}\tCheck-In Date: {booking.CheckInDate:yyyy-MM-dd}");
+                    Console.WriteLine(new string('-', 60));
+                }
             }
 
-            Console.WriteLine("\nPress any key to return to the menu...");
+            Console.WriteLine("\nPress any key to return...");
             Console.ReadKey();
         }
+
+
+
+        public void DisplayPaidBookings()
+        {
+            Console.Clear();
+            Console.WriteLine("PAID BOOKINGS");
+            Console.WriteLine(new string('-', 60));
+
+            var paidBookings = _bookingRepository.GetPaidBookings();
+
+            if (!paidBookings.Any())
+            {
+                Console.WriteLine("No paid bookings found.");
+            }
+            else
+            {
+                foreach (var booking in paidBookings)
+                {
+                    Console.WriteLine($"Guest: {booking.Guest.FirstName} {booking.Guest.LastName}");
+                    Console.WriteLine($"Booking ID: {booking.BookingId}\tRoom: {booking.RoomId}");
+                    Console.WriteLine("Status: Paid");
+                    Console.WriteLine(new string('-', 60));
+                }
+            }
+
+            Console.WriteLine("\nPress any key to return...");
+            Console.ReadKey();
+        }
+
+        private void DisplayPreviousGuestHistory()
+        {
+            Console.Clear();
+            Console.WriteLine("HISTORY OF PREVIOUS GUESTS (Checked Out)");
+            Console.WriteLine(new string('-', 60));
+
+            var previousBookings = _bookingRepository.GetAllBookings()
+                .Where(b => b.IsCheckedOut).ToList();
+
+            if (!previousBookings.Any())
+            {
+                Console.WriteLine("No previous guests found.");
+            }
+            else
+            {
+                foreach (var booking in previousBookings)
+                {
+                    Console.WriteLine($"Guest: {booking.Guest.FirstName} {booking.Guest.LastName}");
+                    Console.WriteLine($"Booking ID: {booking.BookingId}\tRoom: {booking.RoomId}");
+                    Console.WriteLine($"Checked Out On: {booking.CheckOutDate:yyyy-MM-dd}");
+                    Console.WriteLine(new string('-', 60));
+                }
+            }
+
+            Console.WriteLine("\nPress any key to return...");
+            Console.ReadKey();
+        }
+
+        private void DisplayAllRegisteredGuests()
+        {
+            Console.Clear();
+            Console.WriteLine("ALL REGISTERED GUESTS");
+            Console.WriteLine(new string('-', 60));
+
+            var guests = _bookingRepository.GetAllBookings()
+                .Select(b => b.Guest)
+                .Distinct()
+                .ToList();
+
+            if (!guests.Any())
+            {
+                Console.WriteLine("No registered guests found.");
+            }
+            else
+            {
+                foreach (var guest in guests)
+                {
+                    Console.WriteLine($"Guest ID: {guest.GuestId}");
+                    Console.WriteLine($"Name: {guest.FirstName} {guest.LastName}");
+                    Console.WriteLine($"Email: {guest.Email}\tPhone: {guest.PhoneNumber}");
+                    Console.WriteLine(new string('-', 60));
+                }
+            }
+
+            Console.WriteLine("\nPress any key to return...");
+            Console.ReadKey();
+        }
+
+
+
+
+        //public void DisplayAllGuestInfo()
+        //{
+        //    Console.Clear();
+        //    Console.WriteLine("GUESTS AND BOOKING INFORMATION");
+        //    Console.WriteLine(new string('-', 60));
+
+        //    var bookings = _bookingRepository.GetAllBookings();
+
+        //    foreach (var booking in bookings)
+        //    {
+        //        string checkInStatus = booking.IsCheckedIn ? "Checked In" : "Not Checked In";
+
+        //        string paymentStatus = "No Invoice";
+        //        if (booking.Invoices != null && booking.Invoices.Any())
+        //        {
+        //            var latestInvoice = booking.Invoices.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
+        //            paymentStatus = latestInvoice.IsPaid ? "Paid" : "Not Paid";
+
+        //            if (latestInvoice.Payments != null && latestInvoice.Payments.Any())
+        //            {
+        //                var payment = latestInvoice.Payments.First();
+        //                Console.WriteLine($"Latest Payment: {payment.AmountPaid:C} on {payment.PaymentDate:yyyy-MM-dd}");
+        //            }
+        //        }
+
+        //        Console.WriteLine($"Guest: {booking.Guest.FirstName} {booking.Guest.LastName}");
+        //        Console.WriteLine($"Booking ID: {booking.BookingId}\tRoom: {booking.RoomId}");
+        //        Console.WriteLine($"Status: {checkInStatus}\tPayment: {paymentStatus}");
+        //        Console.WriteLine(new string('-', 60));
+        //    }
+
+        //    Console.WriteLine("\nPress any key to return to the menu...");
+        //    Console.ReadKey();
+        //}
+
 
 
 
@@ -244,20 +414,20 @@ namespace HotelBookingApp
             Console.ReadKey();
         }
 
-        public void DisplayPaidBookings()
-        {
-            Console.Clear();
-            Console.WriteLine("=== PAID BOOKINGS ===");
-            var paidBookings = _bookingRepository.GetPaidBookings();
+        //public void DisplayPaidBookings()
+        //{
+        //    Console.Clear();
+        //    Console.WriteLine("=== PAID BOOKINGS ===");
+        //    var paidBookings = _bookingRepository.GetPaidBookings();
 
-            foreach (var booking in paidBookings)
-            {
-                Console.WriteLine($"Booking ID: {booking.BookingId}, Room: {booking.RoomId}");
-            }
+        //    foreach (var booking in paidBookings)
+        //    {
+        //        Console.WriteLine($"Booking ID: {booking.BookingId}, Room: {booking.RoomId}");
+        //    }
 
-            Console.WriteLine("\nPress any key to return to the menu...");
-            Console.ReadKey();
-        }
+        //    Console.WriteLine("\nPress any key to return to the menu...");
+        //    Console.ReadKey();
+        //}
 
         public void EditBooking()
         {

@@ -10,11 +10,9 @@ namespace HotelBookingApp.Utilities
 {
     public class DisplayBookingMenu
     {
-        private readonly AppDbContext _appDbContext;
         private readonly BookingController _bookingController;
-        public DisplayBookingMenu(AppDbContext appDbContext, BookingController bookingController)
+        public DisplayBookingMenu(BookingController bookingController)
         {
-            _appDbContext = appDbContext;
             _bookingController = bookingController;
         }
 

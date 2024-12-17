@@ -112,10 +112,13 @@ namespace HotelBookingApp.Repositories
         public List<Booking> GetAllBookings()
         {
             return _appDbContext.Bookings
-                .Include(b => b.Guest)
-                .Include(b => b.Room)
+                .Include(b => b.Guest)       
+                .Include(b => b.Room)        
+                .Include(b => b.Invoices)    
+                    .ThenInclude(i => i.Payments) 
                 .ToList();
         }
+
 
         public List<Booking> GetNonPaidBookings()
         {
