@@ -20,6 +20,7 @@ namespace HotelBookingApp.Utilities
                 "View All Guests",
                 "Update Guest Information",
                 "Register New Guest",
+                "Remove guest",
                 "Main Menu"
             };
 
@@ -40,6 +41,9 @@ namespace HotelBookingApp.Utilities
                         _guestController.RegisterNewGuest();
                         break;
                     case 3:
+                        _guestController.RemoveGuest();
+                        break;
+                    case 4:
                         Console.WriteLine("Returning to Main Menu...");
                         return;
                     default:

@@ -8,39 +8,39 @@ namespace HotelBookingApp.Repositories
 {
     public class RoomRepository
     {
-        private readonly AppDbContext _context;
+        private readonly AppDbContext _appDbContext;
 
         public RoomRepository(AppDbContext context)
         {
-            _context = context;
+            _appDbContext = context;
         }
 
         public void AddRoom(Room room)
         {
-            _context.Rooms.Add(room);
-            _context.SaveChanges();
+            _appDbContext.Rooms.Add(room);
+            _appDbContext.SaveChanges();
         }
 
         public Room GetRoomById(int roomId)
         {
-            return _context.Rooms.FirstOrDefault(r => r.RoomId == roomId);
+            return _appDbContext.Rooms.FirstOrDefault(r => r.RoomId == roomId);
         }
 
         public List<Room> GetAllRooms()
         {
-            return _context.Rooms.ToList();
+            return _appDbContext.Rooms.ToList();
         }
 
         public void UpdateRoom(Room room)
         {
-            _context.SaveChanges();
+            _appDbContext.SaveChanges();
         }
 
         public List<dynamic> GetRoomsWithBookings()
         {
-            return _context.Rooms
+            return _appDbContext.Rooms
                 .GroupJoin(
-                    _context.Bookings,
+                    _appDbContext.Bookings,
                     room => room.RoomId,
                     booking => booking.RoomId,
                     (room, bookings) => new
@@ -52,11 +52,11 @@ namespace HotelBookingApp.Repositories
         }
         public void DeleteRoom(int roomId)
         {
-            var room = _context.Rooms.FirstOrDefault(r => r.RoomId == roomId);
+            var room = _appDbContext.Rooms.FirstOrDefault(r => r.RoomId == roomId);
             if (room != null)
             {
-                _context.Rooms.Remove(room);
-                _context.SaveChanges();
+                _appDbContext.Rooms.Remove(room);
+                _appDbContext.SaveChanges();
             }
         }
     }
