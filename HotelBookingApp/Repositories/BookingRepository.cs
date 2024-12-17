@@ -186,5 +186,41 @@ namespace HotelBookingApp.Repositories
 
             _appDbContext.SaveChanges();
         }
+
+        public void CheckInGuest(Booking booking)
+        {
+            booking.IsCheckedIn = true;
+            booking.CheckInDate = DateTime.Now;
+            UpdateBooking(booking);
+        }
+
+        public Invoice GenerateInvoiceForBooking(Booking booking)
+        {
+            var invoice = new Invoice
+            {
+                BookingId = booking.BookingId,
+                TotalAmount = CalculateTotalAmount(booking),
+                IsPaid = false,
+                PaymentDeadline = DateTime.Now.AddDays(7)
+            };
+
+            AddInvoice(invoice);
+            return invoice;
+        }
+
+        public void ProcessPayment(Invoice invoice, decimal amount)
+        {
+            var payment = new Payment
+            {
+                InvoiceId = invoice.InvoiceId,
+                PaymentDate = DateTime.Now,
+                AmountPaid = amount
+            };
+
+            AddPayment(payment);
+            invoice.IsPaid = true;
+            UpdateInvoice(invoice);
+        }
+
     }
 }

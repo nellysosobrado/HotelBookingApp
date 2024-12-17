@@ -12,146 +12,7 @@ namespace HotelBookingApp
             _bookingRepository = bookingRepository;
         }
 
-        public void CheckIn()
-        {
-            while (true)
-            {
-                Console.Clear();
-                Console.WriteLine("CHECK IN GUEST");
-
-                Console.WriteLine("Enter 'Exit' to go back to the main menu");
-                Console.Write("Enter Booking ID to check in: ");
-
-                string input = Console.ReadLine()?.Trim();
-
-                if (input?.ToLower() == "exit")
-                {
-                    break;
-                }
-
-                if (!int.TryParse(input, out int checkInId))
-                {
-                    Console.WriteLine("Invalid Booking ID. Press any key to try again...");
-                    Console.ReadKey();
-                    continue;
-                }
-
-                var booking = _bookingRepository.GetBookingById(checkInId);
-                if (booking == null)
-                {
-                    Console.WriteLine("Booking not found. Press any key to try again...");
-                    Console.ReadKey();
-                    continue;
-                }
-
-                if (booking.IsCheckedIn)
-                {
-                    Console.WriteLine("Guest is already checked in. Press any key to try again...");
-                    Console.ReadKey();
-                    continue;
-                }
-
-                booking.IsCheckedIn = true;
-                booking.CheckInDate = DateTime.Now;
-                _bookingRepository.UpdateBooking(booking);
-
-                var guest = _bookingRepository.GetGuestById(booking.GuestId);
-                var room = _bookingRepository.GetRoomById(booking.RoomId);
-
-                Console.Clear();
-                Console.WriteLine($"\nGuest {guest?.FirstName} {guest?.LastName} has been successfully checked in.");
-                Console.WriteLine(new string('-', 60));
-                Console.WriteLine($"{"Booking ID",-15}{"Guest",-20}{"Room ID",-10}{"Check-In Date",-15}");
-                Console.WriteLine(new string('-', 60));
-                Console.WriteLine($"{booking.BookingId,-15}{guest?.FirstName + " " + guest?.LastName,-20}{room?.RoomId,-10}{booking.CheckInDate,-15:yyyy-MM-dd HH:mm}");
-                Console.WriteLine(new string('-', 60));
-
-                Console.WriteLine("\nPress any key to continue...");
-                Console.ReadKey();
-            }
-        }
-
-        public void CheckOut()
-        {
-            Console.Clear();
-            Console.WriteLine("Page: Checkout()");
-            Console.Write("Enter Guest ID to check out: ");
-
-            if (!int.TryParse(Console.ReadLine(), out int guestId))
-            {
-                Console.WriteLine("Invalid Guest ID. Press any key to return...");
-                Console.ReadKey();
-                return;
-            }
-
-            var booking = _bookingRepository.GetActiveBookingByGuestId(guestId);
-            if (booking == null)
-            {
-                Console.WriteLine("No active booking found for this guest. Press any key to return...");
-                Console.ReadKey();
-                return;
-            }
-
-            Console.WriteLine("\nGuest Details:");
-            Console.WriteLine($"Booking ID: {booking.BookingId}");
-            Console.WriteLine($"Room ID: {booking.RoomId}");
-            Console.WriteLine($"Check-In Status: {(booking.IsCheckedIn ? "Checked In" : "Not Checked In")}");
-            Console.WriteLine($"Check-Out Status: {(booking.IsCheckedOut ? "Checked Out" : "Not Checked Out")}");
-
-            var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId);
-
-            if (invoice == null)
-            {
-                Console.WriteLine("\nGenerating invoice...");
-                invoice = new Invoice
-                {
-                    BookingId = booking.BookingId,
-                    TotalAmount = _bookingRepository.CalculateTotalAmount(booking),
-                    IsPaid = false,
-                    PaymentDeadline = DateTime.Now.AddDays(7)
-                };
-
-                _bookingRepository.AddInvoice(invoice);
-                _bookingRepository.UpdateBookingAndInvoice(booking, invoice);
-
-                Console.WriteLine("Invoice generated successfully.");
-            }
-
-            Console.WriteLine($"\nInvoice Details:");
-            Console.WriteLine($"Invoice ID: {invoice.InvoiceId}");
-            Console.WriteLine($"Total Amount: {invoice.TotalAmount:C}");
-            Console.WriteLine($"Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
-
-            Console.Write("\nEnter payment amount: ");
-            if (!decimal.TryParse(Console.ReadLine(), out decimal paymentAmount) || paymentAmount < invoice.TotalAmount)
-            {
-                Console.WriteLine("Invalid or insufficient payment amount. Press any key to return...");
-                Console.ReadKey();
-                return;
-            }
-
-            var payment = new Payment
-            {
-                InvoiceId = invoice.InvoiceId,
-                PaymentDate = DateTime.Now,
-                AmountPaid = paymentAmount
-            };
-
-            _bookingRepository.AddPayment(payment);
-
-            invoice.IsPaid = true;
-            booking.IsCheckedIn = false;
-            booking.IsCheckedOut = true;
-            booking.BookingStatus = true;
-            booking.CheckOutDate = DateTime.Now;
-
-            _bookingRepository.UpdateBookingAndInvoice(booking, invoice);
-
-            Console.WriteLine("\nPayment processed successfully.");
-            Console.WriteLine($"Booking with Booking ID {booking.BookingId} has been successfully checked out and marked as completed.");
-            Console.WriteLine("\nPress any key to return...");
-            Console.ReadKey();
-        }
+        
         public void SearchAvailableRooms()
         {
             Console.Clear();
@@ -454,73 +315,119 @@ namespace HotelBookingApp
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }
-        public void PayInvoiceBeforeCheckout()
+        public void CheckIn()
+        {
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("CHECK IN GUEST");
+
+                Console.Write("Enter Booking ID to check in (or 'Exit'): ");
+                string input = Console.ReadLine()?.Trim();
+                if (input?.ToLower() == "exit") break;
+
+                if (!int.TryParse(input, out int checkInId))
+                {
+                    Console.WriteLine("Invalid Booking ID. Try again...");
+                    Console.ReadKey();
+                    continue;
+                }
+
+                var booking = _bookingRepository.GetBookingById(checkInId);
+
+                if (booking == null)
+                {
+                    Console.WriteLine($"Booking with ID {checkInId} does not exist.");
+                    Console.ReadKey();
+                    continue;
+                }
+
+                if (booking.IsCheckedIn)
+                {
+                    Console.WriteLine($"Booking ID {checkInId} is already checked in.");
+                    Console.ReadKey();
+                    continue;
+                }
+
+                _bookingRepository.CheckInGuest(booking);
+
+                Console.WriteLine($"Guest {booking.Guest.FirstName} {booking.Guest.LastName} successfully checked in!");
+                Console.WriteLine($"Booking ID: {booking.BookingId}, Room ID: {booking.RoomId}");
+                Console.ReadKey();
+            }
+        }
+
+
+        public void CheckOut()
         {
             Console.Clear();
-            Console.WriteLine("PAY INVOICE BEFORE CHECKOUT");
-            Console.WriteLine(new string('-', 60));
-
-            Console.Write("Enter Booking ID: ");
-            if (!int.TryParse(Console.ReadLine(), out int bookingId))
+            Console.Write("Enter Guest ID to check out: ");
+            if (!int.TryParse(Console.ReadLine(), out int guestId))
             {
-                Console.WriteLine("Invalid Booking ID. Press any key to return...");
-                Console.ReadKey();
+                Console.WriteLine("Invalid Guest ID.");
                 return;
             }
 
-            var booking = _bookingRepository.GetBookingById(bookingId);
+            var booking = _bookingRepository.GetActiveBookingByGuestId(guestId);
             if (booking == null)
             {
-                Console.WriteLine("Booking not found. Press any key to return...");
-                Console.ReadKey();
+                Console.WriteLine("No active booking found.");
+                return;
+            }
+
+            var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId)
+                           ?? _bookingRepository.GenerateInvoiceForBooking(booking);
+
+            Console.WriteLine($"Invoice Total: {invoice.TotalAmount:C}");
+            Console.Write("Enter payment amount: ");
+            if (!decimal.TryParse(Console.ReadLine(), out decimal paymentAmount) || paymentAmount < invoice.TotalAmount)
+            {
+                Console.WriteLine("Invalid or insufficient amount.");
+                return;
+            }
+
+            _bookingRepository.ProcessPayment(invoice, paymentAmount);
+
+            booking.IsCheckedOut = true;
+            booking.BookingStatus = true;
+            booking.CheckOutDate = DateTime.Now;
+
+            _bookingRepository.UpdateBooking(booking);
+
+            Console.WriteLine("Guest successfully checked out and payment processed.");
+            Console.ReadKey();
+        }
+
+        public void PayInvoiceBeforeCheckout()
+        {
+            Console.Clear();
+            Console.Write("Enter Booking ID: ");
+            if (!int.TryParse(Console.ReadLine(), out int bookingId))
+            {
+                Console.WriteLine("Invalid Booking ID.");
                 return;
             }
 
             var invoice = _bookingRepository.GetInvoiceByBookingId(bookingId);
-            if (invoice == null)
+            if (invoice == null || invoice.IsPaid)
             {
-                Console.WriteLine("No invoice found for this booking. Press any key to return...");
-                Console.ReadKey();
+                Console.WriteLine("No unpaid invoice found.");
                 return;
             }
 
-            if (invoice.IsPaid)
-            {
-                Console.WriteLine("Invoice is already paid. Press any key to return...");
-                Console.ReadKey();
-                return;
-            }
-
-            Console.WriteLine($"Invoice ID: {invoice.InvoiceId}");
-            Console.WriteLine($"Total Amount: {invoice.TotalAmount:C}");
-            Console.WriteLine($"Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
-            Console.WriteLine(new string('-', 60));
-
+            Console.WriteLine($"Invoice Total: {invoice.TotalAmount:C}");
             Console.Write("Enter payment amount: ");
             if (!decimal.TryParse(Console.ReadLine(), out decimal paymentAmount) || paymentAmount < invoice.TotalAmount)
             {
-                Console.WriteLine("Invalid or insufficient payment amount. Press any key to return...");
-                Console.ReadKey();
+                Console.WriteLine("Invalid or insufficient amount.");
                 return;
             }
 
-            var payment = new Payment
-            {
-                InvoiceId = invoice.InvoiceId,
-                PaymentDate = DateTime.Now,
-                AmountPaid = paymentAmount
-            };
-
-            _bookingRepository.AddPayment(payment);
-
-            invoice.IsPaid = true;
-            _bookingRepository.UpdateInvoice(invoice);
-
-            Console.WriteLine("\nPayment processed successfully.");
-            Console.WriteLine($"Invoice {invoice.InvoiceId} marked as Paid.");
-            Console.WriteLine("Press any key to return...");
+            _bookingRepository.ProcessPayment(invoice, paymentAmount);
+            Console.WriteLine("Invoice paid successfully.");
             Console.ReadKey();
         }
+
 
 
     }
