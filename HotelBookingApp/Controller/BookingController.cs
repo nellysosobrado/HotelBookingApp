@@ -468,7 +468,6 @@ namespace HotelBookingApp
                 return;
             }
 
-            // Hämta bokningen och dess faktura
             var booking = _bookingRepository.GetBookingById(bookingId);
             if (booking == null)
             {
@@ -492,13 +491,11 @@ namespace HotelBookingApp
                 return;
             }
 
-            // Visa fakturadetaljer
             Console.WriteLine($"Invoice ID: {invoice.InvoiceId}");
             Console.WriteLine($"Total Amount: {invoice.TotalAmount:C}");
             Console.WriteLine($"Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
             Console.WriteLine(new string('-', 60));
 
-            // Ange betalningsbelopp
             Console.Write("Enter payment amount: ");
             if (!decimal.TryParse(Console.ReadLine(), out decimal paymentAmount) || paymentAmount < invoice.TotalAmount)
             {
@@ -507,7 +504,6 @@ namespace HotelBookingApp
                 return;
             }
 
-            // Skapa och spara betalning
             var payment = new Payment
             {
                 InvoiceId = invoice.InvoiceId,
@@ -517,7 +513,6 @@ namespace HotelBookingApp
 
             _bookingRepository.AddPayment(payment);
 
-            // Uppdatera fakturan
             invoice.IsPaid = true;
             _bookingRepository.UpdateInvoice(invoice);
 
