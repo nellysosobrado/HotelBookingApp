@@ -46,7 +46,6 @@ namespace HotelBookingApp.DI
 
             builder.RegisterType<DisplayMainMenu>().AsSelf();
             builder.RegisterType<App>().AsSelf();
-            builder.RegisterType<RoomService>().AsSelf();
             builder.RegisterType<DisplayBookingMenu>().AsSelf();
             builder.RegisterType<BookingController>().AsSelf();
             builder.RegisterType<BookingRepository>().AsSelf();

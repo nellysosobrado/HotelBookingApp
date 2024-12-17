@@ -116,5 +116,38 @@ namespace HotelBookingApp.Controllers
                 Console.WriteLine($"ID: {room.RoomId} | Type: {room.Type} | Price: {room.PricePerNight:C} | Booked By: {bookedBy}");
             }
         }
+        public void DeleteRoom()
+        {
+            Console.Clear();
+            Console.WriteLine("DELETE ROOM");
+
+            Console.Write("Enter Room ID to delete: ");
+            if (!int.TryParse(Console.ReadLine(), out var roomId))
+            {
+                Console.WriteLine("Invalid Room ID.");
+                return;
+            }
+
+            var room = _roomRepository.GetRoomById(roomId);
+            if (room == null)
+            {
+                Console.WriteLine("Room not found.");
+                return;
+            }
+
+            Console.WriteLine($"Are you sure you want to delete Room ID {room.RoomId} (Type: {room.Type})? (Y/N)");
+            var confirmation = Console.ReadLine()?.Trim().ToUpper();
+
+            if (confirmation == "Y")
+            {
+                _roomRepository.DeleteRoom(roomId);
+                Console.WriteLine($"Room ID {roomId} has been successfully deleted.");
+            }
+            else
+            {
+                Console.WriteLine("Operation cancelled.");
+            }
+        }
+
     }
 }

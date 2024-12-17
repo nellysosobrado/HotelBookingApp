@@ -14,7 +14,7 @@ namespace HotelBookingApp.Utilities
 
         public void Menu()
         {
-            string[] options = { "Register New Room", "Edit Room", "View All Rooms", "Main Menu" };
+            string[] options = { "Register New Room", "Edit Room", "View All Rooms","Delete room", "Main Menu" };
 
             while (true)
             {
@@ -39,6 +39,9 @@ namespace HotelBookingApp.Utilities
                         _roomController.ViewAllRooms();
                         break;
                     case "4":
+                        _roomController.DeleteRoom();
+                        break;
+                    case "5":
                         Console.WriteLine("Returning to Main Menu...");
                         return;
                     default:

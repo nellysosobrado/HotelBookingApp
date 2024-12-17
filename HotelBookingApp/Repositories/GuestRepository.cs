@@ -6,39 +6,39 @@ namespace HotelBookingApp.Repositories
 {
     public class GuestRepository
     {
-        private readonly AppDbContext _context;
+        private readonly AppDbContext _appDbContext;
 
         public GuestRepository(AppDbContext context)
         {
-            _context = context;
+            _appDbContext = context;
         }
 
         public List<Guest> GetAllGuests()
         {
-            return _context.Guests.ToList();
+            return _appDbContext.Guests.ToList();
         }
 
         public Guest GetGuestById(int guestId)
         {
-            return _context.Guests.FirstOrDefault(g => g.GuestId == guestId);
+            return _appDbContext.Guests.FirstOrDefault(g => g.GuestId == guestId);
         }
 
         public void AddGuest(Guest guest)
         {
-            _context.Guests.Add(guest);
-            _context.SaveChanges();
+            _appDbContext.Guests.Add(guest);
+            _appDbContext.SaveChanges();
         }
 
         public void UpdateGuest(Guest guest)
         {
-            _context.SaveChanges();
+            _appDbContext.SaveChanges();
         }
 
         public List<object> GetGuestsWithBookings()
         {
-            return _context.Guests
+            return _appDbContext.Guests
                 .GroupJoin(
-                    _context.Bookings,
+                    _appDbContext.Bookings,
                     guest => guest.GuestId,
                     booking => booking.GuestId,
                     (guest, bookings) => new

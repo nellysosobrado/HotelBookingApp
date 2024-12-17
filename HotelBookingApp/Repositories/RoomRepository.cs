@@ -50,5 +50,14 @@ namespace HotelBookingApp.Repositories
                     })
                 .ToList<dynamic>();
         }
+        public void DeleteRoom(int roomId)
+        {
+            var room = _context.Rooms.FirstOrDefault(r => r.RoomId == roomId);
+            if (room != null)
+            {
+                _context.Rooms.Remove(room);
+                _context.SaveChanges();
+            }
+        }
     }
 }
