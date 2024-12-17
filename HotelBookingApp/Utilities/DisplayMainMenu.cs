@@ -7,12 +7,12 @@ namespace HotelBookingApp.Utilities
 {
     public class DisplayMainMenu
     {
-        private readonly RoomService _roomService;
+        private readonly DisplayRoomMenu _displayRoomMenu;
         private readonly DisplayGuestMenu _displayGuestMenu;
         private readonly DisplayBookingMenu _displayBookingMenu;
-        public DisplayMainMenu( RoomService roomService, GuestServices guestServices, DisplayBookingMenu displayBookingMenu, DisplayGuestMenu displayGuestMenu)
+        public DisplayMainMenu( DisplayRoomMenu Menu, DisplayBookingMenu displayBookingMenu, DisplayGuestMenu displayGuestMenu)
         {
-            _roomService = roomService;
+            _displayRoomMenu = Menu;
             _displayBookingMenu = displayBookingMenu;
             _displayGuestMenu = displayGuestMenu;
         }
@@ -39,7 +39,7 @@ namespace HotelBookingApp.Utilities
                         break;
 
                     case "2":
-                        _roomService.Menu();
+                        _displayRoomMenu.Menu();
                         break;
 
                     case "3":

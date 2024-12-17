@@ -42,7 +42,6 @@ namespace HotelBookingApp
                         return; 
                 }
 
-                // Ge användaren tid att se resultatet innan menyn visas igen
                 Console.WriteLine("\nPress any key to return to the menu...");
                 Console.ReadKey(true);
             }
@@ -56,12 +55,11 @@ namespace HotelBookingApp
                 Console.Clear();
                 Console.WriteLine("RoomServices.cs");
 
-                // Visa alternativen och markera det valda alternativet
                 for (int i = 0; i < options.Length; i++)
                 {
                     if (i == selectedOption)
                     {
-                        Console.ForegroundColor = ConsoleColor.Green; // Markera det valda alternativet
+                        Console.ForegroundColor = ConsoleColor.Green; 
                         Console.WriteLine($"> {options[i]}");
                         Console.ResetColor();
                     }
@@ -93,7 +91,7 @@ namespace HotelBookingApp
         {
             var newRoom = new Room
             {
-                Type = char.ToUpper(roomType[0]) + roomType.Substring(1), // Formatera till "Single" eller "Double"
+                Type = char.ToUpper(roomType[0]) + roomType.Substring(1),
                 PricePerNight = price,
                 SizeInSquareMeters = size,
                 ExtraBeds = extraBeds,
@@ -138,7 +136,6 @@ namespace HotelBookingApp
                 return;
             }
 
-            // Datumvalidering
             DateTime checkInDate, checkOutDate;
             while (true)
             {
@@ -160,7 +157,6 @@ namespace HotelBookingApp
                     continue;
                 }
 
-                // Kontrollera om datumintervallen redan är bokade
                 var isConflict = _context.Bookings.Any(b =>
                     b.RoomId == roomId &&
                     ((checkInDate >= b.CheckInDate && checkInDate < b.CheckOutDate) ||
@@ -175,7 +171,6 @@ namespace HotelBookingApp
                 break;
             }
 
-            // Skapa ny gäst
             var guest = new Guest
             {
                 FirstName = firstName,
@@ -187,7 +182,6 @@ namespace HotelBookingApp
             _context.Guests.Add(guest);
             _context.SaveChanges();
 
-            // Skapa ny bokning
             var booking = new Booking
             {
                 GuestId = guest.GuestId,
@@ -201,7 +195,6 @@ namespace HotelBookingApp
 
             _context.Bookings.Add(booking);
 
-            // Uppdatera rummet som ej tillgängligt
             room.IsAvailable = false;
 
             _context.SaveChanges();
@@ -221,7 +214,6 @@ namespace HotelBookingApp
                 return;
             }
 
-            // Hämta rummet från databasen
             var room = _context.Rooms.FirstOrDefault(r => r.RoomId == roomId);
             if (room == null)
             {
@@ -236,7 +228,7 @@ namespace HotelBookingApp
             var roomType = Console.ReadLine()?.Trim();
             if (!string.IsNullOrEmpty(roomType))
             {
-                room.Type = char.ToUpper(roomType[0]) + roomType.Substring(1); // Formatera till "Single" eller "Double"
+                room.Type = char.ToUpper(roomType[0]) + roomType.Substring(1); 
             }
 
             Console.WriteLine($"Current Price Per Night: {room.PricePerNight}");
@@ -263,7 +255,7 @@ namespace HotelBookingApp
                 room.ExtraBeds = parsedBeds;
             }
 
-            // Spara ändringar
+            
             _context.SaveChanges();
 
             Console.WriteLine($"Room with ID {room.RoomId} successfully updated.");
@@ -292,14 +284,14 @@ namespace HotelBookingApp
                 return;
             }
 
-            const int pageSize = 5; // Antal rader per sida
+            const int pageSize = 5; 
             int currentPage = 0;
             int totalPages = (int)Math.Ceiling((double)rooms.Count / pageSize);
 
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine($"=== VIEW ALL ROOMS (Page {currentPage + 1} of {totalPages}) ===");
+                Console.WriteLine($"(Page {currentPage + 1} of {totalPages})");
 
                 Console.WriteLine(new string('-', 100));
                 Console.WriteLine($"{"Room ID",-10}{"Type",-15}{"Price/Night",-15}{"Size m²",-10}{"Availability",-15}{"Booked By",-20}");
