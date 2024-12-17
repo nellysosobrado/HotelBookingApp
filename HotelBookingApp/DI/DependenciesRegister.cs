@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using HotelBookingApp.Controllers;
 using HotelBookingApp.Data;
 using HotelBookingApp.Repositories;
 using HotelBookingApp.Utilities;
@@ -51,6 +52,12 @@ namespace HotelBookingApp.DI
             builder.RegisterType<DisplayBookingMenu>().AsSelf();
             builder.RegisterType<BookingController>().AsSelf();
             builder.RegisterType<BookingRepository>().AsSelf();
+            //Guest
+            builder.RegisterType<DisplayGuestMenu>().AsSelf();
+            builder.RegisterType<GuestRepository>().AsSelf();
+            builder.RegisterType<GuestController>().AsSelf();
+
+
 
         }
     }
