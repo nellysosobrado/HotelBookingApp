@@ -1,6 +1,7 @@
 ﻿using HotelBookingApp.Data;
 using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 
@@ -41,22 +42,18 @@ namespace HotelBookingApp.Controllers
                 PhoneNumber = phone
             };
 
-            _guestRepository.AddGuest(newGuest);
-
-            Console.WriteLine("\nGuest registered successfully!");
-
-            // Fråga om användaren vill skapa en bokning
             Console.Write("\nDo you want to create a booking for this guest now? (Y/N): ");
             var choice = Console.ReadLine()?.Trim().ToUpper();
 
+            Booking newBooking = null;
+            Invoice newInvoice = null;
+
             if (choice == "Y")
             {
-                // Hämta antal personer och datum
                 int guestCount = PromptForInt("Enter number of guests: ");
                 DateTime startDate = PromptForDate("Enter start date (yyyy-MM-dd): ");
                 DateTime endDate = PromptForDate("Enter end date (yyyy-MM-dd): ");
 
-                // Hämta tillgängliga rum
                 var availableRooms = _guestRepository.GetAvailableRooms(startDate, endDate, guestCount);
 
                 if (!availableRooms.Any())
@@ -73,7 +70,6 @@ namespace HotelBookingApp.Controllers
                     Console.WriteLine($"Room ID: {room.RoomId} | Type: {room.Type} | Price: {room.PricePerNight:C} | {extraBedInfo}");
                 }
 
-                // Välj rum
                 Console.Write("Enter Room ID to book: ");
                 if (!int.TryParse(Console.ReadLine(), out int roomId) || !availableRooms.Any(r => r.RoomId == roomId))
                 {
@@ -82,10 +78,8 @@ namespace HotelBookingApp.Controllers
                     return;
                 }
 
-                // Skapa bokning
-                var newBooking = new Booking
+                newBooking = new Booking
                 {
-                    GuestId = newGuest.GuestId,
                     RoomId = roomId,
                     CheckInDate = startDate,
                     CheckOutDate = endDate,
@@ -94,14 +88,27 @@ namespace HotelBookingApp.Controllers
                     BookingStatus = false
                 };
 
-                _guestRepository.AddBooking(newBooking);
+                decimal totalAmount = _guestRepository.CalculateTotalAmount(newBooking);
 
-                Console.WriteLine("\nBooking created successfully!");
+                newInvoice = new Invoice
+                {
+                    TotalAmount = totalAmount,
+                    IsPaid = false,
+                    PaymentDeadline = endDate.AddDays(7)
+                };
             }
 
+            _guestRepository.RegisterNewGuestWithBooking(newGuest, newBooking, newInvoice);
+
+            Console.WriteLine("\nGuest, booking, and invoice registered successfully!");
             Console.WriteLine("\nPress any key to continue...");
             Console.ReadKey(true);
         }
+
+
+
+
+
         private DateTime PromptForDate(string message)
         {
             while (true)

@@ -37,6 +37,7 @@ namespace HotelBookingApp.Utilities
                 Console.WriteLine("4. Pay Invoice Before Checkout");
                 Console.WriteLine("5. Display guests");
                 Console.WriteLine("6. Display rooms");
+                Console.WriteLine("6. Display Bookings");
                 Console.WriteLine(new string('-', 40));
 
                 Console.WriteLine("7. Rooms");

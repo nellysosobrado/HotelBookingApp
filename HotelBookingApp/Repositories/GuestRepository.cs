@@ -89,6 +89,55 @@ namespace HotelBookingApp.Repositories
                 .ToList();
         }
 
+        public void RegisterNewGuestWithBooking(Guest newGuest, Booking newBooking, Invoice newInvoice)
+        {
+            // Lägg till gästen i databasen
+            _appDbContext.Guests.Add(newGuest);
+            _appDbContext.SaveChanges(); // Detta sätter GuestId på newGuest
 
+            if (newBooking != null)
+            {
+                newBooking.GuestId = newGuest.GuestId; // Koppla bokningen till gästen
+                _appDbContext.Bookings.Add(newBooking);
+                _appDbContext.SaveChanges(); // Detta sätter BookingId på newBooking
+
+                if (newInvoice != null)
+                {
+                    newInvoice.BookingId = newBooking.BookingId; // Koppla fakturan till bokningen
+                    _appDbContext.Invoices.Add(newInvoice);
+                    _appDbContext.SaveChanges();
+                }
+            }
+        }
+        public decimal CalculateTotalAmount(Booking booking)
+        {
+            var room = _appDbContext.Rooms.FirstOrDefault(r => r.RoomId == booking.RoomId);
+            if (room == null)
+            {
+                throw new Exception("Room not found.");
+            }
+
+            if (!booking.CheckInDate.HasValue || !booking.CheckOutDate.HasValue)
+            {
+                throw new Exception("Check-in or check-out date is missing.");
+            }
+
+            var duration = (booking.CheckOutDate.Value - booking.CheckInDate.Value).Days;
+            if (duration <= 0)
+            {
+                throw new Exception("Invalid booking duration.");
+            }
+
+            return room.PricePerNight * duration;
+        }
+
+
+        public void AddInvoice(Invoice invoice)
+        {
+            _appDbContext.Invoices.Add(invoice);
+            _appDbContext.SaveChanges();
+        }
+
+     
     }
 }

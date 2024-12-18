@@ -129,7 +129,7 @@ namespace HotelBookingApp
 
                     Console.WriteLine($"Guest: {booking.Guest.FirstName} {booking.Guest.LastName}");
                     Console.WriteLine($"Booking ID: {booking.BookingId}\tRoom: {booking.RoomId}");
-                    Console.WriteLine($"Status: {status}\tCheck-In Date: {booking.CheckInDate:yyyy-MM-dd}");
+                    Console.WriteLine($"Status: {status}\tCheck-In Date: {booking.CheckInDate:yyyy-MM-dd}\tCheck-Out Date: {booking.CheckOutDate:yyyy-MM-dd}");
                     Console.WriteLine($"Invoice Amount: {invoiceAmount}\tPayment Status: {paymentStatus}");
                     Console.WriteLine(new string('-', 60));
                 }
