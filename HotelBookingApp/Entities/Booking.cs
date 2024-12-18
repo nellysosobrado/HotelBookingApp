@@ -10,7 +10,8 @@ namespace HotelBookingApp.Entities
     {
         public int BookingId { get; set; }
         public int RoomId { get; set; }
-        public Room Room { get; set; }
+
+        public Room Room { get; set; }//relation to room table
         public int GuestId { get; set; }
         public Guest Guest { get; set; }
         public DateTime? CheckInDate { get; set; }

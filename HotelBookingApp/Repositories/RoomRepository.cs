@@ -1,5 +1,6 @@
 ﻿using HotelBookingApp.Data;
 using HotelBookingApp.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,31 +34,30 @@ namespace HotelBookingApp.Repositories
 
         public void UpdateRoom(Room room)
         {
+            _appDbContext.Rooms.Update(room);
             _appDbContext.SaveChanges();
         }
 
         public List<dynamic> GetRoomsWithBookings()
         {
             return _appDbContext.Rooms
-                .GroupJoin(
-                    _appDbContext.Bookings,
-                    room => room.RoomId,
-                    booking => booking.RoomId,
-                    (room, bookings) => new
-                    {
-                        Room = room,
-                        Booking = bookings.FirstOrDefault()
-                    })
-                .ToList<dynamic>();
+                .Include(r => r.Bookings)
+                .Select(r => new
+                {
+                    Room = r,
+                    Booking = r.Bookings.FirstOrDefault(b => !b.IsCheckedOut) // Hämta aktiv bokning om den finns
+                })
+                .ToList<dynamic>(); // Konvertera till en dynamisk lista
         }
         public void DeleteRoom(int roomId)
         {
-            var room = _appDbContext.Rooms.FirstOrDefault(r => r.RoomId == roomId);
+            var room = GetRoomById(roomId);
             if (room != null)
             {
                 _appDbContext.Rooms.Remove(room);
                 _appDbContext.SaveChanges();
             }
         }
+
     }
 }

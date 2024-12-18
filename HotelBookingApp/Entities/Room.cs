@@ -31,7 +31,10 @@ namespace HotelBookingApp.Entities
         public decimal PricePerNight { get; set; } 
 
         [Required]
-        public int SizeInSquareMeters { get; set; } 
+        public int SizeInSquareMeters { get; set; }
+
+        //relation to booking
+        public ICollection<Booking> Bookings { get; set; }
 
     }
 }

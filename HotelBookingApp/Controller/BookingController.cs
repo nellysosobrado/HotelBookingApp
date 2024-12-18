@@ -1,18 +1,21 @@
 ﻿using HotelBookingApp.Repositories;
 using System;
+using Spectre.Console;
 
 namespace HotelBookingApp
 {
     public class BookingController
     {
         private readonly BookingRepository _bookingRepository;
+        private readonly RoomRepository _roomRepository;
 
-        public BookingController(BookingRepository bookingRepository)
+        public BookingController(BookingRepository bookingRepository, RoomRepository roomRepository = null)
         {
             _bookingRepository = bookingRepository;
+            _roomRepository = roomRepository;
         }
 
-        
+
         public void SearchAvailableRooms()
         {
             Console.Clear();
@@ -102,42 +105,65 @@ namespace HotelBookingApp
         private void DisplayActiveBookings()
         {
             Console.Clear();
-            Console.WriteLine("ACTIVE BOOKINGS (Checked In and Upcoming Guests)");
-            Console.WriteLine(new string('-', 60));
 
             var activeBookings = _bookingRepository.GetAllBookings()
-                .Where(b => !b.IsCheckedOut) // Alla bokningar som inte är utcheckade
+                .Where(b => !b.IsCheckedOut) 
                 .ToList();
 
             if (!activeBookings.Any())
             {
-                Console.WriteLine("No active or upcoming bookings found.");
+                AnsiConsole.Markup("[red]No active or upcoming bookings found.[/]");
             }
             else
             {
+                var table = new Table();
+                table.Border(TableBorder.Rounded);
+
+                table.AddColumn("[bold yellow]Guest[/]");
+                table.AddColumn("[bold yellow]Booking ID[/]");
+                table.AddColumn("[bold yellow]Room[/]");
+                table.AddColumn("[bold yellow]Status[/]");
+                table.AddColumn("[bold yellow]Check-In Date[/]");
+                table.AddColumn("[bold yellow]Check-Out Date[/]");
+                table.AddColumn("[bold yellow]Invoice Amount[/]");
+                table.AddColumn("[bold yellow]Payment Status[/]");
+
                 foreach (var booking in activeBookings)
                 {
-                    // Bestäm status: Checked In eller Upcoming
-                    string status = booking.IsCheckedIn ? "Checked In" : "Not Checked In";
-
-                    // Hämta pris från senaste fakturan om det finns en
+                    string status = booking.IsCheckedIn ? "[green]Checked In[/]" : "[blue]Not Checked In[/]";
                     var latestInvoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
-                    string invoiceAmount = latestInvoice != null ? $"{latestInvoice.TotalAmount:C}" : "No Invoice";
+                    string invoiceAmount = latestInvoice != null ? $"{latestInvoice.TotalAmount:C}" : "[grey]No Invoice[/]";
                     string paymentStatus = latestInvoice != null
-                        ? (latestInvoice.IsPaid ? "Paid" : "Not Paid")
-                        : "No Invoice";
+                        ? (latestInvoice.IsPaid ? "[green]Paid[/]" : "[red]Not Paid[/]")
+                        : "[grey]No Invoice[/]";
 
-                    Console.WriteLine($"Guest: {booking.Guest.FirstName} {booking.Guest.LastName}");
-                    Console.WriteLine($"Booking ID: {booking.BookingId}\tRoom: {booking.RoomId}");
-                    Console.WriteLine($"Status: {status}\tCheck-In Date: {booking.CheckInDate:yyyy-MM-dd}\tCheck-Out Date: {booking.CheckOutDate:yyyy-MM-dd}");
-                    Console.WriteLine($"Invoice Amount: {invoiceAmount}\tPayment Status: {paymentStatus}");
-                    Console.WriteLine(new string('-', 60));
+                    string checkInDate = booking.CheckInDate.HasValue
+                        ? booking.CheckInDate.Value.ToString("yyyy-MM-dd")
+                        : "[grey]Not Set[/]";
+                    string checkOutDate = booking.CheckOutDate.HasValue
+                        ? booking.CheckOutDate.Value.ToString("yyyy-MM-dd")
+                        : "[grey]Not Set[/]";
+
+                    table.AddRow(
+                        $"{booking.Guest.FirstName} {booking.Guest.LastName}",
+                        booking.BookingId.ToString(),
+                        booking.RoomId.ToString(),
+                        status,
+                        checkInDate,
+                        checkOutDate,
+                        invoiceAmount,
+                        paymentStatus
+                    );
                 }
+
+                AnsiConsole.Write(table);
             }
 
-            Console.WriteLine("\nPress any key to return...");
+            AnsiConsole.Markup("\n[bold yellow]Press any key to return...[/]");
             Console.ReadKey();
         }
+
+
 
 
 
@@ -173,28 +199,43 @@ namespace HotelBookingApp
         private void DisplayPreviousGuestHistory()
         {
             Console.Clear();
-            Console.WriteLine("HISTORY OF PREVIOUS GUESTS (Checked Out)");
-            Console.WriteLine(new string('-', 60));
 
             var previousBookings = _bookingRepository.GetAllBookings()
-                .Where(b => b.IsCheckedOut).ToList();
+                .Where(b => b.IsCheckedOut)
+                .ToList();
 
             if (!previousBookings.Any())
             {
-                Console.WriteLine("No previous guests found.");
+                AnsiConsole.Markup("[red]No previous guests found.[/]");
             }
             else
             {
+                var table = new Table();
+                table.Border(TableBorder.Rounded);
+
+                table.AddColumn("[bold yellow]Guest[/]");
+                table.AddColumn("[bold yellow]Booking ID[/]");
+                table.AddColumn("[bold yellow]Room[/]");
+                table.AddColumn("[bold yellow]Checked Out On[/]");
+
                 foreach (var booking in previousBookings)
                 {
-                    Console.WriteLine($"Guest: {booking.Guest.FirstName} {booking.Guest.LastName}");
-                    Console.WriteLine($"Booking ID: {booking.BookingId}\tRoom: {booking.RoomId}");
-                    Console.WriteLine($"Checked Out On: {booking.CheckOutDate:yyyy-MM-dd}");
-                    Console.WriteLine(new string('-', 60));
+                    string guestName = $"{booking.Guest.FirstName} {booking.Guest.LastName}";
+                    string checkOutDate = booking.CheckOutDate.HasValue ? booking.CheckOutDate.Value.ToString("yyyy-MM-dd") : "[grey]N/A[/]";
+
+                    table.AddRow(
+                        guestName,
+                        booking.BookingId.ToString(),
+                        booking.RoomId.ToString(),
+                        checkOutDate
+                    );
                 }
+
+                // Visa tabellen
+                AnsiConsole.Write(table);
             }
 
-            Console.WriteLine("\nPress any key to return...");
+            AnsiConsole.Markup("\n[bold yellow]Press any key to return...[/]");
             Console.ReadKey();
         }
 
@@ -394,9 +435,18 @@ namespace HotelBookingApp
 
             _bookingRepository.UpdateBooking(booking);
 
+            // Frigör rummet
+            var room = _roomRepository.GetRoomById(booking.RoomId);
+            if (room != null)
+            {
+                room.IsAvailable = true; // Uppdaterar rummets tillgänglighet
+                _roomRepository.UpdateRoom(room); // Spara ändringar i rummet
+            }
+
             Console.WriteLine("Guest successfully checked out and payment processed.");
             Console.ReadKey();
         }
+
 
         public void PayInvoiceBeforeCheckout()
         {

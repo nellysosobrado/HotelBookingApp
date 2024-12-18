@@ -31,15 +31,18 @@ namespace HotelBookingApp.Utilities
 
                 Console.WriteLine("\nHOTEL BOOKING APP - MAIN MENU");
                 Console.WriteLine(new string('-', 40));
+                Console.WriteLine("GUESTS");
                 Console.WriteLine("1. Register New Guest");
                 Console.WriteLine("2. Check In Guest");
                 Console.WriteLine("3. Check Out Guest");
+                Console.WriteLine(new string('-', 40));
+                Console.WriteLine("Bookings & Rooms");
                 Console.WriteLine("4. Pay Invoice Before Checkout");
                 Console.WriteLine("5. Display guests");
                 Console.WriteLine("6. Display rooms");
-                Console.WriteLine("6. Display Bookings");
                 Console.WriteLine(new string('-', 40));
 
+                Console.WriteLine("Modify");
                 Console.WriteLine("7. Rooms");
                 Console.WriteLine("8. Bookings");
                 Console.WriteLine("9. Guest");

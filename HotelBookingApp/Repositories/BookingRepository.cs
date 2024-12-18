@@ -221,6 +221,11 @@ namespace HotelBookingApp.Repositories
             invoice.IsPaid = true;
             UpdateInvoice(invoice);
         }
+        public void UpdateRoom(Room room)
+        {
+            _appDbContext.Rooms.Update(room);
+            _appDbContext.SaveChanges();
+        }
 
     }
 }

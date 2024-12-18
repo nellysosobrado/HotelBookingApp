@@ -91,19 +91,19 @@ namespace HotelBookingApp.Repositories
 
         public void RegisterNewGuestWithBooking(Guest newGuest, Booking newBooking, Invoice newInvoice)
         {
-            // Lägg till gästen i databasen
+         
             _appDbContext.Guests.Add(newGuest);
-            _appDbContext.SaveChanges(); // Detta sätter GuestId på newGuest
+            _appDbContext.SaveChanges(); 
 
             if (newBooking != null)
             {
-                newBooking.GuestId = newGuest.GuestId; // Koppla bokningen till gästen
+                newBooking.GuestId = newGuest.GuestId; 
                 _appDbContext.Bookings.Add(newBooking);
-                _appDbContext.SaveChanges(); // Detta sätter BookingId på newBooking
+                _appDbContext.SaveChanges(); 
 
                 if (newInvoice != null)
                 {
-                    newInvoice.BookingId = newBooking.BookingId; // Koppla fakturan till bokningen
+                    newInvoice.BookingId = newBooking.BookingId;
                     _appDbContext.Invoices.Add(newInvoice);
                     _appDbContext.SaveChanges();
                 }
