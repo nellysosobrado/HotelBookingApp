@@ -45,9 +45,9 @@ namespace HotelBookingApp.Repositories
                 .Select(r => new
                 {
                     Room = r,
-                    Booking = r.Bookings.FirstOrDefault(b => !b.IsCheckedOut) // Hämta aktiv bokning om den finns
+                    Booking = r.Bookings.FirstOrDefault(b => !b.IsCheckedOut) 
                 })
-                .ToList<dynamic>(); // Konvertera till en dynamisk lista
+                .ToList<dynamic>(); 
         }
         public void DeleteRoom(int roomId)
         {

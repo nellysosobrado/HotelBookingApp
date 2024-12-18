@@ -79,6 +79,45 @@ LEFT JOIN
 ORDER BY 
     g.GuestId;
 
+	--
+
+	SELECT 
+    r.RoomId,
+    r.Type AS RoomType,
+    r.PricePerNight,
+    r.SizeInSquareMeters,
+    r.ExtraBeds,
+    r.TotalPeople AS MaxOccupancy,
+    CASE 
+        WHEN r.IsAvailable = 1 THEN 'Available'
+        ELSE 'Occupied'
+    END AS AvailabilityStatus,
+    b.BookingId,
+    b.GuestId,
+    b.CheckInDate,
+    b.CheckOutDate,
+    b.IsCheckedIn,
+    b.IsCheckedOut,
+    g.FirstName AS GuestFirstName,
+    g.LastName AS GuestLastName,
+    i.TotalAmount AS InvoiceAmount,
+    CASE 
+        WHEN i.IsPaid = 1 THEN 'Paid'
+        WHEN i.IsPaid = 0 THEN 'Unpaid'
+        ELSE 'No Invoice'
+    END AS PaymentStatus
+FROM 
+    Rooms r
+LEFT JOIN 
+    Bookings b ON r.RoomId = b.RoomId AND b.IsCheckedOut = 0 -- Endast aktiva bokningar
+LEFT JOIN 
+    Guests g ON b.GuestId = g.GuestId
+LEFT JOIN 
+    Invoices i ON b.BookingId = i.BookingId
+ORDER BY 
+    r.RoomId;
+
+
 -- ========================
 -- 3. ALLMÄN GÄST- OCH BOKNINGSINFORMATION
 -- ========================
