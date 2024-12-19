@@ -15,28 +15,27 @@ namespace HotelBookingApp
             _roomRepository = roomRepository;
         }
 
-
         public void SearchAvailableRooms()
         {
             Console.Clear();
-            Console.WriteLine("Function: Find available room");
+            Console.WriteLine("Function: Find Available Rooms");
 
-            Console.WriteLine("Enter start date (yyyy-MM-dd):");
-            if (!DateTime.TryParse(Console.ReadLine(), out DateTime startDate))
-            {
-                Console.WriteLine("Invalid date format.");
-                return;
-            }
+            // Använd kalendern för att välja startdatum
+            DateTime startDate = SelectDate("Select start date:");
 
-            Console.WriteLine("Enter end date (yyyy-MM-dd):");
-            if (!DateTime.TryParse(Console.ReadLine(), out DateTime endDate))
+            // Använd kalendern för att välja slutdatum
+            DateTime endDate = SelectDate("Select end date:");
+
+            // Kontrollera att slutdatum är efter startdatum
+            if (endDate <= startDate)
             {
-                Console.WriteLine("Invalid date format.");
+                Console.WriteLine("End date must be after start date.");
+                Console.ReadKey();
                 return;
             }
 
             Console.WriteLine("Enter the number of guests:");
-            if (!int.TryParse(Console.ReadLine(), out int guestCount))
+            if (!int.TryParse(Console.ReadLine(), out int guestCount) || guestCount <= 0)
             {
                 Console.WriteLine("Invalid number of guests.");
                 return;
@@ -60,6 +59,143 @@ namespace HotelBookingApp
             Console.WriteLine("\nPress any key to return to the menu...");
             Console.ReadKey();
         }
+
+        private DateTime SelectDate(string prompt)
+        {
+            DateTime currentDate = DateTime.Now.Date; // Dagens datum
+            DateTime selectedDate = new DateTime(currentDate.Year, currentDate.Month, 1); // Början av aktuell månad
+
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine(prompt);
+                RenderCalendar(selectedDate);
+
+                var key = Console.ReadKey(true).Key;
+                switch (key)
+                {
+                    case ConsoleKey.RightArrow:
+                        selectedDate = selectedDate.AddDays(1);
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        if (selectedDate.AddDays(-1) >= currentDate)
+                            selectedDate = selectedDate.AddDays(-1);
+                        break;
+                    case ConsoleKey.UpArrow:
+                        if (selectedDate.AddDays(-7) >= currentDate)
+                            selectedDate = selectedDate.AddDays(-7);
+                        break;
+                    case ConsoleKey.DownArrow:
+                        selectedDate = selectedDate.AddDays(7);
+                        break;
+                    case ConsoleKey.Enter:
+                        if (selectedDate >= currentDate)
+                            return selectedDate;
+                        AnsiConsole.MarkupLine("[red]You cannot select a date in the past![/]");
+                        Console.ReadKey();
+                        break;
+                    case ConsoleKey.Escape:
+                        return DateTime.MinValue; // Returnera ett ogiltigt datum om användaren avbryter
+                }
+            }
+        }
+
+
+        private void RenderCalendar(DateTime selectedDate)
+        {
+            var calendarContent = new StringWriter();
+
+            // Kalenderhuvud
+            calendarContent.WriteLine($"[red]{selectedDate:MMMM}[/]".ToUpper());
+            calendarContent.WriteLine("Mon  Tue  Wed  Thu  Fri  Sat  Sun");
+            calendarContent.WriteLine("─────────────────────────────────");
+
+            DateTime firstDayOfMonth = new DateTime(selectedDate.Year, selectedDate.Month, 1);
+            int daysInMonth = DateTime.DaysInMonth(selectedDate.Year, selectedDate.Month);
+            int startDay = (int)firstDayOfMonth.DayOfWeek;
+            startDay = (startDay == 0) ? 6 : startDay - 1; // Justera för måndag som veckostart
+
+            // Fyll med tomma platser innan första dagen i månaden
+            for (int i = 0; i < startDay; i++)
+            {
+                calendarContent.Write("     ");
+            }
+
+            // Skriv ut dagarna
+            for (int day = 1; day <= daysInMonth; day++)
+            {
+                if (day == selectedDate.Day)
+                {
+                    calendarContent.Write($"[green]{day,2}[/]   ");
+                }
+                else
+                {
+                    calendarContent.Write($"{day,2}   ");
+                }
+
+                if ((startDay + day) % 7 == 0)
+                {
+                    calendarContent.WriteLine();
+                }
+            }
+
+            // Skapa en panel med dubbla kanter
+            var panel = new Panel(calendarContent.ToString())
+            {
+                Border = BoxBorder.Double,
+                Header = new PanelHeader($"[red]{selectedDate:yyyy}[/]", Justify.Center)
+            };
+
+            AnsiConsole.Write(panel);
+            Console.WriteLine();
+            AnsiConsole.MarkupLine("\nUse arrow keys [blue]\u25C4 \u25B2 \u25BA \u25BC[/] to navigate and [green]Enter[/] to select.");
+        }
+
+
+        //public void SearchAvailableRooms()
+        //{
+        //    Console.Clear();
+        //    Console.WriteLine("Function: Find available room");
+
+        //    Console.WriteLine("Enter start date (yyyy-MM-dd):");
+        //    if (!DateTime.TryParse(Console.ReadLine(), out DateTime startDate))
+        //    {
+        //        Console.WriteLine("Invalid date format.");
+        //        return;
+        //    }
+
+        //    Console.WriteLine("Enter end date (yyyy-MM-dd):");
+        //    if (!DateTime.TryParse(Console.ReadLine(), out DateTime endDate))
+        //    {
+        //        Console.WriteLine("Invalid date format.");
+        //        return;
+        //    }
+
+        //    Console.WriteLine("Enter the number of guests:");
+        //    if (!int.TryParse(Console.ReadLine(), out int guestCount))
+        //    {
+        //        Console.WriteLine("Invalid number of guests.");
+        //        return;
+        //    }
+
+        //    var availableRooms = _bookingRepository.GetAvailableRooms(startDate, endDate, guestCount);
+
+        //    if (!availableRooms.Any())
+        //    {
+        //        Console.WriteLine("No available rooms found.");
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine($"\nAvailable rooms from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}:");
+        //        foreach (var room in availableRooms)
+        //        {
+        //            Console.WriteLine($"Room {room.RoomId}: {room.Type}, {room.PricePerNight:C} per night");
+        //        }
+        //    }
+
+        //    Console.WriteLine("\nPress any key to return to the menu...");
+        //    Console.ReadKey();
+        //}
 
         public void DisplayAllGuestInfo()
         {
