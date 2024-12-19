@@ -2,6 +2,7 @@
 using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Spectre.Console;
 using System;
 using System.Linq;
 
@@ -15,7 +16,6 @@ namespace HotelBookingApp.Controllers
         {
             _guestRepository = new GuestRepository(context);
         }
-
         public void RegisterNewGuest()
         {
             Console.Clear();
@@ -51,8 +51,15 @@ namespace HotelBookingApp.Controllers
             if (choice == "Y")
             {
                 int guestCount = PromptForInt("Enter number of guests: ");
-                DateTime startDate = PromptForDate("Enter start date (yyyy-MM-dd): ");
-                DateTime endDate = PromptForDate("Enter end date (yyyy-MM-dd): ");
+                DateTime startDate = SelectDate("Select Start Date:");
+                DateTime endDate = SelectDate("Select End Date:");
+
+                if (endDate <= startDate)
+                {
+                    Console.WriteLine("End date must be after start date. Booking not created.");
+                    Console.ReadKey(true);
+                    return;
+                }
 
                 var availableRooms = _guestRepository.GetAvailableRooms(startDate, endDate, guestCount);
 
@@ -104,6 +111,183 @@ namespace HotelBookingApp.Controllers
             Console.WriteLine("\nPress any key to continue...");
             Console.ReadKey(true);
         }
+
+        private DateTime SelectDate(string prompt)
+        {
+            DateTime currentDate = DateTime.Now.Date;
+            DateTime selectedDate = new DateTime(currentDate.Year, currentDate.Month, 1);
+
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine(prompt);
+                RenderCalendar(selectedDate);
+
+                var key = Console.ReadKey(true).Key;
+                switch (key)
+                {
+                    case ConsoleKey.RightArrow:
+                        selectedDate = selectedDate.AddDays(1);
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        if (selectedDate.AddDays(-1) >= currentDate)
+                            selectedDate = selectedDate.AddDays(-1);
+                        break;
+                    case ConsoleKey.UpArrow:
+                        if (selectedDate.AddDays(-7) >= currentDate)
+                            selectedDate = selectedDate.AddDays(-7);
+                        break;
+                    case ConsoleKey.DownArrow:
+                        selectedDate = selectedDate.AddDays(7);
+                        break;
+                    case ConsoleKey.Enter:
+                        if (selectedDate >= currentDate)
+                            return selectedDate;
+                        AnsiConsole.MarkupLine("[red]The date cannot be in the past.[/]");
+                        Console.ReadKey(true);
+                        break;
+                    case ConsoleKey.Escape:
+                        return DateTime.MinValue; // Returnera ogiltigt datum vid avbryt
+                }
+            }
+        }
+
+        private void RenderCalendar(DateTime selectedDate)
+        {
+            var calendarContent = new StringWriter();
+
+            // Kalenderhuvud
+            calendarContent.WriteLine($"[red]{selectedDate:MMMM}[/]".ToUpper());
+            calendarContent.WriteLine("Mon  Tue  Wed  Thu  Fri  Sat  Sun");
+            calendarContent.WriteLine("─────────────────────────────────");
+
+            DateTime firstDayOfMonth = new DateTime(selectedDate.Year, selectedDate.Month, 1);
+            int daysInMonth = DateTime.DaysInMonth(selectedDate.Year, selectedDate.Month);
+            int startDay = (int)firstDayOfMonth.DayOfWeek;
+            startDay = (startDay == 0) ? 6 : startDay - 1;
+
+            for (int i = 0; i < startDay; i++)
+            {
+                calendarContent.Write("     ");
+            }
+
+            for (int day = 1; day <= daysInMonth; day++)
+            {
+                if (day == selectedDate.Day)
+                {
+                    calendarContent.Write($"[green]{day,2}[/]   ");
+                }
+                else
+                {
+                    calendarContent.Write($"{day,2}   ");
+                }
+
+                if ((startDay + day) % 7 == 0)
+                {
+                    calendarContent.WriteLine();
+                }
+            }
+
+            var panel = new Panel(calendarContent.ToString())
+            {
+                Border = BoxBorder.Double,
+                Header = new PanelHeader($"[red]{selectedDate:yyyy}[/]", Justify.Center)
+            };
+
+            AnsiConsole.Write(panel);
+            Console.WriteLine();
+            AnsiConsole.MarkupLine("\nUse arrow keys [blue]\u25C4 \u25B2 \u25BA \u25BC[/] to navigate and [green]Enter[/] to select.");
+        }
+
+
+        //public void RegisterNewGuest()
+        //{
+        //    Console.Clear();
+        //    Console.WriteLine("REGISTER NEW GUEST");
+
+        //    var firstName = PromptInput("Enter First Name: ");
+        //    var lastName = PromptInput("Enter Last Name: ");
+        //    var email = PromptInput("Enter Email: ");
+        //    var phone = PromptInput("Enter Phone Number: ");
+
+        //    if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName) ||
+        //        string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(phone))
+        //    {
+        //        Console.WriteLine("All fields are required. Registration failed.");
+        //        Console.ReadKey(true);
+        //        return;
+        //    }
+
+        //    var newGuest = new Guest
+        //    {
+        //        FirstName = firstName,
+        //        LastName = lastName,
+        //        Email = email,
+        //        PhoneNumber = phone
+        //    };
+
+        //    Console.Write("\nDo you want to create a booking for this guest now? (Y/N): ");
+        //    var choice = Console.ReadLine()?.Trim().ToUpper();
+
+        //    Booking newBooking = null;
+        //    Invoice newInvoice = null;
+
+        //    if (choice == "Y")
+        //    {
+        //        int guestCount = PromptForInt("Enter number of guests: ");
+        //        DateTime startDate = PromptForDate("Enter start date (yyyy-MM-dd): ");
+        //        DateTime endDate = PromptForDate("Enter end date (yyyy-MM-dd): ");
+
+        //        var availableRooms = _guestRepository.GetAvailableRooms(startDate, endDate, guestCount);
+
+        //        if (!availableRooms.Any())
+        //        {
+        //            Console.WriteLine("No available rooms found for the selected dates and number of guests.");
+        //            Console.ReadKey(true);
+        //            return;
+        //        }
+
+        //        Console.WriteLine("\nAvailable Rooms:");
+        //        foreach (var room in availableRooms)
+        //        {
+        //            string extraBedInfo = room.Type == "Double" ? $"Extra Beds: {room.ExtraBeds}" : "No extra beds";
+        //            Console.WriteLine($"Room ID: {room.RoomId} | Type: {room.Type} | Price: {room.PricePerNight:C} | {extraBedInfo}");
+        //        }
+
+        //        Console.Write("Enter Room ID to book: ");
+        //        if (!int.TryParse(Console.ReadLine(), out int roomId) || !availableRooms.Any(r => r.RoomId == roomId))
+        //        {
+        //            Console.WriteLine("Invalid Room ID. Booking not created.");
+        //            Console.ReadKey(true);
+        //            return;
+        //        }
+
+        //        newBooking = new Booking
+        //        {
+        //            RoomId = roomId,
+        //            CheckInDate = startDate,
+        //            CheckOutDate = endDate,
+        //            IsCheckedIn = false,
+        //            IsCheckedOut = false,
+        //            BookingStatus = false
+        //        };
+
+        //        decimal totalAmount = _guestRepository.CalculateTotalAmount(newBooking);
+
+        //        newInvoice = new Invoice
+        //        {
+        //            TotalAmount = totalAmount,
+        //            IsPaid = false,
+        //            PaymentDeadline = endDate.AddDays(7)
+        //        };
+        //    }
+
+        //    _guestRepository.RegisterNewGuestWithBooking(newGuest, newBooking, newInvoice);
+
+        //    Console.WriteLine("\nGuest, booking, and invoice registered successfully!");
+        //    Console.WriteLine("\nPress any key to continue...");
+        //    Console.ReadKey(true);
+        //}
 
 
 
