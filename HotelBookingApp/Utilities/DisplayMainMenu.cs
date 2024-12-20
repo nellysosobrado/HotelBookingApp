@@ -1,5 +1,5 @@
 ﻿using HotelBookingApp.Controllers;
-using HotelBookingApp.Utilities;
+using Spectre.Console;
 using System;
 
 namespace HotelBookingApp.Utilities
@@ -13,7 +13,13 @@ namespace HotelBookingApp.Utilities
         private readonly BookingController _bookingController;
         private readonly RoomController _roomController;
 
-        public DisplayMainMenu(DisplayRoomMenu roomMenu, DisplayBookingMenu bookingMenu, DisplayGuestMenu guestMenu, GuestController guestController, BookingController bookingController, RoomController roomController)
+        public DisplayMainMenu(
+            DisplayRoomMenu roomMenu,
+            DisplayBookingMenu bookingMenu,
+            DisplayGuestMenu guestMenu,
+            GuestController guestController,
+            BookingController bookingController,
+            RoomController roomController)
         {
             _displayRoomMenu = roomMenu;
             _displayBookingMenu = bookingMenu;
@@ -29,73 +35,78 @@ namespace HotelBookingApp.Utilities
             {
                 Console.Clear();
 
-                Console.WriteLine("\nHOTEL BOOKING APP - MAIN MENU");
-                Console.WriteLine(new string('-', 40));
-                Console.WriteLine("GUESTS");
-                Console.WriteLine("1. Register New Guest");
-                Console.WriteLine("2. Check In Guest");
-                Console.WriteLine("3. Check Out Guest");
-                Console.WriteLine(new string('-', 40));
-                Console.WriteLine("Bookings & Rooms");
-                Console.WriteLine("4. Pay Invoice Before Checkout");
-                Console.WriteLine("5. Display guests");
-                Console.WriteLine("6. Display rooms");
-                Console.WriteLine(new string('-', 40));
+                // Visa rubrik
+                AnsiConsole.Write(new Panel("[bold yellow]HOTEL BOOKING APP - MAIN MENU[/]").Expand());
 
-                Console.WriteLine("Modify");
-                Console.WriteLine("7. Rooms");
-                Console.WriteLine("8. Bookings");
-                Console.WriteLine("9. Guest");
-                Console.WriteLine("10. Exit");
-                Console.WriteLine(new string('-', 40));
+                // Visa huvudmeny med val
+                var choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("[bold blue]Select an option:[/]")
+                        .PageSize(10)
+                        .AddChoices(
+                            "1. Register New Guest",
+                            "2. Check In Guest",
+                            "3. Check Out Guest",
+                            "4. Pay Invoice Before Checkout",
+                            "5. Display Guests",
+                            "6. Display Rooms",
+                            "7. Modify Rooms",
+                            "8. Modify Bookings",
+                            "9. Modify Guest",
+                            "10. Exit"
+                        ));
 
-                Console.Write("Choose an option: ");
-                var choice = Console.ReadLine();
-
+                // Hantera användarens val
                 switch (choice)
                 {
-                    case "1":
+                    case "1. Register New Guest":
                         _guestController.RegisterNewGuest();
                         break;
 
-                    case "2":
+                    case "2. Check In Guest":
                         _bookingController.CheckIn();
                         break;
 
-                    case "3":
+                    case "3. Check Out Guest":
                         _bookingController.CheckOut();
                         break;
 
-                    case "4":
+                    case "4. Pay Invoice Before Checkout":
                         _bookingController.PayInvoiceBeforeCheckout();
                         break;
-                    case "5":
+
+                    case "5. Display Guests":
                         _bookingController.DisplayAllGuestInfo();
                         break;
-                    case "6":
+
+                    case "6. Display Rooms":
                         _roomController.ViewAllRooms();
                         break;
-                    case "7":
+
+                    case "7. Modify Rooms":
                         _displayRoomMenu.Menu();
                         break;
-                    case "8":
+
+                    case "8. Modify Bookings":
                         _displayBookingMenu.Menu();
                         break;
-                    case "9":
+
+                    case "9. Modify Guest":
                         _displayGuestMenu.Menu();
                         break;
 
-                    
-                    case "10":
-                        Console.WriteLine("Exiting Program...");
+                    case "10. Exit":
+                        AnsiConsole.Markup("[bold green]Exiting program...[/]\n");
                         return;
 
                     default:
-                        Console.WriteLine("Invalid choice. Please try again.");
-                        Console.WriteLine("Press any key to continue...");
-                        Console.ReadKey();
+                        AnsiConsole.Markup("[bold red]Invalid choice. Please try again.[/]\n");
                         break;
                 }
+
+                // Vänta på att användaren trycker på en knapp innan den återgår till huvudmenyn
+                AnsiConsole.Markup("\n[bold yellow]Press any key to return to the main menu...[/]");
+                Console.ReadKey();
             }
         }
     }

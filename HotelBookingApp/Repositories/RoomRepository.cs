@@ -85,7 +85,7 @@ namespace HotelBookingApp.Repositories
         public IEnumerable<(Room Room, Booking? Booking)> GetRoomsWithBookings()
         {
             return _appDbContext.Rooms
-                .Include(room => room.Bookings) // Inkludera relaterade bokningar om de finns
+                .Include(room => room.Bookings) 
                 .GroupJoin(
                     _appDbContext.Bookings,
                     room => room.RoomId,
