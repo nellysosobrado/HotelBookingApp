@@ -30,7 +30,7 @@ namespace HotelBookingApp.Utilities
                 switch (input)
                 {
                     case "1":
-                        _roomController.RegisterNewRoom();
+                        _roomController.AddNewRoom();
                         break;
                     case "2":
                         _roomController.EditRoom();

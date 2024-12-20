@@ -15,57 +15,73 @@ namespace HotelBookingApp.Controllers
             _roomRepository = roomRepository;
         }
 
-        public void RegisterNewRoom()
+        public void AddNewRoom()
         {
             Console.Clear();
-            Console.WriteLine("=== REGISTER NEW ROOM ===");
+            AnsiConsole.Write(new Panel("[bold yellow]REGISTER NEW ROOM[/]").Expand());
 
-            Console.Write("Enter Room Type (Single/Double): ");
-            var roomType = Console.ReadLine()?.Trim();
+            string roomType = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Select [green]Room Type[/]:")
+                    .AddChoices("Single", "Double"));
 
-            if (string.IsNullOrWhiteSpace(roomType) ||
-                (roomType.ToLower() != "single" && roomType.ToLower() != "double"))
+            decimal price;
+            while (true)
             {
-                Console.WriteLine("Invalid Room Type. Please enter 'Single' or 'Double'.");
-                return;
+                try
+                {
+                    price = AnsiConsole.Ask<decimal>("Enter [green]Price Per Night[/]:");
+                    if (price <= 0)
+                        throw new ArgumentException("[red]Price must be greater than 0.[/]");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
+                }
             }
 
-            Console.Write("Enter Price Per Night: ");
-            if (!decimal.TryParse(Console.ReadLine(), out var price) || price <= 0)
+            int size;
+            while (true)
             {
-                Console.WriteLine("Invalid price.");
-                return;
-            }
-
-            Console.Write("Enter Size in Square Meters: ");
-            if (!int.TryParse(Console.ReadLine(), out var size) || size <= 0)
-            {
-                Console.WriteLine("Invalid size.");
-                return;
+                try
+                {
+                    size = AnsiConsole.Ask<int>("Enter [green]Size in Square Meters[/]:");
+                    if (size <= 0)
+                        throw new ArgumentException("[red]Size must be greater than 0.[/]");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
+                }
             }
 
             int extraBeds = 0;
-            int maxPeople = 0;
+            int maxPeople = roomType == "Double" ? 2 : 1;
 
-            if (roomType.ToLower() == "double")
+            if (roomType == "Double")
             {
-                Console.Write("Enter Number of Extra Beds (0, 1, or 2): ");
-                if (!int.TryParse(Console.ReadLine(), out extraBeds) || extraBeds < 0 || extraBeds > 2)
+                while (true)
                 {
-                    Console.WriteLine("Invalid number of extra beds. Allowed values for Double rooms are 0, 1, or 2.");
-                    return;
+                    try
+                    {
+                        extraBeds = AnsiConsole.Ask<int>("Enter [green]Number of Extra Beds[/] (0-2):");
+                        if (extraBeds < 0 || extraBeds > 2)
+                            throw new ArgumentException("[red]Extra beds must be between 0 and 2.[/]");
+                        maxPeople += extraBeds;
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
+                    }
                 }
-                maxPeople = 2 + extraBeds; 
-            }
-            else if (roomType.ToLower() == "single")
-            {
-                extraBeds = 0;
-                maxPeople = 1; 
             }
 
             var newRoom = new Room
             {
-                Type = char.ToUpper(roomType[0]) + roomType.Substring(1).ToLower(),
+                Type = roomType,
                 PricePerNight = price,
                 SizeInSquareMeters = size,
                 ExtraBeds = extraBeds,
@@ -73,35 +89,107 @@ namespace HotelBookingApp.Controllers
                 TotalPeople = maxPeople
             };
 
+            var validator = new RoomValidator();
+            var validationResult = validator.Validate(newRoom);
+
+            if (!validationResult.IsValid)
+            {
+                AnsiConsole.Write(
+                    new Panel("[bold red]Validation errors:[/]").Expand());
+                foreach (var error in validationResult.Errors)
+                {
+                    AnsiConsole.MarkupLine($"[red]- {error.ErrorMessage}[/]");
+                }
+                return;
+            }
+
             _roomRepository.AddRoom(newRoom);
 
-            Console.WriteLine($"\nRoom '{newRoom.Type}' successfully added with ID {newRoom.RoomId}.");
-            Console.WriteLine($"Max People Allowed: {newRoom.TotalPeople}");
-            Console.WriteLine("\nPress any key to continue...");
+            var table = new Table()
+                .Border(TableBorder.Rounded)
+                .AddColumn("[green]Property[/]")
+                .AddColumn("[cyan]Value[/]")
+                .AddRow("Room Type", roomType)
+                .AddRow("Price Per Night", price.ToString("C"))
+                .AddRow("Size in Square Meters", size.ToString())
+                .AddRow("Extra Beds", extraBeds.ToString())
+                .AddRow("Max People Allowed", maxPeople.ToString());
+
+            AnsiConsole.Write(new Panel(table).Header("[green]Room Added Successfully![/]"));
+
+            Console.WriteLine("\nPress any key to return to the menu...");
             Console.ReadKey();
         }
 
 
+        //public void AddNewRoom()
+        //{
+        //    Console.Clear();
+        //    AnsiConsole.Markup("[bold yellow]=== REGISTER NEW ROOM ===[/]\n");
+
+        //    string roomType = null;
+        //    while (true)
+        //    {
+        //        Console.Write("Enter Room Type (Single/Double): ");
+        //        var input = Console.ReadLine()?.Trim().ToLower();
+
+        //        if (input == "single" || input == "double")
+        //        {
+        //            roomType = char.ToUpper(input[0]) + input.Substring(1);
+        //            break;
+        //        }
+
+        //        AnsiConsole.Markup("[red]Invalid Room Type. Please enter 'Single' or 'Double'.[/]\n");
+        //    }
+
+        //    decimal price = GetValidDecimal("Enter Price Per Night", "Invalid price. Please enter a positive number.");
+
+        //    int size = GetValidInt("Enter Size in Square Meters", "Invalid size. Please enter a positive integer.");
+
+        //    int extraBeds = 0;
+        //    int maxPeople = roomType == "Double" ? 2 : 1;
+
+        //    if (roomType == "Double")
+        //    {
+        //        extraBeds = GetValidInt("Enter Number of Extra Beds (0, 1, or 2)",
+        //            "Invalid number of extra beds. Double rooms can have 0, 1, or 2 extra beds.",
+        //            0, 2);
+        //        maxPeople += extraBeds;
+        //    }
+
+        //    var newRoom = new Room
+        //    {
+        //        Type = roomType,
+        //        PricePerNight = price,
+        //        SizeInSquareMeters = size,
+        //        ExtraBeds = extraBeds,
+        //        IsAvailable = true,
+        //        TotalPeople = maxPeople
+        //    };
+
+        //    _roomRepository.AddRoom(newRoom);
+        //}
+
         public void EditRoom()
         {
             Console.Clear();
-            Console.WriteLine("=== EDIT ROOM ===");
+            AnsiConsole.Markup("[bold yellow]=== EDIT ROOM ===[/]\n");
 
             Console.Write("Enter Room ID: ");
             if (!int.TryParse(Console.ReadLine(), out var roomId))
             {
-                Console.WriteLine("Invalid Room ID.");
+                AnsiConsole.Markup("[red]Invalid Room ID.[/]\n");
                 return;
             }
 
             var room = _roomRepository.GetRoomById(roomId);
             if (room == null)
             {
-                Console.WriteLine("Room not found.");
+                AnsiConsole.Markup("[red]Room not found.[/]\n");
                 return;
             }
 
-            Console.WriteLine("Leave blank to keep current value.");
+            AnsiConsole.Markup("[bold]Leave blank to keep current value.[/]\n");
 
             Console.Write($"Current Type: {room.Type}\nEnter new Type: ");
             var newType = Console.ReadLine()?.Trim();
@@ -117,39 +205,40 @@ namespace HotelBookingApp.Controllers
                 room.SizeInSquareMeters = size;
 
             _roomRepository.UpdateRoom(room);
-            Console.WriteLine("Room updated successfully.");
         }
 
         public void ViewAllRooms()
         {
             Console.Clear();
+            AnsiConsole.Markup("[bold yellow]=== VIEW ALL ROOMS ===[/]\n");
+
             var rooms = _roomRepository.GetRoomsWithBookings();
 
             if (!rooms.Any())
             {
-                Console.WriteLine("No rooms found.");
+                AnsiConsole.Markup("[red]No rooms found.[/]\n");
                 return;
             }
 
             _roomRepository.DisplayRoomsTable(rooms);
         }
-       
+
         public void DeleteRoom()
         {
             Console.Clear();
-            Console.WriteLine("DELETE ROOM");
+            AnsiConsole.Markup("[bold yellow]=== DELETE ROOM ===[/]\n");
 
             Console.Write("Enter Room ID to delete: ");
             if (!int.TryParse(Console.ReadLine(), out var roomId))
             {
-                Console.WriteLine("Invalid Room ID.");
+                AnsiConsole.Markup("[red]Invalid Room ID.[/]\n");
                 return;
             }
 
             var room = _roomRepository.GetRoomById(roomId);
             if (room == null)
             {
-                Console.WriteLine("Room not found.");
+                AnsiConsole.Markup("[red]Room not found.[/]\n");
                 return;
             }
 
@@ -159,13 +248,38 @@ namespace HotelBookingApp.Controllers
             if (confirmation == "Y")
             {
                 _roomRepository.DeleteRoom(roomId);
-                Console.WriteLine($"Room ID {roomId} has been successfully deleted.");
+                AnsiConsole.Markup($"[green]Room ID {roomId} has been successfully deleted.[/]\n");
             }
             else
             {
-                Console.WriteLine("Operation cancelled.");
+                AnsiConsole.Markup("[yellow]Operation cancelled.[/]\n");
             }
         }
 
+        private decimal GetValidDecimal(string prompt, string errorMessage)
+        {
+            while (true)
+            {
+                Console.Write($"{prompt}: ");
+                if (decimal.TryParse(Console.ReadLine(), out var value) && value > 0)
+                    return value;
+
+                AnsiConsole.Markup($"[red]{errorMessage}[/]\n");
+            }
+        }
+
+        private int GetValidInt(string prompt, string errorMessage, int? minValue = null, int? maxValue = null)
+        {
+            while (true)
+            {
+                Console.Write($"{prompt}: ");
+                if (int.TryParse(Console.ReadLine(), out var value) &&
+                    (!minValue.HasValue || value >= minValue.Value) &&
+                    (!maxValue.HasValue || value <= maxValue.Value))
+                    return value;
+
+                AnsiConsole.Markup($"[red]{errorMessage}[/]\n");
+            }
+        }
     }
 }
