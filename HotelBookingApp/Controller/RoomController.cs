@@ -1,5 +1,6 @@
 ﻿using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
+using Spectre.Console;
 using System;
 using System.Linq;
 
@@ -130,19 +131,9 @@ namespace HotelBookingApp.Controllers
                 return;
             }
 
-            foreach (var entry in rooms)
-            {
-                var room = entry.Room;
-                var bookedBy = entry.Booking?.Guest != null
-                    ? $"{entry.Booking.Guest.FirstName} {entry.Booking.Guest.LastName}"
-                    : "Not Booked";
-
-                Console.WriteLine($"ID: {room.RoomId} | Type: {room.Type} | Price: {room.PricePerNight:C} | Booked By: {bookedBy}");
-            }
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
+            _roomRepository.DisplayRoomsTable(rooms);
         }
-
+       
         public void DeleteRoom()
         {
             Console.Clear();
