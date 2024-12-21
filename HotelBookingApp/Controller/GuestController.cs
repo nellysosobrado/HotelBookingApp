@@ -19,18 +19,46 @@ namespace HotelBookingApp.Controllers
         public void RegisterNewGuest()
         {
             Console.Clear();
-            Console.WriteLine("REGISTER NEW GUEST");
+            AnsiConsole.MarkupLine("[bold green]Register new guest[/]\n");
 
-            var firstName = PromptInput("Enter First Name: ");
-            var lastName = PromptInput("Enter Last Name: ");
-            var email = PromptInput("Enter Email: ");
-            var phone = PromptInput("Enter Phone Number: ");
+            string firstName = AnsiConsole.Prompt(
+                new TextPrompt<string>("[yellow]Enter firstname[/]")
+                    .ValidationErrorMessage("[red]Firstname cannot be empty[/]")
+                    .Validate(input => !string.IsNullOrWhiteSpace(input)));
 
-            if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName) ||
-                string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(phone))
+            string lastName = AnsiConsole.Prompt(
+                new TextPrompt<string>("[yellow]Enter lastname[/]")
+                    .ValidationErrorMessage("[red]Last name cannot be empty[/]")
+                    .Validate(input => !string.IsNullOrWhiteSpace(input)));
+
+            string email = AnsiConsole.Prompt(
+                new TextPrompt<string>("[yellow]Enter gmail[/]")
+                    .ValidationErrorMessage("[red]Invalid gmail [/]")
+                    .Validate(input => input.Contains("@")));
+
+            string phone = AnsiConsole.Prompt(
+                new TextPrompt<string>("[yellow]Enter phone number[/]")
+                    .ValidationErrorMessage("[red]Invalid phone number![/]")
+                    .Validate(input => long.TryParse(input, out _)));
+
+            AnsiConsole.MarkupLine("\n[bold green]Summary[/]");
+            var table = new Table()
+                .Border(TableBorder.Rounded)
+                .AddColumn("[blue]Fält[/]")
+                .AddColumn("[blue]Värde[/]")
+                .AddRow("Firstname", firstName)
+                .AddRow("Lastname", lastName)
+                .AddRow("Gmail", email)
+                .AddRow("Phone number", phone);
+
+            AnsiConsole.Write(table);
+
+            bool confirm = AnsiConsole.Confirm("[bold]Would you want to continue?[/]");
+
+            if (!confirm)
             {
-                Console.WriteLine("All fields are required. Registration failed.");
-                Console.ReadKey(true);
+                AnsiConsole.MarkupLine("[red]Register has been cancelled.[/]");
+                Console.ReadKey();
                 return;
             }
 
@@ -42,49 +70,77 @@ namespace HotelBookingApp.Controllers
                 PhoneNumber = phone
             };
 
-            Console.Write("\nDo you want to create a booking for this guest now? (Y/N): ");
-            var choice = Console.ReadLine()?.Trim().ToUpper();
-
+            // Fråga om bokning ska skapas
+            bool createBooking = AnsiConsole.Confirm("Would you want to create aw booking ?");
             Booking newBooking = null;
             Invoice newInvoice = null;
 
-            if (choice == "Y")
+            if (createBooking)
             {
-                int guestCount = PromptForInt("Enter number of guests: ");
-                DateTime startDate = SelectDate("Select Start Date:");
-                DateTime endDate = SelectDate("Select End Date:");
+                // Antal gäster
+                int guestCount = AnsiConsole.Prompt(
+                    new TextPrompt<int>("[yellow]Enter total guests:[/]")
+                        .ValidationErrorMessage("[red]Total guest must be a number![/]")
+                        .Validate(input => input > 0));
+
+                // Välj datum för bokning
+                DateTime startDate = SelectDate("[yellow]Enter start date:[/]");
+                DateTime endDate = SelectDate("[yellow]Entere a end date:[/]");
 
                 if (endDate <= startDate)
                 {
-                    Console.WriteLine("End date must be after start date. Booking not created.");
-                    Console.ReadKey(true);
+                    AnsiConsole.MarkupLine("[red]End date must be a valid date, and not in the past![/]");
+                    Console.ReadKey();
                     return;
                 }
 
+                // Hämta tillgängliga rum
                 var availableRooms = _guestRepository.GetAvailableRooms(startDate, endDate, guestCount);
 
                 if (!availableRooms.Any())
                 {
-                    Console.WriteLine("No available rooms found for the selected dates and number of guests.");
-                    Console.ReadKey(true);
+                    AnsiConsole.MarkupLine("[red] No avaiable rooms found [/]");
+                    Console.ReadKey();
                     return;
                 }
 
-                Console.WriteLine("\nAvailable Rooms:");
+                // Visa tillgängliga rum
+                AnsiConsole.MarkupLine("\n[bold green]Available rooms:[/]");
+                var roomTable = new Table()
+                    .Border(TableBorder.Rounded)
+                    .AddColumn("[blue]Room ID[/]")
+                    .AddColumn("[blue]Room Type[/]")
+                    .AddColumn("[blue]Price/night[/]");
+
                 foreach (var room in availableRooms)
                 {
-                    string extraBedInfo = room.Type == "Double" ? $"Extra Beds: {room.ExtraBeds}" : "No extra beds";
-                    Console.WriteLine($"Room ID: {room.RoomId} | Type: {room.Type} | Price: {room.PricePerNight:C} | {extraBedInfo}");
+                    roomTable.AddRow(room.RoomId.ToString(), room.Type, room.PricePerNight.ToString("C"));
                 }
 
-                Console.Write("Enter Room ID to book: ");
-                if (!int.TryParse(Console.ReadLine(), out int roomId) || !availableRooms.Any(r => r.RoomId == roomId))
+                AnsiConsole.Write(roomTable);
+
+                int roomId = AnsiConsole.Prompt(
+    new TextPrompt<int>("[yellow]Enter room ID to book:[/]")
+        .ValidationErrorMessage("[red]Invalid room Id![/]")
+        .Validate(input => availableRooms.Any(r => r.RoomId == input)));
+
+                // Hämta valt rum
+                var selectedRoom = availableRooms.First(r => r.RoomId == roomId);
+
+                // Hantera extra sängar om det är ett dubbelrum
+                int extraBeds = 0;
+                if (selectedRoom.Type == "Double")
                 {
-                    Console.WriteLine("Invalid Room ID. Booking not created.");
-                    Console.ReadKey(true);
-                    return;
+                    extraBeds = AnsiConsole.Prompt(
+                        new TextPrompt<int>("[yellow]How many extra beds would you like? (0-2):[/]")
+                            .ValidationErrorMessage("[red]Invalid input! Enter a number between 0 and 2.[/]")
+                            .Validate(input => input >= 0 && input <= 2));
+
+                    // Uppdatera max antal gäster baserat på extra sängar
+                    selectedRoom.TotalPeople += extraBeds;
                 }
 
+                // Skapa bokning
                 newBooking = new Booking
                 {
                     RoomId = roomId,
@@ -95,22 +151,25 @@ namespace HotelBookingApp.Controllers
                     BookingStatus = false
                 };
 
+                // Beräkna pris baserat på extra sängar (valfritt)
                 decimal totalAmount = _guestRepository.CalculateTotalAmount(newBooking);
+                totalAmount += extraBeds * selectedRoom.ExtraBedPrice; // Om extra sängar har en kostnad
 
+                // Skapa faktura
                 newInvoice = new Invoice
                 {
                     TotalAmount = totalAmount,
                     IsPaid = false,
                     PaymentDeadline = endDate.AddDays(7)
                 };
+
+                _guestRepository.RegisterNewGuestWithBooking(newGuest, newBooking, newInvoice);
+
+                AnsiConsole.MarkupLine("[bold green]\nGuest has been registered![/]");
+                Console.ReadKey();
             }
-
-            _guestRepository.RegisterNewGuestWithBooking(newGuest, newBooking, newInvoice);
-
-            Console.WriteLine("\nGuest, booking, and invoice registered successfully!");
-            Console.WriteLine("\nPress any key to continue...");
-            Console.ReadKey(true);
         }
+
 
         private DateTime SelectDate(string prompt)
         {

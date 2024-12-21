@@ -25,7 +25,7 @@ namespace HotelBookingApp.Entities
 
         //--------
 
-
+        public decimal ExtraBedPrice { get; set; }
 
         [Required]
         public decimal PricePerNight { get; set; } 

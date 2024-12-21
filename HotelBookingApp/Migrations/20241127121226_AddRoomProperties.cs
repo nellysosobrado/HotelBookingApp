@@ -10,47 +10,47 @@ namespace HotelBookingApp.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<decimal>(
-                name: "PricePerNight",
-                table: "Rooms",
-                type: "decimal(18,2)",
-                nullable: false,
-                defaultValue: 0m);
+            //migrationBuilder.AddColumn<decimal>(
+            //    name: "PricePerNight",
+            //    table: "Rooms",
+            //    type: "decimal(18,2)",
+            //    nullable: false,
+            //    defaultValue: 0m);
 
-            migrationBuilder.AddColumn<int>(
-                name: "SizeInSquareMeters",
-                table: "Rooms",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
+            //migrationBuilder.AddColumn<int>(
+            //    name: "SizeInSquareMeters",
+            //    table: "Rooms",
+            //    type: "int",
+            //    nullable: false,
+            //    defaultValue: 0);
 
-            migrationBuilder.UpdateData(
-                table: "Rooms",
-                keyColumn: "RoomId",
-                keyValue: 1,
-                columns: new[] { "PricePerNight", "SizeInSquareMeters" },
-                values: new object[] { 0m, 0 });
+            //migrationBuilder.UpdateData(
+            //    table: "Rooms",
+            //    keyColumn: "RoomId",
+            //    keyValue: 1,
+            //    columns: new[] { "PricePerNight", "SizeInSquareMeters" },
+            //    values: new object[] { 0m, 0 });
 
-            migrationBuilder.UpdateData(
-                table: "Rooms",
-                keyColumn: "RoomId",
-                keyValue: 2,
-                columns: new[] { "PricePerNight", "SizeInSquareMeters" },
-                values: new object[] { 0m, 0 });
+            //migrationBuilder.UpdateData(
+            //    table: "Rooms",
+            //    keyColumn: "RoomId",
+            //    keyValue: 2,
+            //    columns: new[] { "PricePerNight", "SizeInSquareMeters" },
+            //    values: new object[] { 0m, 0 });
 
-            migrationBuilder.UpdateData(
-                table: "Rooms",
-                keyColumn: "RoomId",
-                keyValue: 3,
-                columns: new[] { "PricePerNight", "SizeInSquareMeters" },
-                values: new object[] { 0m, 0 });
+            //migrationBuilder.UpdateData(
+            //    table: "Rooms",
+            //    keyColumn: "RoomId",
+            //    keyValue: 3,
+            //    columns: new[] { "PricePerNight", "SizeInSquareMeters" },
+            //    values: new object[] { 0m, 0 });
 
-            migrationBuilder.UpdateData(
-                table: "Rooms",
-                keyColumn: "RoomId",
-                keyValue: 4,
-                columns: new[] { "PricePerNight", "SizeInSquareMeters" },
-                values: new object[] { 0m, 0 });
+            //migrationBuilder.UpdateData(
+            //    table: "Rooms",
+            //    keyColumn: "RoomId",
+            //    keyValue: 4,
+            //    columns: new[] { "PricePerNight", "SizeInSquareMeters" },
+            //    values: new object[] { 0m, 0 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_GuestId",
@@ -98,13 +98,13 @@ namespace HotelBookingApp.Migrations
                 name: "IX_Bookings_RoomId",
                 table: "Bookings");
 
-            migrationBuilder.DropColumn(
-                name: "PricePerNight",
-                table: "Rooms");
+            //migrationBuilder.DropColumn(
+            //    name: "PricePerNight",
+            //    table: "Rooms");
 
-            migrationBuilder.DropColumn(
-                name: "SizeInSquareMeters",
-                table: "Rooms");
+            //migrationBuilder.DropColumn(
+            //    name: "SizeInSquareMeters",
+            //    table: "Rooms");
         }
     }
 }

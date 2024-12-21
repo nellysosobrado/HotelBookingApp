@@ -70,13 +70,13 @@ namespace HotelBookingApp.Migrations
                 principalColumn: "GuestId",
                 onDelete: ReferentialAction.Cascade);
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Bookings_Rooms_RoomId",
-                table: "Bookings",
-                column: "RoomId",
-                principalTable: "Rooms",
-                principalColumn: "RoomId",
-                onDelete: ReferentialAction.Cascade);
+            //migrationBuilder.AddForeignKey(
+            //    name: "FK_Bookings_Rooms_RoomId",
+            //    table: "Bookings",
+            //    column: "RoomId",
+            //    principalTable: "Rooms",
+            //    principalColumn: "RoomId",
+            //    onDelete: ReferentialAction.Cascade);
         }
     }
 }

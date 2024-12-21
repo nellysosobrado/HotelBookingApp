@@ -210,20 +210,25 @@ namespace HotelBookingApp.Controllers
         public void ViewAllRooms()
         {
             Console.Clear();
-            AnsiConsole.Markup("[bold yellow]=== VIEW ALL ROOMS ===[/]\n");
+            AnsiConsole.Markup("[bold yellow]=== AKTIVA BOKNINGAR ===[/]\n");
 
-            var rooms = _roomRepository.GetRoomsWithBookings();
+            // Hämta rum med endast aktiva bokningar
+            var rooms = _roomRepository.GetRoomsWithBookings()
+                .Where(r => r.Bookings.Any(b => b.BookingStatus == false)) // Endast aktiva bokningar
+                .ToList();
 
             if (!rooms.Any())
             {
-                AnsiConsole.Markup("[red]No rooms found.[/]\n");
+                AnsiConsole.Markup("[red]Inga aktiva bokningar hittades.[/]\n");
                 return;
             }
 
+            // Visa rummen i tabellformat
             _roomRepository.DisplayRoomsTable(rooms);
         }
 
-        public void DeleteRoom()
+
+        public void DeleteRoom() 
         {
             Console.Clear();
             AnsiConsole.Markup("[bold yellow]=== DELETE ROOM ===[/]\n");

@@ -13,12 +13,12 @@ namespace HotelBookingApp.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<decimal>(
-                name: "TotalPeople",
-                table: "Rooms",
-                type: "decimal(18,2)",
-                nullable: false,
-                defaultValue: 0m);
+            //migrationBuilder.AddColumn<decimal>(
+            //    name: "TotalPeople",
+            //    table: "Rooms",
+            //    type: "decimal(18,2)",
+            //    nullable: false,
+            //    defaultValue: 0m);
 
             migrationBuilder.AlterColumn<DateTime>(
                 name: "CheckOutDate",
@@ -45,33 +45,33 @@ namespace HotelBookingApp.Migrations
                     { 2, false, new DateTime(2024, 12, 2, 15, 31, 55, 20, DateTimeKind.Local).AddTicks(226), null, 2, true, false, 2 }
                 });
 
-            migrationBuilder.UpdateData(
-                table: "Guests",
-                keyColumn: "GuestId",
-                keyValue: 1,
-                columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
-                values: new object[] { "234p@example.com", "Person2", "lastname1", "234" });
+            //migrationBuilder.UpdateData(
+            //    table: "Guests",
+            //    keyColumn: "GuestId",
+            //    keyValue: 1,
+            //    columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
+            //    values: new object[] { "234p@example.com", "Person2", "lastname1", "234" });
 
-            migrationBuilder.UpdateData(
-                table: "Guests",
-                keyColumn: "GuestId",
-                keyValue: 2,
-                columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
-                values: new object[] { "342p@example.com", "Person2", "lastname2", "3453" });
+            //migrationBuilder.UpdateData(
+            //    table: "Guests",
+            //    keyColumn: "GuestId",
+            //    keyValue: 2,
+            //    columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
+            //    values: new object[] { "342p@example.com", "Person2", "lastname2", "3453" });
 
-            migrationBuilder.UpdateData(
-                table: "Guests",
-                keyColumn: "GuestId",
-                keyValue: 3,
-                columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
-                values: new object[] { "p234@example.com", "Person3", "lastname3", "3453" });
+            //migrationBuilder.UpdateData(
+            //    table: "Guests",
+            //    keyColumn: "GuestId",
+            //    keyValue: 3,
+            //    columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
+            //    values: new object[] { "p234@example.com", "Person3", "lastname3", "3453" });
 
-            migrationBuilder.UpdateData(
-                table: "Guests",
-                keyColumn: "GuestId",
-                keyValue: 4,
-                columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
-                values: new object[] { "243p@example.com", "Person4", "lastname4", "43" });
+            //migrationBuilder.UpdateData(
+            //    table: "Guests",
+            //    keyColumn: "GuestId",
+            //    keyValue: 4,
+            //    columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
+            //    values: new object[] { "243p@example.com", "Person4", "lastname4", "43" });
 
             migrationBuilder.UpdateData(
                 table: "Invoices",
@@ -94,33 +94,33 @@ namespace HotelBookingApp.Migrations
                 columns: new[] { "AmountPaid", "InvoiceId", "PaymentDate" },
                 values: new object[] { 500.00m, 1, new DateTime(2024, 11, 30, 15, 31, 55, 20, DateTimeKind.Local).AddTicks(1717) });
 
-            migrationBuilder.UpdateData(
-                table: "Rooms",
-                keyColumn: "RoomId",
-                keyValue: 1,
-                columns: new[] { "PricePerNight", "SizeInSquareMeters", "TotalPeople" },
-                values: new object[] { 1500m, 20, 0m });
+            //migrationBuilder.UpdateData(
+            //    table: "Rooms",
+            //    keyColumn: "RoomId",
+            //    keyValue: 1,
+            //    columns: new[] { "PricePerNight", "SizeInSquareMeters", "TotalPeople" },
+            //    values: new object[] { 1500m, 20, 0m });
 
-            migrationBuilder.UpdateData(
-                table: "Rooms",
-                keyColumn: "RoomId",
-                keyValue: 2,
-                columns: new[] { "PricePerNight", "SizeInSquareMeters", "TotalPeople" },
-                values: new object[] { 3500m, 80, 0m });
+            //migrationBuilder.UpdateData(
+            //    table: "Rooms",
+            //    keyColumn: "RoomId",
+            //    keyValue: 2,
+            //    columns: new[] { "PricePerNight", "SizeInSquareMeters", "TotalPeople" },
+            //    values: new object[] { 3500m, 80, 0m });
 
-            migrationBuilder.UpdateData(
-                table: "Rooms",
-                keyColumn: "RoomId",
-                keyValue: 3,
-                columns: new[] { "IsAvailable", "PricePerNight", "SizeInSquareMeters", "TotalPeople" },
-                values: new object[] { true, 3500m, 70, 0m });
+            //migrationBuilder.UpdateData(
+            //    table: "Rooms",
+            //    keyColumn: "RoomId",
+            //    keyValue: 3,
+            //    columns: new[] { "IsAvailable", "PricePerNight", "SizeInSquareMeters", "TotalPeople" },
+            //    values: new object[] { true, 3500m, 70, 0m });
 
-            migrationBuilder.UpdateData(
-                table: "Rooms",
-                keyColumn: "RoomId",
-                keyValue: 4,
-                columns: new[] { "IsAvailable", "PricePerNight", "SizeInSquareMeters", "TotalPeople" },
-                values: new object[] { true, 1500m, 215, 0m });
+            //migrationBuilder.UpdateData(
+            //    table: "Rooms",
+            //    keyColumn: "RoomId",
+            //    keyValue: 4,
+            //    columns: new[] { "IsAvailable", "PricePerNight", "SizeInSquareMeters", "TotalPeople" },
+            //    values: new object[] { true, 1500m, 215, 0m });
         }
 
         /// <inheritdoc />
@@ -160,33 +160,33 @@ namespace HotelBookingApp.Migrations
                 oldType: "datetime2",
                 oldNullable: true);
 
-            migrationBuilder.UpdateData(
-                table: "Guests",
-                keyColumn: "GuestId",
-                keyValue: 1,
-                columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
-                values: new object[] { "alice@example.com", "Alice", "Smith", "1234567890" });
+            //migrationBuilder.UpdateData(
+            //    table: "Guests",
+            //    keyColumn: "GuestId",
+            //    keyValue: 1,
+            //    columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
+            //    values: new object[] { "alice@example.com", "Alice", "Smith", "1234567890" });
 
-            migrationBuilder.UpdateData(
-                table: "Guests",
-                keyColumn: "GuestId",
-                keyValue: 2,
-                columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
-                values: new object[] { "bob@example.com", "Bob", "Johnson", "2345678901" });
+            //migrationBuilder.UpdateData(
+            //    table: "Guests",
+            //    keyColumn: "GuestId",
+            //    keyValue: 2,
+            //    columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
+            //    values: new object[] { "bob@example.com", "Bob", "Johnson", "2345678901" });
 
-            migrationBuilder.UpdateData(
-                table: "Guests",
-                keyColumn: "GuestId",
-                keyValue: 3,
-                columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
-                values: new object[] { "charlie@example.com", "Charlie", "Brown", "3456789012" });
+            //migrationBuilder.UpdateData(
+            //    table: "Guests",
+            //    keyColumn: "GuestId",
+            //    keyValue: 3,
+            //    columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
+            //    values: new object[] { "charlie@example.com", "Charlie", "Brown", "3456789012" });
 
-            migrationBuilder.UpdateData(
-                table: "Guests",
-                keyColumn: "GuestId",
-                keyValue: 4,
-                columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
-                values: new object[] { "diana@example.com", "Diana", "Green", "4567890123" });
+            //migrationBuilder.UpdateData(
+            //    table: "Guests",
+            //    keyColumn: "GuestId",
+            //    keyValue: 4,
+            //    columns: new[] { "Email", "FirstName", "LastName", "PhoneNumber" },
+            //    values: new object[] { "diana@example.com", "Diana", "Green", "4567890123" });
 
             migrationBuilder.UpdateData(
                 table: "Invoices",
@@ -209,33 +209,33 @@ namespace HotelBookingApp.Migrations
                 columns: new[] { "AmountPaid", "InvoiceId", "PaymentDate" },
                 values: new object[] { 300.00m, 2, new DateTime(2024, 11, 30, 13, 9, 34, 362, DateTimeKind.Local).AddTicks(2113) });
 
-            migrationBuilder.UpdateData(
-                table: "Rooms",
-                keyColumn: "RoomId",
-                keyValue: 1,
-                columns: new[] { "PricePerNight", "SizeInSquareMeters" },
-                values: new object[] { 0m, 0 });
+            //migrationBuilder.UpdateData(
+            //    table: "Rooms",
+            //    keyColumn: "RoomId",
+            //    keyValue: 1,
+            //    columns: new[] { "PricePerNight", "SizeInSquareMeters" },
+            //    values: new object[] { 0m, 0 });
 
-            migrationBuilder.UpdateData(
-                table: "Rooms",
-                keyColumn: "RoomId",
-                keyValue: 2,
-                columns: new[] { "PricePerNight", "SizeInSquareMeters" },
-                values: new object[] { 0m, 0 });
+            //migrationBuilder.UpdateData(
+            //    table: "Rooms",
+            //    keyColumn: "RoomId",
+            //    keyValue: 2,
+            //    columns: new[] { "PricePerNight", "SizeInSquareMeters" },
+            //    values: new object[] { 0m, 0 });
 
-            migrationBuilder.UpdateData(
-                table: "Rooms",
-                keyColumn: "RoomId",
-                keyValue: 3,
-                columns: new[] { "IsAvailable", "PricePerNight", "SizeInSquareMeters" },
-                values: new object[] { false, 0m, 0 });
+            //migrationBuilder.UpdateData(
+            //    table: "Rooms",
+            //    keyColumn: "RoomId",
+            //    keyValue: 3,
+            //    columns: new[] { "IsAvailable", "PricePerNight", "SizeInSquareMeters" },
+            //    values: new object[] { false, 0m, 0 });
 
-            migrationBuilder.UpdateData(
-                table: "Rooms",
-                keyColumn: "RoomId",
-                keyValue: 4,
-                columns: new[] { "IsAvailable", "PricePerNight", "SizeInSquareMeters" },
-                values: new object[] { false, 0m, 0 });
+            //migrationBuilder.UpdateData(
+            //    table: "Rooms",
+            //    keyColumn: "RoomId",
+            //    keyValue: 4,
+            //    columns: new[] { "IsAvailable", "PricePerNight", "SizeInSquareMeters" },
+            //    values: new object[] { false, 0m, 0 });
         }
     }
 }

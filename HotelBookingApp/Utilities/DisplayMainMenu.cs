@@ -35,10 +35,8 @@ namespace HotelBookingApp.Utilities
             {
                 Console.Clear();
 
-                // Visa rubrik
                 AnsiConsole.Write(new Panel("[bold yellow]HOTEL BOOKING APP - MAIN MENU[/]").Expand());
 
-                // Visa huvudmeny med val
                 var choice = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("[bold blue]Select an option:[/]")
@@ -56,7 +54,6 @@ namespace HotelBookingApp.Utilities
                             "10. Exit"
                         ));
 
-                // Hantera användarens val
                 switch (choice)
                 {
                     case "1. Register New Guest":
@@ -104,7 +101,6 @@ namespace HotelBookingApp.Utilities
                         break;
                 }
 
-                // Vänta på att användaren trycker på en knapp innan den återgår till huvudmenyn
                 AnsiConsole.Markup("\n[bold yellow]Press any key to return to the main menu...[/]");
                 Console.ReadKey();
             }

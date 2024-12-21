@@ -82,19 +82,14 @@ namespace HotelBookingApp.Repositories
             }
         }
 
-        public IEnumerable<(Room Room, Booking? Booking)> GetRoomsWithBookings()
+        public IEnumerable<Room> GetRoomsWithBookings()
         {
             return _appDbContext.Rooms
-                .Include(room => room.Bookings) 
-                .GroupJoin(
-                    _appDbContext.Bookings,
-                    room => room.RoomId,
-                    booking => booking.RoomId,
-                    (room, bookings) => new { Room = room, Booking = bookings.FirstOrDefault() }
-                )
-                .AsEnumerable()
-                .Select(e => (e.Room, e.Booking));
+                .Include(r => r.Bookings)
+                .Where(r => r.Bookings.Any(b => b.BookingStatus == false)) 
+                .ToList();
         }
+
 
         public void DeleteRoom(int roomId)
         {
@@ -117,28 +112,29 @@ namespace HotelBookingApp.Repositories
             }
         }
 
-        public void DisplayRoomsTable(IEnumerable<(Room Room, Booking? Booking)> rooms)
+        public void DisplayRoomsTable(IEnumerable<Room> rooms)
         {
-            var table = new Table()
-                .AddColumns("[green]Room ID[/]", "[blue]Type[/]", "[yellow]Price Per Night[/]", "[cyan]Booked By[/]");
+            var table = new Table();
+            table.AddColumn("Room ID");
+            table.AddColumn("Room Type");
+            table.AddColumn("Price Per Night");
+            table.AddColumn("Guest Name");
 
-            foreach (var (room, booking) in rooms)
+            foreach (var room in rooms)
             {
-                var bookedBy = booking?.Guest != null
-                    ? $"{booking.Guest.FirstName} {booking.Guest.LastName}"
-                    : "Not Booked";
-
-                table.AddRow(
-                    room.RoomId.ToString(),
-                    room.Type ?? "N/A",
-                    room.PricePerNight.ToString("C"),
-                    bookedBy
-                );
+                var activeBooking = room.Bookings.FirstOrDefault(b => b.BookingStatus == false);
+                if (activeBooking != null)
+                {
+                    table.AddRow(
+                        room.RoomId.ToString(),
+                        room.Type,
+                        room.PricePerNight.ToString("C"),
+                        $"{activeBooking.Guest.FirstName} {activeBooking.Guest.LastName}");
+                }
             }
 
             AnsiConsole.Write(table);
-            Console.WriteLine("\nPress any key to continue...");
-            Console.ReadKey();
         }
+
     }
 }

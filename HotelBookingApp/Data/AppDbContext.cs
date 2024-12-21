@@ -16,6 +16,11 @@ namespace HotelBookingApp.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
+            // Ignorera Guests-tabellen om den redan finns
+            modelBuilder.Entity<Guest>().ToTable("Guests", t => t.ExcludeFromMigrations());
+
             DateTime today = DateTime.Now.Date;
             DateTime futureCheckInDate = today.AddDays(1);
             DateTime futureCheckOutDate = futureCheckInDate.AddDays(3);
