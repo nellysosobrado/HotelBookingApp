@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBookingApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241204143155_AddTotalpeopleColum")]
-    partial class AddTotalpeopleColum
+    [Migration("20241221161202_InitialCreateSecod")]
+    partial class InitialCreateSecod
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace HotelBookingApp.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("HotelBookingApp.Booking", b =>
+            modelBuilder.Entity("HotelBookingApp.Entities.Booking", b =>
                 {
                     b.Property<int>("BookingId")
                         .ValueGeneratedOnAdd()
@@ -66,23 +66,127 @@ namespace HotelBookingApp.Migrations
                         new
                         {
                             BookingId = 1,
-                            BookingStatus = true,
-                            CheckInDate = new DateTime(2024, 11, 29, 15, 31, 55, 18, DateTimeKind.Local).AddTicks(7191),
-                            CheckOutDate = new DateTime(2024, 12, 3, 15, 31, 55, 20, DateTimeKind.Local).AddTicks(22),
+                            BookingStatus = false,
+                            CheckInDate = new DateTime(2024, 12, 22, 0, 0, 0, 0, DateTimeKind.Local),
+                            CheckOutDate = new DateTime(2024, 12, 25, 0, 0, 0, 0, DateTimeKind.Local),
                             GuestId = 1,
-                            IsCheckedIn = true,
-                            IsCheckedOut = true,
+                            IsCheckedIn = false,
+                            IsCheckedOut = false,
                             RoomId = 1
                         },
                         new
                         {
                             BookingId = 2,
                             BookingStatus = false,
-                            CheckInDate = new DateTime(2024, 12, 2, 15, 31, 55, 20, DateTimeKind.Local).AddTicks(226),
+                            CheckInDate = new DateTime(2024, 12, 22, 0, 0, 0, 0, DateTimeKind.Local),
+                            CheckOutDate = new DateTime(2024, 12, 25, 0, 0, 0, 0, DateTimeKind.Local),
                             GuestId = 2,
-                            IsCheckedIn = true,
+                            IsCheckedIn = false,
                             IsCheckedOut = false,
                             RoomId = 2
+                        },
+                        new
+                        {
+                            BookingId = 3,
+                            BookingStatus = false,
+                            CheckInDate = new DateTime(2024, 12, 19, 0, 0, 0, 0, DateTimeKind.Local),
+                            CheckOutDate = new DateTime(2024, 12, 22, 0, 0, 0, 0, DateTimeKind.Local),
+                            GuestId = 3,
+                            IsCheckedIn = true,
+                            IsCheckedOut = false,
+                            RoomId = 3
+                        },
+                        new
+                        {
+                            BookingId = 4,
+                            BookingStatus = true,
+                            CheckInDate = new DateTime(2024, 12, 16, 0, 0, 0, 0, DateTimeKind.Local),
+                            CheckOutDate = new DateTime(2024, 12, 20, 0, 0, 0, 0, DateTimeKind.Local),
+                            GuestId = 4,
+                            IsCheckedIn = false,
+                            IsCheckedOut = true,
+                            RoomId = 4
+                        });
+                });
+
+            modelBuilder.Entity("HotelBookingApp.Entities.Room", b =>
+                {
+                    b.Property<int>("RoomId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoomId"));
+
+                    b.Property<decimal>("ExtraBedPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ExtraBeds")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("PricePerNight")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("SizeInSquareMeters")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalPeople")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("RoomId");
+
+                    b.ToTable("Rooms");
+
+                    b.HasData(
+                        new
+                        {
+                            RoomId = 1,
+                            ExtraBedPrice = 0m,
+                            ExtraBeds = 0,
+                            IsAvailable = false,
+                            PricePerNight = 1500m,
+                            SizeInSquareMeters = 20,
+                            TotalPeople = 0m,
+                            Type = "Single"
+                        },
+                        new
+                        {
+                            RoomId = 2,
+                            ExtraBedPrice = 0m,
+                            ExtraBeds = 1,
+                            IsAvailable = false,
+                            PricePerNight = 3500m,
+                            SizeInSquareMeters = 80,
+                            TotalPeople = 0m,
+                            Type = "Double"
+                        },
+                        new
+                        {
+                            RoomId = 3,
+                            ExtraBedPrice = 0m,
+                            ExtraBeds = 0,
+                            IsAvailable = true,
+                            PricePerNight = 2000m,
+                            SizeInSquareMeters = 25,
+                            TotalPeople = 0m,
+                            Type = "Single"
+                        },
+                        new
+                        {
+                            RoomId = 4,
+                            ExtraBedPrice = 0m,
+                            ExtraBeds = 2,
+                            IsAvailable = true,
+                            PricePerNight = 4000m,
+                            SizeInSquareMeters = 90,
+                            TotalPeople = 0m,
+                            Type = "Double"
                         });
                 });
 
@@ -118,34 +222,34 @@ namespace HotelBookingApp.Migrations
                         new
                         {
                             GuestId = 1,
-                            Email = "234p@example.com",
-                            FirstName = "Person2",
-                            LastName = "lastname1",
-                            PhoneNumber = "234"
+                            Email = "gmail.com1",
+                            FirstName = "p1",
+                            LastName = "l1",
+                            PhoneNumber = "11111"
                         },
                         new
                         {
                             GuestId = 2,
-                            Email = "342p@example.com",
-                            FirstName = "Person2",
-                            LastName = "lastname2",
-                            PhoneNumber = "3453"
+                            Email = "gmail.com2",
+                            FirstName = "p2",
+                            LastName = "l2",
+                            PhoneNumber = "22222"
                         },
                         new
                         {
                             GuestId = 3,
-                            Email = "p234@example.com",
-                            FirstName = "Person3",
-                            LastName = "lastname3",
-                            PhoneNumber = "3453"
+                            Email = "gmail.com3",
+                            FirstName = "p3",
+                            LastName = "l3",
+                            PhoneNumber = "33333"
                         },
                         new
                         {
                             GuestId = 4,
-                            Email = "243p@example.com",
-                            FirstName = "Person4",
-                            LastName = "lastname4",
-                            PhoneNumber = "43"
+                            Email = "gmail.com4",
+                            FirstName = "p4",
+                            LastName = "l4",
+                            PhoneNumber = "44444"
                         });
                 });
 
@@ -180,17 +284,33 @@ namespace HotelBookingApp.Migrations
                         {
                             InvoiceId = 1,
                             BookingId = 1,
-                            IsPaid = true,
-                            PaymentDeadline = new DateTime(2024, 12, 1, 15, 31, 55, 20, DateTimeKind.Local).AddTicks(1088),
-                            TotalAmount = 500.00m
+                            IsPaid = false,
+                            PaymentDeadline = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Local),
+                            TotalAmount = 4500m
                         },
                         new
                         {
                             InvoiceId = 2,
                             BookingId = 2,
                             IsPaid = false,
-                            PaymentDeadline = new DateTime(2024, 12, 9, 15, 31, 55, 20, DateTimeKind.Local).AddTicks(1219),
-                            TotalAmount = 300.00m
+                            PaymentDeadline = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Local),
+                            TotalAmount = 7000m
+                        },
+                        new
+                        {
+                            InvoiceId = 3,
+                            BookingId = 3,
+                            IsPaid = false,
+                            PaymentDeadline = new DateTime(2024, 12, 28, 0, 0, 0, 0, DateTimeKind.Local),
+                            TotalAmount = 6000m
+                        },
+                        new
+                        {
+                            InvoiceId = 4,
+                            BookingId = 4,
+                            IsPaid = true,
+                            PaymentDeadline = new DateTime(2024, 12, 19, 0, 0, 0, 0, DateTimeKind.Local),
+                            TotalAmount = 8000m
                         });
                 });
 
@@ -221,87 +341,13 @@ namespace HotelBookingApp.Migrations
                         new
                         {
                             PaymentId = 1,
-                            AmountPaid = 500.00m,
-                            InvoiceId = 1,
-                            PaymentDate = new DateTime(2024, 11, 30, 15, 31, 55, 20, DateTimeKind.Local).AddTicks(1717)
+                            AmountPaid = 8000m,
+                            InvoiceId = 4,
+                            PaymentDate = new DateTime(2024, 12, 19, 0, 0, 0, 0, DateTimeKind.Local)
                         });
                 });
 
-            modelBuilder.Entity("HotelBookingApp.Room", b =>
-                {
-                    b.Property<int>("RoomId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoomId"));
-
-                    b.Property<int>("ExtraBeds")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsAvailable")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("PricePerNight")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("SizeInSquareMeters")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("TotalPeople")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("RoomId");
-
-                    b.ToTable("Rooms");
-
-                    b.HasData(
-                        new
-                        {
-                            RoomId = 1,
-                            ExtraBeds = 0,
-                            IsAvailable = false,
-                            PricePerNight = 1500m,
-                            SizeInSquareMeters = 20,
-                            TotalPeople = 0m,
-                            Type = "Single"
-                        },
-                        new
-                        {
-                            RoomId = 2,
-                            ExtraBeds = 1,
-                            IsAvailable = false,
-                            PricePerNight = 3500m,
-                            SizeInSquareMeters = 80,
-                            TotalPeople = 0m,
-                            Type = "Double"
-                        },
-                        new
-                        {
-                            RoomId = 3,
-                            ExtraBeds = 2,
-                            IsAvailable = true,
-                            PricePerNight = 3500m,
-                            SizeInSquareMeters = 70,
-                            TotalPeople = 0m,
-                            Type = "Double"
-                        },
-                        new
-                        {
-                            RoomId = 4,
-                            ExtraBeds = 0,
-                            IsAvailable = true,
-                            PricePerNight = 1500m,
-                            SizeInSquareMeters = 215,
-                            TotalPeople = 0m,
-                            Type = "Single"
-                        });
-                });
-
-            modelBuilder.Entity("HotelBookingApp.Booking", b =>
+            modelBuilder.Entity("HotelBookingApp.Entities.Booking", b =>
                 {
                     b.HasOne("HotelBookingApp.Guest", "Guest")
                         .WithMany()
@@ -309,8 +355,8 @@ namespace HotelBookingApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("HotelBookingApp.Room", "Room")
-                        .WithMany()
+                    b.HasOne("HotelBookingApp.Entities.Room", "Room")
+                        .WithMany("Bookings")
                         .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -322,7 +368,7 @@ namespace HotelBookingApp.Migrations
 
             modelBuilder.Entity("HotelBookingApp.Invoice", b =>
                 {
-                    b.HasOne("HotelBookingApp.Booking", "Booking")
+                    b.HasOne("HotelBookingApp.Entities.Booking", "Booking")
                         .WithMany("Invoices")
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -342,9 +388,14 @@ namespace HotelBookingApp.Migrations
                     b.Navigation("Invoice");
                 });
 
-            modelBuilder.Entity("HotelBookingApp.Booking", b =>
+            modelBuilder.Entity("HotelBookingApp.Entities.Booking", b =>
                 {
                     b.Navigation("Invoices");
+                });
+
+            modelBuilder.Entity("HotelBookingApp.Entities.Room", b =>
+                {
+                    b.Navigation("Bookings");
                 });
 
             modelBuilder.Entity("HotelBookingApp.Invoice", b =>

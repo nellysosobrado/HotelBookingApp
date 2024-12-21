@@ -114,6 +114,9 @@ namespace HotelBookingApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoomId"));
 
+                    b.Property<decimal>("ExtraBedPrice")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("ExtraBeds")
                         .HasColumnType("int");
 
@@ -141,6 +144,7 @@ namespace HotelBookingApp.Migrations
                         new
                         {
                             RoomId = 1,
+                            ExtraBedPrice = 0m,
                             ExtraBeds = 0,
                             IsAvailable = false,
                             PricePerNight = 1500m,
@@ -151,6 +155,7 @@ namespace HotelBookingApp.Migrations
                         new
                         {
                             RoomId = 2,
+                            ExtraBedPrice = 0m,
                             ExtraBeds = 1,
                             IsAvailable = false,
                             PricePerNight = 3500m,
@@ -161,6 +166,7 @@ namespace HotelBookingApp.Migrations
                         new
                         {
                             RoomId = 3,
+                            ExtraBedPrice = 0m,
                             ExtraBeds = 0,
                             IsAvailable = true,
                             PricePerNight = 2000m,
@@ -171,6 +177,7 @@ namespace HotelBookingApp.Migrations
                         new
                         {
                             RoomId = 4,
+                            ExtraBedPrice = 0m,
                             ExtraBeds = 2,
                             IsAvailable = true,
                             PricePerNight = 4000m,
