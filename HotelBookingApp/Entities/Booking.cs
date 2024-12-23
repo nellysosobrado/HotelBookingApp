@@ -11,7 +11,7 @@ namespace HotelBookingApp.Entities
         public int BookingId { get; set; }
         public int RoomId { get; set; }
 
-        public Room Room { get; set; }//relation to room table
+        public Room Room { get; set; }
         public int GuestId { get; set; }
         public Guest Guest { get; set; }
         public DateTime? CheckInDate { get; set; }
@@ -20,7 +20,6 @@ namespace HotelBookingApp.Entities
         public bool IsCheckedOut { get; set; }
 
         public bool BookingStatus { get; set; }
-        //true if booking is done
         public ICollection<Invoice> Invoices { get; set; }
     }
 

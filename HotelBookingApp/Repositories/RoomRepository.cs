@@ -85,8 +85,8 @@ namespace HotelBookingApp.Repositories
         public IEnumerable<Room> GetRoomsWithBookings()
         {
             return _appDbContext.Rooms
-                .Include(r => r.Bookings)
-                .Where(r => r.Bookings.Any(b => b.BookingStatus == false)) 
+                .Include(r => r.Bookings) 
+                    .ThenInclude(b => b.Guest) 
                 .ToList();
         }
 

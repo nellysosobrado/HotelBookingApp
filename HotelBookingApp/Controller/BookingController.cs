@@ -20,13 +20,10 @@ namespace HotelBookingApp
             Console.Clear();
             Console.WriteLine("Function: Find Available Rooms");
 
-            // Använd kalendern för att välja startdatum
             DateTime startDate = SelectDate("Select start date:");
 
-            // Använd kalendern för att välja slutdatum
             DateTime endDate = SelectDate("Select end date:");
 
-            // Kontrollera att slutdatum är efter startdatum
             if (endDate <= startDate)
             {
                 Console.WriteLine("End date must be after start date.");
@@ -62,8 +59,8 @@ namespace HotelBookingApp
 
         private DateTime SelectDate(string prompt)
         {
-            DateTime currentDate = DateTime.Now.Date; // Dagens datum
-            DateTime selectedDate = new DateTime(currentDate.Year, currentDate.Month, 1); // Början av aktuell månad
+            DateTime currentDate = DateTime.Now.Date; 
+            DateTime selectedDate = new DateTime(currentDate.Year, currentDate.Month, 1); 
 
             while (true)
             {
@@ -95,7 +92,7 @@ namespace HotelBookingApp
                         Console.ReadKey();
                         break;
                     case ConsoleKey.Escape:
-                        return DateTime.MinValue; // Returnera ett ogiltigt datum om användaren avbryter
+                        return DateTime.MinValue; 
                 }
             }
         }
@@ -105,7 +102,6 @@ namespace HotelBookingApp
         {
             var calendarContent = new StringWriter();
 
-            // Kalenderhuvud
             calendarContent.WriteLine($"[red]{selectedDate:MMMM}[/]".ToUpper());
             calendarContent.WriteLine("Mon  Tue  Wed  Thu  Fri  Sat  Sun");
             calendarContent.WriteLine("─────────────────────────────────");
@@ -113,9 +109,8 @@ namespace HotelBookingApp
             DateTime firstDayOfMonth = new DateTime(selectedDate.Year, selectedDate.Month, 1);
             int daysInMonth = DateTime.DaysInMonth(selectedDate.Year, selectedDate.Month);
             int startDay = (int)firstDayOfMonth.DayOfWeek;
-            startDay = (startDay == 0) ? 6 : startDay - 1; // Justera för måndag som veckostart
+            startDay = (startDay == 0) ? 6 : startDay - 1; 
 
-            // Fyll med tomma platser innan första dagen i månaden
             for (int i = 0; i < startDay; i++)
             {
                 calendarContent.Write("     ");
@@ -139,7 +134,6 @@ namespace HotelBookingApp
                 }
             }
 
-            // Skapa en panel med dubbla kanter
             var panel = new Panel(calendarContent.ToString())
             {
                 Border = BoxBorder.Double,
@@ -151,51 +145,6 @@ namespace HotelBookingApp
             AnsiConsole.MarkupLine("\nUse arrow keys [blue]\u25C4 \u25B2 \u25BA \u25BC[/] to navigate and [green]Enter[/] to select.");
         }
 
-
-        //public void SearchAvailableRooms()
-        //{
-        //    Console.Clear();
-        //    Console.WriteLine("Function: Find available room");
-
-        //    Console.WriteLine("Enter start date (yyyy-MM-dd):");
-        //    if (!DateTime.TryParse(Console.ReadLine(), out DateTime startDate))
-        //    {
-        //        Console.WriteLine("Invalid date format.");
-        //        return;
-        //    }
-
-        //    Console.WriteLine("Enter end date (yyyy-MM-dd):");
-        //    if (!DateTime.TryParse(Console.ReadLine(), out DateTime endDate))
-        //    {
-        //        Console.WriteLine("Invalid date format.");
-        //        return;
-        //    }
-
-        //    Console.WriteLine("Enter the number of guests:");
-        //    if (!int.TryParse(Console.ReadLine(), out int guestCount))
-        //    {
-        //        Console.WriteLine("Invalid number of guests.");
-        //        return;
-        //    }
-
-        //    var availableRooms = _bookingRepository.GetAvailableRooms(startDate, endDate, guestCount);
-
-        //    if (!availableRooms.Any())
-        //    {
-        //        Console.WriteLine("No available rooms found.");
-        //    }
-        //    else
-        //    {
-        //        Console.WriteLine($"\nAvailable rooms from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}:");
-        //        foreach (var room in availableRooms)
-        //        {
-        //            Console.WriteLine($"Room {room.RoomId}: {room.Type}, {room.PricePerNight:C} per night");
-        //        }
-        //    }
-
-        //    Console.WriteLine("\nPress any key to return to the menu...");
-        //    Console.ReadKey();
-        //}
 
         public void DisplayAllGuestInfo()
         {
@@ -571,12 +520,11 @@ namespace HotelBookingApp
 
             _bookingRepository.UpdateBooking(booking);
 
-            // Frigör rummet
             var room = _roomRepository.GetRoomById(booking.RoomId);
             if (room != null)
             {
-                room.IsAvailable = true; // Uppdaterar rummets tillgänglighet
-                _roomRepository.UpdateRoom(room); // Spara ändringar i rummet
+                room.IsAvailable = true; 
+                _roomRepository.UpdateRoom(room); 
             }
 
             Console.WriteLine("Guest successfully checked out and payment processed.");

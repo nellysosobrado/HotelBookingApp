@@ -70,20 +70,17 @@ namespace HotelBookingApp.Controllers
                 PhoneNumber = phone
             };
 
-            // Fråga om bokning ska skapas
             bool createBooking = AnsiConsole.Confirm("Would you want to create aw booking ?");
             Booking newBooking = null;
             Invoice newInvoice = null;
 
             if (createBooking)
             {
-                // Antal gäster
                 int guestCount = AnsiConsole.Prompt(
                     new TextPrompt<int>("[yellow]Enter total guests:[/]")
                         .ValidationErrorMessage("[red]Total guest must be a number![/]")
                         .Validate(input => input > 0));
 
-                // Välj datum för bokning
                 DateTime startDate = SelectDate("[yellow]Enter start date:[/]");
                 DateTime endDate = SelectDate("[yellow]Entere a end date:[/]");
 
@@ -94,7 +91,6 @@ namespace HotelBookingApp.Controllers
                     return;
                 }
 
-                // Hämta tillgängliga rum
                 var availableRooms = _guestRepository.GetAvailableRooms(startDate, endDate, guestCount);
 
                 if (!availableRooms.Any())
@@ -104,7 +100,6 @@ namespace HotelBookingApp.Controllers
                     return;
                 }
 
-                // Visa tillgängliga rum
                 AnsiConsole.MarkupLine("\n[bold green]Available rooms:[/]");
                 var roomTable = new Table()
                     .Border(TableBorder.Rounded)
@@ -123,11 +118,8 @@ namespace HotelBookingApp.Controllers
     new TextPrompt<int>("[yellow]Enter room ID to book:[/]")
         .ValidationErrorMessage("[red]Invalid room Id![/]")
         .Validate(input => availableRooms.Any(r => r.RoomId == input)));
-
-                // Hämta valt rum
                 var selectedRoom = availableRooms.First(r => r.RoomId == roomId);
 
-                // Hantera extra sängar om det är ett dubbelrum
                 int extraBeds = 0;
                 if (selectedRoom.Type == "Double")
                 {
@@ -136,12 +128,10 @@ namespace HotelBookingApp.Controllers
                             .ValidationErrorMessage("[red]Invalid input! Enter a number between 0 and 2.[/]")
                             .Validate(input => input >= 0 && input <= 2));
 
-                    // Uppdatera max antal gäster baserat på extra sängar
                     selectedRoom.TotalPeople += extraBeds;
                 }
 
-                // Skapa bokning
-                newBooking = new Booking
+                var booking = new Booking
                 {
                     RoomId = roomId,
                     CheckInDate = startDate,
@@ -151,19 +141,19 @@ namespace HotelBookingApp.Controllers
                     BookingStatus = false
                 };
 
-                // Beräkna pris baserat på extra sängar (valfritt)
-                decimal totalAmount = _guestRepository.CalculateTotalAmount(newBooking);
-                totalAmount += extraBeds * selectedRoom.ExtraBedPrice; // Om extra sängar har en kostnad
+                decimal totalAmount = _guestRepository.CalculateTotalAmount(booking);
+                totalAmount += extraBeds * selectedRoom.ExtraBedPrice; 
 
-                // Skapa faktura
-                newInvoice = new Invoice
+                var invoice = new Invoice
                 {
+                    BookingId = booking.BookingId,
                     TotalAmount = totalAmount,
                     IsPaid = false,
-                    PaymentDeadline = endDate.AddDays(7)
+                    PaymentDeadline = endDate.AddDays(7) 
                 };
 
-                _guestRepository.RegisterNewGuestWithBooking(newGuest, newBooking, newInvoice);
+                _guestRepository.RegisterNewGuestWithBooking(newGuest, booking, invoice);
+
 
                 AnsiConsole.MarkupLine("[bold green]\nGuest has been registered![/]");
                 Console.ReadKey();
@@ -206,7 +196,7 @@ namespace HotelBookingApp.Controllers
                         Console.ReadKey(true);
                         break;
                     case ConsoleKey.Escape:
-                        return DateTime.MinValue; // Returnera ogiltigt datum vid avbryt
+                        return DateTime.MinValue; 
                 }
             }
         }
@@ -214,8 +204,6 @@ namespace HotelBookingApp.Controllers
         private void RenderCalendar(DateTime selectedDate)
         {
             var calendarContent = new StringWriter();
-
-            // Kalenderhuvud
             calendarContent.WriteLine($"[red]{selectedDate:MMMM}[/]".ToUpper());
             calendarContent.WriteLine("Mon  Tue  Wed  Thu  Fri  Sat  Sun");
             calendarContent.WriteLine("─────────────────────────────────");
@@ -257,99 +245,6 @@ namespace HotelBookingApp.Controllers
             Console.WriteLine();
             AnsiConsole.MarkupLine("\nUse arrow keys [blue]\u25C4 \u25B2 \u25BA \u25BC[/] to navigate and [green]Enter[/] to select.");
         }
-
-
-        //public void RegisterNewGuest()
-        //{
-        //    Console.Clear();
-        //    Console.WriteLine("REGISTER NEW GUEST");
-
-        //    var firstName = PromptInput("Enter First Name: ");
-        //    var lastName = PromptInput("Enter Last Name: ");
-        //    var email = PromptInput("Enter Email: ");
-        //    var phone = PromptInput("Enter Phone Number: ");
-
-        //    if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName) ||
-        //        string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(phone))
-        //    {
-        //        Console.WriteLine("All fields are required. Registration failed.");
-        //        Console.ReadKey(true);
-        //        return;
-        //    }
-
-        //    var newGuest = new Guest
-        //    {
-        //        FirstName = firstName,
-        //        LastName = lastName,
-        //        Email = email,
-        //        PhoneNumber = phone
-        //    };
-
-        //    Console.Write("\nDo you want to create a booking for this guest now? (Y/N): ");
-        //    var choice = Console.ReadLine()?.Trim().ToUpper();
-
-        //    Booking newBooking = null;
-        //    Invoice newInvoice = null;
-
-        //    if (choice == "Y")
-        //    {
-        //        int guestCount = PromptForInt("Enter number of guests: ");
-        //        DateTime startDate = PromptForDate("Enter start date (yyyy-MM-dd): ");
-        //        DateTime endDate = PromptForDate("Enter end date (yyyy-MM-dd): ");
-
-        //        var availableRooms = _guestRepository.GetAvailableRooms(startDate, endDate, guestCount);
-
-        //        if (!availableRooms.Any())
-        //        {
-        //            Console.WriteLine("No available rooms found for the selected dates and number of guests.");
-        //            Console.ReadKey(true);
-        //            return;
-        //        }
-
-        //        Console.WriteLine("\nAvailable Rooms:");
-        //        foreach (var room in availableRooms)
-        //        {
-        //            string extraBedInfo = room.Type == "Double" ? $"Extra Beds: {room.ExtraBeds}" : "No extra beds";
-        //            Console.WriteLine($"Room ID: {room.RoomId} | Type: {room.Type} | Price: {room.PricePerNight:C} | {extraBedInfo}");
-        //        }
-
-        //        Console.Write("Enter Room ID to book: ");
-        //        if (!int.TryParse(Console.ReadLine(), out int roomId) || !availableRooms.Any(r => r.RoomId == roomId))
-        //        {
-        //            Console.WriteLine("Invalid Room ID. Booking not created.");
-        //            Console.ReadKey(true);
-        //            return;
-        //        }
-
-        //        newBooking = new Booking
-        //        {
-        //            RoomId = roomId,
-        //            CheckInDate = startDate,
-        //            CheckOutDate = endDate,
-        //            IsCheckedIn = false,
-        //            IsCheckedOut = false,
-        //            BookingStatus = false
-        //        };
-
-        //        decimal totalAmount = _guestRepository.CalculateTotalAmount(newBooking);
-
-        //        newInvoice = new Invoice
-        //        {
-        //            TotalAmount = totalAmount,
-        //            IsPaid = false,
-        //            PaymentDeadline = endDate.AddDays(7)
-        //        };
-        //    }
-
-        //    _guestRepository.RegisterNewGuestWithBooking(newGuest, newBooking, newInvoice);
-
-        //    Console.WriteLine("\nGuest, booking, and invoice registered successfully!");
-        //    Console.WriteLine("\nPress any key to continue...");
-        //    Console.ReadKey(true);
-        //}
-
-
-
 
 
         private DateTime PromptForDate(string message)
@@ -421,7 +316,7 @@ namespace HotelBookingApp.Controllers
         public void ViewAllGuests()
         {
             Console.Clear();
-            Console.WriteLine("ALL GUEST");
+            Console.WriteLine("ALL GUESTS");
 
             var guests = _guestRepository.GetGuestsWithBookings();
 
@@ -437,11 +332,15 @@ namespace HotelBookingApp.Controllers
                 var guest = ((dynamic)entry).Guest;
                 var bookings = ((dynamic)entry).Bookings as IEnumerable<dynamic>;
 
-                var roomInfo = bookings.Any()
-                    ? string.Join(", ", bookings.Select(b => $"Room {b.RoomId}"))
-                    : "No bookings";
+                foreach (var booking in bookings)
+                {
+                    var invoice = booking.Invoice != null
+                        ? $"Amount: {booking.Invoice.TotalAmount:C}, Status: {(booking.Invoice.IsPaid ? "Paid" : "Not Paid")}"
+                        : "No Invoice"; 
 
-                Console.WriteLine($"ID: {guest.GuestId} | Name: {guest.FirstName} {guest.LastName} | Email: {guest.Email} | Phone: {guest.PhoneNumber} | Rooms: {roomInfo}");
+                    Console.WriteLine($"Guest: {guest.FirstName} {guest.LastName} | Room: {booking.RoomId} | " +
+                                      $"Check-In: {booking.CheckInDate:yyyy-MM-dd} | Check-Out: {booking.CheckOutDate:yyyy-MM-dd} | {invoice}");
+                }
             }
 
             Console.WriteLine("\nPress any key to return...");

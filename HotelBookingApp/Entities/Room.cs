@@ -13,7 +13,6 @@ namespace HotelBookingApp.Entities
     /// </summary>
     public class Room//table
     {
-        //backing field/properties//atributes
         [Key]
         public int RoomId { get; set; }
         [Required]
@@ -23,7 +22,6 @@ namespace HotelBookingApp.Entities
 
         public decimal TotalPeople { get; set; }
 
-        //--------
 
         public decimal ExtraBedPrice { get; set; }
 
@@ -33,7 +31,6 @@ namespace HotelBookingApp.Entities
         [Required]
         public int SizeInSquareMeters { get; set; }
 
-        //relation to booking
         public ICollection<Booking> Bookings { get; set; }
 
     }

@@ -120,56 +120,6 @@ namespace HotelBookingApp.Controllers
             Console.WriteLine("\nPress any key to return to the menu...");
             Console.ReadKey();
         }
-
-
-        //public void AddNewRoom()
-        //{
-        //    Console.Clear();
-        //    AnsiConsole.Markup("[bold yellow]=== REGISTER NEW ROOM ===[/]\n");
-
-        //    string roomType = null;
-        //    while (true)
-        //    {
-        //        Console.Write("Enter Room Type (Single/Double): ");
-        //        var input = Console.ReadLine()?.Trim().ToLower();
-
-        //        if (input == "single" || input == "double")
-        //        {
-        //            roomType = char.ToUpper(input[0]) + input.Substring(1);
-        //            break;
-        //        }
-
-        //        AnsiConsole.Markup("[red]Invalid Room Type. Please enter 'Single' or 'Double'.[/]\n");
-        //    }
-
-        //    decimal price = GetValidDecimal("Enter Price Per Night", "Invalid price. Please enter a positive number.");
-
-        //    int size = GetValidInt("Enter Size in Square Meters", "Invalid size. Please enter a positive integer.");
-
-        //    int extraBeds = 0;
-        //    int maxPeople = roomType == "Double" ? 2 : 1;
-
-        //    if (roomType == "Double")
-        //    {
-        //        extraBeds = GetValidInt("Enter Number of Extra Beds (0, 1, or 2)",
-        //            "Invalid number of extra beds. Double rooms can have 0, 1, or 2 extra beds.",
-        //            0, 2);
-        //        maxPeople += extraBeds;
-        //    }
-
-        //    var newRoom = new Room
-        //    {
-        //        Type = roomType,
-        //        PricePerNight = price,
-        //        SizeInSquareMeters = size,
-        //        ExtraBeds = extraBeds,
-        //        IsAvailable = true,
-        //        TotalPeople = maxPeople
-        //    };
-
-        //    _roomRepository.AddRoom(newRoom);
-        //}
-
         public void EditRoom()
         {
             Console.Clear();
@@ -210,23 +160,47 @@ namespace HotelBookingApp.Controllers
         public void ViewAllRooms()
         {
             Console.Clear();
-            AnsiConsole.Markup("[bold yellow]=== AKTIVA BOKNINGAR ===[/]\n");
+            AnsiConsole.Markup("[bold yellow]Rooms[/]\n");
 
-            // Hämta rum med endast aktiva bokningar
-            var rooms = _roomRepository.GetRoomsWithBookings()
-                .Where(r => r.Bookings.Any(b => b.BookingStatus == false)) // Endast aktiva bokningar
-                .ToList();
+            var rooms = _roomRepository.GetRoomsWithBookings();
 
             if (!rooms.Any())
             {
-                AnsiConsole.Markup("[red]Inga aktiva bokningar hittades.[/]\n");
+                AnsiConsole.Markup("[red]No rooms found.[/]\n");
                 return;
             }
 
-            // Visa rummen i tabellformat
-            _roomRepository.DisplayRoomsTable(rooms);
-        }
+            var table = new Table();
+            table.Border(TableBorder.Rounded);
+            table.AddColumn("[bold yellow]Room ID[/]");
+            table.AddColumn("[bold yellow]Type[/]");
+            table.AddColumn("[bold yellow]Size (sqm)[/]");
+            table.AddColumn("[bold yellow]Price Per Night[/]");
+            table.AddColumn("[bold yellow]Extra Beds[/]");
+            table.AddColumn("[bold yellow]Booking Status[/]");
 
+            foreach (var room in rooms)
+            {
+                var activeBooking = room.Bookings.FirstOrDefault(b => !b.IsCheckedOut);
+
+                string bookingStatus = activeBooking != null
+                    ? $"Booked by: {activeBooking.Guest.FirstName} {activeBooking.Guest.LastName}"
+                    : "Not booked by anyone, room is available";
+
+                table.AddRow(
+                    room.RoomId.ToString(),
+                    room.Type,
+                    $"{room.SizeInSquareMeters} sqm",
+                    $"{room.PricePerNight:C}",
+                    room.ExtraBeds.ToString(),
+                    bookingStatus
+                );
+            }
+
+            AnsiConsole.Write(table);
+            AnsiConsole.Markup("\n[bold yellow]Press any key to return...[/]");
+            Console.ReadKey();
+        }
 
         public void DeleteRoom() 
         {

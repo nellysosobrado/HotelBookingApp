@@ -1,6 +1,9 @@
-﻿using HotelBookingApp.Entities;
+﻿using Bogus;
+using HotelBookingApp.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace HotelBookingApp.Data
 {
@@ -16,122 +19,65 @@ namespace HotelBookingApp.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            var today = DateTime.Now.Date;
 
+            var guestFaker = new Faker<Guest>()
+                .RuleFor(g => g.GuestId, f => f.IndexFaker + 1)
+                .RuleFor(g => g.FirstName, f => f.Name.FirstName())
+                .RuleFor(g => g.LastName, f => f.Name.LastName())
+                .RuleFor(g => g.Email, (f, g) => $"{g.FirstName.ToLower()}.{g.LastName.ToLower()}{f.UniqueIndex}@example.com")
+                .RuleFor(g => g.PhoneNumber, f => f.Phone.PhoneNumber());
+            var guests = guestFaker.Generate(4); 
 
-            DateTime today = DateTime.Now.Date;
-            DateTime futureCheckInDate = today.AddDays(1);
-            DateTime futureCheckOutDate = futureCheckInDate.AddDays(3);
+            var roomFaker = new Faker<Room>()
+                .RuleFor(r => r.RoomId, f => f.IndexFaker + 1)
+                .RuleFor(r => r.Type, f => f.PickRandom(new[] { "Single", "Double" }))
+                .RuleFor(r => r.ExtraBeds, f => f.Random.Int(0, 2))
+                .RuleFor(r => r.IsAvailable, f => true) 
+                .RuleFor(r => r.PricePerNight, f => f.Random.Int(1000, 5000))
+                .RuleFor(r => r.SizeInSquareMeters, f => f.Random.Int(20, 100));
+            var rooms = roomFaker.Generate(4);
 
-            modelBuilder.Entity<Room>().HasData(
-                new Room { RoomId = 1, Type = "Single", ExtraBeds = 0, IsAvailable = false, PricePerNight = 1500, SizeInSquareMeters = 20 },
-                new Room { RoomId = 2, Type = "Double", ExtraBeds = 1, IsAvailable = false, PricePerNight = 3500, SizeInSquareMeters = 80 },
-                new Room { RoomId = 3, Type = "Single", ExtraBeds = 0, IsAvailable = true, PricePerNight = 2000, SizeInSquareMeters = 25 },
-                new Room { RoomId = 4, Type = "Double", ExtraBeds = 2, IsAvailable = true, PricePerNight = 4000, SizeInSquareMeters = 90 }
-            );
+            var bookingFaker = new Faker<Booking>()
+                .RuleFor(b => b.BookingId, f => f.IndexFaker + 1)
+                .RuleFor(b => b.GuestId, (f, b) => guests[b.BookingId - 1].GuestId)
+                .RuleFor(b => b.RoomId, (f, b) => rooms[b.BookingId - 1].RoomId)    
+                .RuleFor(b => b.CheckInDate, f => today.AddDays(f.Random.Int(1, 5)))
+                .RuleFor(b => b.CheckOutDate, (f, b) => b.CheckInDate.HasValue
+                    ? b.CheckInDate.Value.AddDays(f.Random.Int(1, 5))
+                    : today.AddDays(f.Random.Int(1, 5)))
+                .RuleFor(b => b.IsCheckedIn, f => false) 
+                .RuleFor(b => b.IsCheckedOut, f => false) 
+                .RuleFor(b => b.BookingStatus, f => false); 
+            var bookings = bookingFaker.Generate(4); 
 
-            modelBuilder.Entity<Guest>().HasData(
-                new Guest { GuestId = 1, FirstName = "p1", LastName = "l1", Email = "gmail.com1", PhoneNumber = "11111" },
-                new Guest { GuestId = 2, FirstName = "p2", LastName = "l2", Email = "gmail.com2", PhoneNumber = "22222" },
-                new Guest { GuestId = 3, FirstName = "p3", LastName = "l3", Email = "gmail.com3", PhoneNumber = "33333" },
-                new Guest { GuestId = 4, FirstName = "p4", LastName = "l4", Email = "gmail.com4", PhoneNumber = "44444" }
-            );
+            var invoices = bookings.Select((booking, index) => new Invoice
+            {
+                InvoiceId = index + 1,
+                BookingId = booking.BookingId,
+                TotalAmount = new Random().Next(5000, 20000),
+                IsPaid = false,
+                PaymentDeadline = booking.CheckOutDate.HasValue
+                    ? booking.CheckOutDate.Value.AddDays(7)
+                    : today.AddDays(7)
+            }).ToList();
 
-            modelBuilder.Entity<Booking>().HasData(
-                new Booking
-                {
-                    BookingId = 1,
-                    GuestId = 1,
-                    RoomId = 1,
-                    IsCheckedIn = false,
-                    IsCheckedOut = false,
-                    BookingStatus = false,
-                    CheckInDate = futureCheckInDate,
-                    CheckOutDate = futureCheckOutDate
-                },
-                new Booking
-                {
-                    BookingId = 2,
-                    GuestId = 2,
-                    RoomId = 2,
-                    IsCheckedIn = false,
-                    IsCheckedOut = false,
-                    BookingStatus = false,
-                    CheckInDate = futureCheckInDate,
-                    CheckOutDate = futureCheckOutDate
-                },
-                new Booking
-                {
-                    BookingId = 3,
-                    GuestId = 3,
-                    RoomId = 3,
-                    IsCheckedIn = true,
-                    IsCheckedOut = false,
-                    BookingStatus = false,
-                    CheckInDate = today.AddDays(-2),
-                    CheckOutDate = today.AddDays(1)
-                },
-                new Booking
-                {
-                    BookingId = 4,
-                    GuestId = 4,
-                    RoomId = 4,
-                    IsCheckedIn = false,
-                    IsCheckedOut = true,
-                    BookingStatus = true,
-                    CheckInDate = today.AddDays(-5),
-                    CheckOutDate = today.AddDays(-1)
-                }
-            );
+            var payments = invoices.Select((invoice, index) => new Payment
+            {
+                PaymentId = index + 1,
+                InvoiceId = invoice.InvoiceId,
+                PaymentDate = today.AddDays(-new Random().Next(1, 5)),
+                AmountPaid = invoice.TotalAmount / 2 
+            }).ToList();
 
-            modelBuilder.Entity<Invoice>().HasData(
-                new Invoice
-                {
-                    InvoiceId = 1,
-                    BookingId = 1,
-                    TotalAmount = 4500,
-                    IsPaid = false,
-                    PaymentDeadline = futureCheckOutDate.AddDays(7)
-                },
-                new Invoice
-                {
-                    InvoiceId = 2,
-                    BookingId = 2,
-                    TotalAmount = 7000,
-                    IsPaid = false,
-                    PaymentDeadline = futureCheckOutDate.AddDays(7)
-                },
-                new Invoice
-                {
-                    InvoiceId = 3,
-                    BookingId = 3,
-                    TotalAmount = 6000,
-                    IsPaid = false,
-                    PaymentDeadline = today.AddDays(7)
-                },
-                new Invoice
-                {
-                    InvoiceId = 4,
-                    BookingId = 4,
-                    TotalAmount = 8000,
-                    IsPaid = true,
-                    PaymentDeadline = today.AddDays(-2)
-                }
-            );
-
-            modelBuilder.Entity<Payment>().HasData(
-                new Payment
-                {
-                    PaymentId = 1,
-                    InvoiceId = 4,
-                    PaymentDate = today.AddDays(-2),
-                    AmountPaid = 8000
-                }
-            );
+            modelBuilder.Entity<Guest>().HasData(guests);
+            modelBuilder.Entity<Room>().HasData(rooms);
+            modelBuilder.Entity<Booking>().HasData(bookings);
+            modelBuilder.Entity<Invoice>().HasData(invoices);
+            modelBuilder.Entity<Payment>().HasData(payments);
 
             base.OnModelCreating(modelBuilder);
         }
-
-
 
 
     }

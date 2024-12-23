@@ -89,26 +89,23 @@ namespace HotelBookingApp.Repositories
                 .ToList();
         }
 
-        public void RegisterNewGuestWithBooking(Guest newGuest, Booking newBooking, Invoice newInvoice)
+        public void RegisterNewGuestWithBooking(Guest guest, Booking booking, Invoice invoice)
         {
-         
-            _appDbContext.Guests.Add(newGuest);
-            _appDbContext.SaveChanges(); 
-
-            if (newBooking != null)
+            _appDbContext.Guests.Add(guest);
+            if (booking != null)
             {
-                newBooking.GuestId = newGuest.GuestId; 
-                _appDbContext.Bookings.Add(newBooking);
-                _appDbContext.SaveChanges(); 
-
-                if (newInvoice != null)
+                booking.GuestId = guest.GuestId; 
+                _appDbContext.Bookings.Add(booking);
+                if (invoice != null)
                 {
-                    newInvoice.BookingId = newBooking.BookingId;
-                    _appDbContext.Invoices.Add(newInvoice);
-                    _appDbContext.SaveChanges();
+                    invoice.BookingId = booking.BookingId;
+                    _appDbContext.Invoices.Add(invoice);
                 }
             }
+
+            _appDbContext.SaveChanges();
         }
+
         public decimal CalculateTotalAmount(Booking booking)
         {
             var room = _appDbContext.Rooms.FirstOrDefault(r => r.RoomId == booking.RoomId);
