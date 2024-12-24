@@ -143,11 +143,25 @@ namespace HotelBookingApp.Repositories
                 .Include(b => b.Guest)
                 .ToList();
         }
-
-        public void DeleteBooking(Booking booking)
+        public bool CancelBookingById(int bookingId)
         {
-            _appDbContext.Bookings.Remove(booking);
-            SaveChanges();
+            var booking = GetBookingById(bookingId);
+
+            if (booking == null)
+            {
+                return false; 
+            }
+
+            booking.BookingStatus = false;
+
+            var room = _appDbContext.Rooms.FirstOrDefault(r => r.RoomId == booking.RoomId);
+            if (room != null)
+            {
+                room.IsAvailable = true;
+            }
+
+            _appDbContext.SaveChanges();
+            return true; 
         }
 
         private void SaveChanges()
@@ -225,6 +239,12 @@ namespace HotelBookingApp.Repositories
         {
             _appDbContext.Rooms.Update(room);
             _appDbContext.SaveChanges();
+        }
+        public IEnumerable<Booking> GetCanceledBookings()
+        {
+            return _appDbContext.Bookings
+                .Where(b => !b.BookingStatus) // Assuming BookingStatus = false means canceled
+                .ToList();
         }
 
     }

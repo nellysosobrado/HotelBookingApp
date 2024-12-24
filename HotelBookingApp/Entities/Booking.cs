@@ -21,6 +21,8 @@ namespace HotelBookingApp.Entities
 
         public bool BookingStatus { get; set; }
         public ICollection<Invoice> Invoices { get; set; }
+
+        
     }
 
 }

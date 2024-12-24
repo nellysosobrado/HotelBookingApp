@@ -20,7 +20,12 @@ namespace HotelBookingApp.Utilities
         {
             Console.WriteLine("Booking Menu");
             string[] options = { 
-            "Check in guest", "Check out guest","Search available rooms", "display all guest info", "edit booking", "Cancelbooking","Unpaid bookings that havent been paid after 10 days" ,"main menu"
+            "Register new booking",
+                "Display all bookings", 
+                "edit booking", 
+                "Unpaid bookings that havent been paid after 10 days",
+                "View canceled bookings history",
+                "main menu"
             };
 
             while (true)
@@ -31,25 +36,19 @@ namespace HotelBookingApp.Utilities
                 switch(selectedOption)
                 {
                     case 0:
-                        _bookingController.CheckIn();
+                        //Register new booking
                         break;
-                    case 1: 
-                        _bookingController.CheckOut();
-                        break;
-                    case 2:
-                        _bookingController.SearchAvailableRooms();
-                        break;
-                    case 3:
+                    case 1:
                         _bookingController.DisplayAllGuestInfo();
                         break;
-                    case 4:
+                    case 2:
                         _bookingController.EditBooking();
                         break;
-                    case 5:
-                        _bookingController.CancelBooking();
-                        break;
-                    case 6:
+                    case 3:
                         _bookingController.DisplayExpiredBookings();
+                        break;
+                    case 4:
+                        _bookingController.DisplayCanceledBookings();
                         break;
 
                     default:

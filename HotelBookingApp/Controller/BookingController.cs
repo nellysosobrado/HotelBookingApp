@@ -1,6 +1,8 @@
 ﻿using HotelBookingApp.Repositories;
 using System;
 using Spectre.Console;
+using HotelBookingApp.Entities;
+using HotelBookingApp.Data;
 
 namespace HotelBookingApp
 {
@@ -192,10 +194,8 @@ namespace HotelBookingApp
         }
         private void DisplayActiveBookings()
         {
-            //Console.Clear();
-
             var activeBookings = _bookingRepository.GetAllBookings()
-                .Where(b => !b.IsCheckedOut) 
+                .Where(b => b.BookingStatus != true) 
                 .ToList();
 
             if (!activeBookings.Any())
@@ -246,15 +246,7 @@ namespace HotelBookingApp
 
                 AnsiConsole.Write(table);
             }
-
-            //AnsiConsole.Markup("\n[bold yellow]Press any key to return...[/]");
-            //Console.ReadKey();
         }
-
-
-
-
-
 
 
         public void DisplayPaidBookings()
@@ -365,11 +357,11 @@ namespace HotelBookingApp
             Console.WriteLine("\nPress any key to return...");
             Console.ReadKey();
         }
-
         public void EditBooking()
         {
             Console.Clear();
             Console.WriteLine("EDIT BOOKING");
+            DisplayActiveBookings();
 
             Console.Write("Enter Booking ID to edit: ");
             if (!int.TryParse(Console.ReadLine(), out int bookingId))
@@ -388,24 +380,68 @@ namespace HotelBookingApp
                 return;
             }
 
-            Console.WriteLine("Enter new Room ID (leave blank to keep current):");
+            Console.WriteLine("\nWhat would you like to do?");
+            Console.WriteLine("1. Update Booking Information");
+            Console.WriteLine("2. Cancel Booking");
+
+            Console.Write("Enter your choice: ");
+            if (!int.TryParse(Console.ReadLine(), out int choice) || choice < 1 || choice > 3)
+            {
+                Console.WriteLine("Invalid choice. Press any key to return...");
+                Console.ReadKey();
+                return;
+            }
+
+            switch (choice)
+            {
+                case 1: 
+                    UpdateBooking(booking);
+                    break;
+
+                case 2: 
+                    CancelBooking();
+                    break;
+            }
+        }
+
+        private void UpdateBooking(Booking booking)
+        {
+            Console.WriteLine("\nUPDATE BOOKING");
+
+            Console.WriteLine($"Current Room ID: {booking.RoomId}");
+            Console.Write("Enter new Room ID (leave blank to keep current): ");
             var newRoomIdInput = Console.ReadLine();
             if (int.TryParse(newRoomIdInput, out int newRoomId))
             {
                 booking.RoomId = newRoomId;
             }
 
+            Console.WriteLine($"Current Check-In Date: {booking.CheckInDate:yyyy-MM-dd}");
+            Console.Write("Enter new Check-In Date (leave blank to keep current): ");
+            var newCheckInDateInput = Console.ReadLine();
+            if (DateTime.TryParse(newCheckInDateInput, out DateTime newCheckInDate))
+            {
+                booking.CheckInDate = newCheckInDate;
+            }
+
+            Console.WriteLine($"Current Check-Out Date: {booking.CheckOutDate:yyyy-MM-dd}");
+            Console.Write("Enter new Check-Out Date (leave blank to keep current): ");
+            var newCheckOutDateInput = Console.ReadLine();
+            if (DateTime.TryParse(newCheckOutDateInput, out DateTime newCheckOutDate))
+            {
+                booking.CheckOutDate = newCheckOutDate;
+            }
+
             _bookingRepository.UpdateBooking(booking);
 
-            Console.WriteLine($"Booking {bookingId} updated successfully. Press any key to return...");
+            Console.WriteLine($"Booking {booking.BookingId} updated successfully. Press any key to return...");
             Console.ReadKey();
         }
-
 
         public void CancelBooking()
         {
             Console.Clear();
-            Console.WriteLine("CANCEL BOOKING");
+            Console.WriteLine("\nCANCEL BOOKING");
 
             Console.Write("Enter Booking ID to cancel: ");
             if (!int.TryParse(Console.ReadLine(), out int bookingId))
@@ -423,12 +459,14 @@ namespace HotelBookingApp
                 Console.ReadKey();
                 return;
             }
+            booking.BookingStatus = true; 
+            _bookingRepository.UpdateBooking(booking);
 
-            _bookingRepository.DeleteBooking(booking);
+            Console.WriteLine($"Booking {booking.BookingId} has been canceled.\n");
 
-            Console.WriteLine($"Booking {bookingId} cancelled successfully. Press any key to return...");
-            Console.ReadKey();
+            DisplayCanceledBookings();
         }
+
         public void DisplayExpiredBookings()
         {
             Console.Clear();
@@ -545,6 +583,50 @@ namespace HotelBookingApp
             Console.WriteLine("Guest successfully checked out and payment processed.");
             Console.ReadKey();
         }
+        public void DisplayCanceledBookings()
+        {
+            Console.Clear();
+            Console.WriteLine("CANCELED BOOKINGS HISTORY");
+            Console.WriteLine(new string('-', 80));
+
+            var canceledBookings = _bookingRepository.GetAllBookings()
+                .Where(b => b.BookingStatus == true) // Endast avbrutna bokningar
+                .ToList();
+
+            if (!canceledBookings.Any())
+            {
+                Console.WriteLine("No canceled bookings found.");
+            }
+            else
+            {
+                var table = new Table();
+                table.Border(TableBorder.Rounded);
+
+                table.AddColumn("[bold yellow]Booking ID[/]");
+                table.AddColumn("[bold yellow]Guest ID[/]");
+                table.AddColumn("[bold yellow]Room ID[/]");
+                table.AddColumn("[bold yellow]Check-In Date[/]");
+                table.AddColumn("[bold yellow]Check-Out Date[/]");
+
+                foreach (var booking in canceledBookings)
+                {
+                    table.AddRow(
+                        booking.BookingId.ToString(),
+                        booking.GuestId.ToString(),
+                        booking.RoomId.ToString(),
+                        booking.CheckInDate.HasValue ? booking.CheckInDate.Value.ToString("yyyy-MM-dd") : "[grey]N/A[/]",
+                        booking.CheckOutDate.HasValue ? booking.CheckOutDate.Value.ToString("yyyy-MM-dd") : "[grey]N/A[/]"
+                    );
+                }
+
+                AnsiConsole.Write(table);
+            }
+
+            Console.WriteLine("Press any key to return...");
+            Console.ReadKey();
+        }
+
+
 
 
         public void PayInvoiceBeforeCheckout()

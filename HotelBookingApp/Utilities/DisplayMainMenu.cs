@@ -63,7 +63,6 @@ namespace HotelBookingApp.Utilities
                             "10. Exit"
                         ));
 
-                // Switch för menyval
                 switch (choice)
                 {
                     case "1. Register New Guest":

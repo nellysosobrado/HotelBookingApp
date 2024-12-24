@@ -15,6 +15,7 @@ namespace HotelBookingApp.Data
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<Payment> Payments { get; set; }
 
+
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -39,16 +40,17 @@ namespace HotelBookingApp.Data
             var rooms = roomFaker.Generate(4);
 
             var bookingFaker = new Faker<Booking>()
-                .RuleFor(b => b.BookingId, f => f.IndexFaker + 1)
-                .RuleFor(b => b.GuestId, (f, b) => guests[b.BookingId - 1].GuestId)
-                .RuleFor(b => b.RoomId, (f, b) => rooms[b.BookingId - 1].RoomId)    
-                .RuleFor(b => b.CheckInDate, f => today.AddDays(f.Random.Int(1, 5)))
-                .RuleFor(b => b.CheckOutDate, (f, b) => b.CheckInDate.HasValue
-                    ? b.CheckInDate.Value.AddDays(f.Random.Int(1, 5))
-                    : today.AddDays(f.Random.Int(1, 5)))
-                .RuleFor(b => b.IsCheckedIn, f => false) 
-                .RuleFor(b => b.IsCheckedOut, f => false) 
-                .RuleFor(b => b.BookingStatus, f => false); 
+    .RuleFor(b => b.BookingId, f => f.IndexFaker + 1)
+    .RuleFor(b => b.GuestId, (f, b) => guests[b.BookingId - 1].GuestId)
+    .RuleFor(b => b.RoomId, (f, b) => rooms[b.BookingId - 1].RoomId)
+    .RuleFor(b => b.CheckInDate, f => today.AddDays(f.Random.Int(1, 5)))
+    .RuleFor(b => b.CheckOutDate, (f, b) => b.CheckInDate.HasValue
+        ? b.CheckInDate.Value.AddDays(f.Random.Int(1, 5))
+        : today.AddDays(f.Random.Int(1, 5)))
+    .RuleFor(b => b.IsCheckedIn, f => false)
+    .RuleFor(b => b.IsCheckedOut, f => false)
+    .RuleFor(b => b.BookingStatus, f => false);
+
             var bookings = bookingFaker.Generate(4); 
 
             var invoices = bookings.Select((booking, index) => new Invoice
