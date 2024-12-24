@@ -35,7 +35,16 @@ namespace HotelBookingApp.Utilities
             {
                 Console.Clear();
 
-                AnsiConsole.Write(new Panel("[bold yellow]HOTEL BOOKING APP - MAIN MENU[/]").Expand());
+                AnsiConsole.Write(
+                    new FigletText("HOTEL BOOKING APP")
+                        .Centered()
+                        .Color(Color.Yellow));
+
+                AnsiConsole.Write(
+                    new Markup("[bold cyan]Welcome to the Hotel Booking App![/]")
+                        .Centered());
+
+                AnsiConsole.Write(new Rule("[bold yellow]MAIN MENU[/]").Centered());
 
                 var choice = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
@@ -54,6 +63,7 @@ namespace HotelBookingApp.Utilities
                             "10. Exit"
                         ));
 
+                // Switch för menyval
                 switch (choice)
                 {
                     case "1. Register New Guest":
@@ -100,9 +110,6 @@ namespace HotelBookingApp.Utilities
                         AnsiConsole.Markup("[bold red]Invalid choice. Please try again.[/]\n");
                         break;
                 }
-
-                //AnsiConsole.Markup("\n[bold yellow]Press any key to return to the main menu...[/]");
-                //Console.ReadKey();
             }
         }
     }
