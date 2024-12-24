@@ -632,6 +632,7 @@ namespace HotelBookingApp
         public void PayInvoiceBeforeCheckout()
         {
             Console.Clear();
+            DisplayActiveBookings();
             Console.Write("Enter Booking ID: ");
             if (!int.TryParse(Console.ReadLine(), out int bookingId))
             {
