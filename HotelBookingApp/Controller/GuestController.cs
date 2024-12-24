@@ -265,10 +265,6 @@ namespace HotelBookingApp.Controllers
             }
         }
 
-
-
-
-
         public void UpdateGuestInformation()
         {
             Console.Clear();
@@ -369,53 +365,6 @@ namespace HotelBookingApp.Controllers
                 Console.WriteLine("Invalid input. Please enter a valid number.");
             }
         }
-        public void RemoveGuest()
-        {
-            Console.Clear();
-            Console.WriteLine("REMOVE GUEST");
-
-            var guests = _guestRepository.GetAllGuests();
-
-            if (!guests.Any())
-            {
-                Console.WriteLine("No guests available to remove.");
-                Console.ReadKey(true);
-                return;
-            }
-
-            Console.WriteLine("\nSelect a guest to remove by ID:");
-            foreach (var guest in guests)
-            {
-                Console.WriteLine($"ID: {guest.GuestId} | Name: {guest.FirstName} {guest.LastName}");
-            }
-
-            var guestId = PromptForInt("Enter Guest ID to remove: ");
-            var selectedGuest = _guestRepository.GetGuestById(guestId);
-
-            if (selectedGuest == null)
-            {
-                Console.WriteLine("Guest not found. Returning to menu...");
-                Console.ReadKey(true);
-                return;
-            }
-
-            Console.WriteLine($"\nAre you sure you want to remove guest '{selectedGuest.FirstName} {selectedGuest.LastName}'? (Y/N)");
-            var confirmation = Console.ReadLine()?.Trim().ToUpper();
-
-            if (confirmation == "Y")
-            {
-                _guestRepository.RemoveGuest(guestId);
-                Console.WriteLine($"Guest '{selectedGuest.FirstName} {selectedGuest.LastName}' successfully removed.");
-            }
-            else
-            {
-                Console.WriteLine("Operation cancelled.");
-            }
-
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey(true);
-        }
-
 
     }
 }

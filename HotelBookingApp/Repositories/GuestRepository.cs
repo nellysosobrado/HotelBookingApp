@@ -58,15 +58,6 @@ namespace HotelBookingApp.Repositories
                 .Cast<object>() 
                 .ToList();
         }
-        public void RemoveGuest(int guestId)
-        {
-            var guest = _appDbContext.Guests.FirstOrDefault(g => g.GuestId == guestId);
-            if (guest != null)
-            {
-                _appDbContext.Guests.Remove(guest);
-                _appDbContext.SaveChanges();
-            }
-        }
         public void AddBooking(Booking booking)
         {
             _appDbContext.Bookings.Add(booking);

@@ -590,7 +590,7 @@ namespace HotelBookingApp
             Console.WriteLine(new string('-', 80));
 
             var canceledBookings = _bookingRepository.GetAllBookings()
-                .Where(b => b.BookingStatus == true) // Endast avbrutna bokningar
+                .Where(b => b.BookingStatus == true) 
                 .ToList();
 
             if (!canceledBookings.Any())
