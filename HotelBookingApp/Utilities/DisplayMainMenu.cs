@@ -101,8 +101,8 @@ namespace HotelBookingApp.Utilities
                         break;
                 }
 
-                AnsiConsole.Markup("\n[bold yellow]Press any key to return to the main menu...[/]");
-                Console.ReadKey();
+                //AnsiConsole.Markup("\n[bold yellow]Press any key to return to the main menu...[/]");
+                //Console.ReadKey();
             }
         }
     }

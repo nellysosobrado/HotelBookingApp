@@ -170,7 +170,10 @@ namespace HotelBookingApp
                 switch (choice)
                 {
                     case "1":
+                        Console.Clear();
                         DisplayActiveBookings();
+                        Console.WriteLine("Enter anywhere to go back");
+                        Console.ReadKey();
                         break;
                     case "2":
                         DisplayPreviousGuestHistory();
@@ -189,7 +192,7 @@ namespace HotelBookingApp
         }
         private void DisplayActiveBookings()
         {
-            Console.Clear();
+            //Console.Clear();
 
             var activeBookings = _bookingRepository.GetAllBookings()
                 .Where(b => !b.IsCheckedOut) 
@@ -244,8 +247,8 @@ namespace HotelBookingApp
                 AnsiConsole.Write(table);
             }
 
-            AnsiConsole.Markup("\n[bold yellow]Press any key to return...[/]");
-            Console.ReadKey();
+            //AnsiConsole.Markup("\n[bold yellow]Press any key to return...[/]");
+            //Console.ReadKey();
         }
 
 
@@ -316,7 +319,6 @@ namespace HotelBookingApp
                     );
                 }
 
-                // Visa tabellen
                 AnsiConsole.Write(table);
             }
 
@@ -337,17 +339,27 @@ namespace HotelBookingApp
 
             if (!guests.Any())
             {
-                Console.WriteLine("No registered guests found.");
+                AnsiConsole.MarkupLine("[red]No registered guests found.[/]");
             }
             else
             {
+                var table = new Table();
+
+                table.AddColumn("Guest ID");
+                table.AddColumn("Name");
+                table.AddColumn("Email");
+                table.AddColumn("Phone Number");
+
                 foreach (var guest in guests)
                 {
-                    Console.WriteLine($"Guest ID: {guest.GuestId}");
-                    Console.WriteLine($"Name: {guest.FirstName} {guest.LastName}");
-                    Console.WriteLine($"Email: {guest.Email}\tPhone: {guest.PhoneNumber}");
-                    Console.WriteLine(new string('-', 60));
+                    table.AddRow(
+                        guest.GuestId.ToString(),
+                        $"{guest.FirstName} {guest.LastName}",
+                        guest.Email,
+                        guest.PhoneNumber);
                 }
+
+                AnsiConsole.Write(table);
             }
 
             Console.WriteLine("\nPress any key to return...");
@@ -446,11 +458,14 @@ namespace HotelBookingApp
             while (true)
             {
                 Console.Clear();
+                
+                
                 Console.WriteLine("CHECK IN GUEST");
-
-                Console.Write("Enter Booking ID to check in (or 'Exit'): ");
+                DisplayActiveBookings();
+                Console.Write("Enter 'ESC' to go back " +
+                    "\nEnter guest 'booking ID' to check them in: ");
                 string input = Console.ReadLine()?.Trim();
-                if (input?.ToLower() == "exit") break;
+                if (input?.ToUpper() == "ESC") break;
 
                 if (!int.TryParse(input, out int checkInId))
                 {
