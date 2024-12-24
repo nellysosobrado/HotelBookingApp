@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace HotelBookingApp.Entities
 {
     public class Booking
     {
+        [Key]
         public int BookingId { get; set; }
+
         public int RoomId { get; set; }
 
         public Room Room { get; set; }
@@ -22,8 +22,5 @@ namespace HotelBookingApp.Entities
         public bool BookingStatus { get; set; }
         public bool IsCanceled { get; set; }
         public ICollection<Invoice> Invoices { get; set; }
-
-        
     }
-
 }
