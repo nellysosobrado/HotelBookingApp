@@ -20,7 +20,6 @@ namespace HotelBookingApp.Utilities
         {
             Console.WriteLine("Booking Menu");
             string[] options = { 
-            "Register new booking",
                 "Display all bookings", 
                 "edit booking", 
                 "Unpaid bookings that havent been paid after 10 days",
@@ -36,18 +35,15 @@ namespace HotelBookingApp.Utilities
                 switch(selectedOption)
                 {
                     case 0:
-                        //Register new booking
-                        break;
-                    case 1:
                         _bookingController.DisplayAllGuestInfo();
                         break;
-                    case 2:
+                    case 1:
                         _bookingController.EditBooking();
                         break;
-                    case 3:
+                    case 2:
                         _bookingController.DisplayExpiredBookings();
                         break;
-                    case 4:
+                    case 3:
                         _bookingController.DisplayCanceledBookings();
                         break;
 
