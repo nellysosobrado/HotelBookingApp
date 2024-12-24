@@ -21,7 +21,6 @@ namespace HotelBookingApp.Utilities
             string[] options = {
                 "Display guest information",
                 "Update Guest Information",
-                "Register New Guest",
                 "Main Menu"
             };
 
@@ -39,10 +38,8 @@ namespace HotelBookingApp.Utilities
                     case 1:
                         _guestController.UpdateGuestInformation();
                         break;
+
                     case 2:
-                        _guestController.RegisterNewGuest();
-                        break;
-                    case 3:
                         Console.WriteLine("Returning to Main Menu...");
                         return;
                     default:

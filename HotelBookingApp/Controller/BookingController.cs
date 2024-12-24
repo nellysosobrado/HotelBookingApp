@@ -118,7 +118,6 @@ namespace HotelBookingApp
                 calendarContent.Write("     ");
             }
 
-            // Skriv ut dagarna
             for (int day = 1; day <= daysInMonth; day++)
             {
                 if (day == selectedDate.Day)
@@ -198,8 +197,9 @@ namespace HotelBookingApp
         }
         private void DisplayActiveBookings()
         {
+            // Filtrera bort bokningar som är avbrutna (IsCanceled == true) eller som har blivit utcheckade och betalda (BookingStatus == true)
             var activeBookings = _bookingRepository.GetAllBookings()
-                .Where(b => b.BookingStatus != true) 
+                .Where(b => !b.IsCanceled && b.BookingStatus != true) // Filtrera bort avbrutna bokningar och bokningar som har checkats ut och betalats
                 .ToList();
 
             if (!activeBookings.Any())
@@ -251,6 +251,7 @@ namespace HotelBookingApp
                 AnsiConsole.Write(table);
             }
         }
+
 
 
         public void DisplayPaidBookings()
@@ -447,6 +448,7 @@ namespace HotelBookingApp
             Console.Clear();
             Console.WriteLine("\nCANCEL BOOKING");
 
+            // Begär inmatning av Booking ID från användaren
             Console.Write("Enter Booking ID to cancel: ");
             if (!int.TryParse(Console.ReadLine(), out int bookingId))
             {
@@ -463,13 +465,19 @@ namespace HotelBookingApp
                 Console.ReadKey();
                 return;
             }
-            booking.BookingStatus = true; 
+
+            // Markera bokningen som avbruten genom att sätta IsCanceled till true
+            booking.IsCanceled = true;
+
+            // Uppdatera bokningen i databasen
             _bookingRepository.UpdateBooking(booking);
 
             Console.WriteLine($"Booking {booking.BookingId} has been canceled.\n");
 
+            // Visa alla avbrutna bokningar
             DisplayCanceledBookings();
         }
+
 
         public void DisplayExpiredBookings()
         {
@@ -544,10 +552,14 @@ namespace HotelBookingApp
         public void CheckOut()
         {
             Console.Clear();
+            DisplayActiveBookings();  // Visa de aktiva bokningarna
+
             Console.Write("Enter Guest ID to check out: ");
             if (!int.TryParse(Console.ReadLine(), out int guestId))
             {
                 Console.WriteLine("Invalid Guest ID.");
+                Console.WriteLine("Press any key to return to the main menu...");
+                Console.ReadKey();  // Vänta på att användaren trycker en knapp
                 return;
             }
 
@@ -555,22 +567,27 @@ namespace HotelBookingApp
             if (booking == null)
             {
                 Console.WriteLine("No active booking found.");
+                Console.WriteLine("Press any key to return to the main menu...");
+                Console.ReadKey();  // Vänta på att användaren trycker en knapp
                 return;
             }
 
             var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId)
-                           ?? _bookingRepository.GenerateInvoiceForBooking(booking);
+                          ?? _bookingRepository.GenerateInvoiceForBooking(booking);
 
             Console.WriteLine($"Invoice Total: {invoice.TotalAmount:C}");
             Console.Write("Enter payment amount: ");
             if (!decimal.TryParse(Console.ReadLine(), out decimal paymentAmount) || paymentAmount < invoice.TotalAmount)
             {
                 Console.WriteLine("Invalid or insufficient amount.");
+                Console.WriteLine("Press any key to return to the main menu...");
+                Console.ReadKey();  // Vänta på att användaren trycker en knapp
                 return;
             }
 
             _bookingRepository.ProcessPayment(invoice, paymentAmount);
 
+            // Uppdatera bokningen och rummet
             booking.IsCheckedOut = true;
             booking.BookingStatus = true;
             booking.CheckOutDate = DateTime.Now;
@@ -580,26 +597,29 @@ namespace HotelBookingApp
             var room = _roomRepository.GetRoomById(booking.RoomId);
             if (room != null)
             {
-                room.IsAvailable = true; 
-                _roomRepository.UpdateRoom(room); 
+                room.IsAvailable = true;  // Gör rummet tillgängligt
+                _roomRepository.UpdateRoom(room);
             }
 
             Console.WriteLine("Guest successfully checked out and payment processed.");
-            Console.ReadKey();
+            Console.WriteLine("Press any key to return to the main menu...");
+            Console.ReadKey();  // Vänta på användaren att trycka en knapp innan man återgår
         }
+
         public void DisplayCanceledBookings()
         {
             Console.Clear();
-            Console.WriteLine("REMOVED BOOKINGS HISTORY");
+            Console.WriteLine("CANCELED BOOKINGS HISTORY");
             Console.WriteLine(new string('-', 80));
 
+            // Filtrera bokningar där IsCanceled är true
             var canceledBookings = _bookingRepository.GetAllBookings()
-                .Where(b => b.BookingStatus == true) 
+                .Where(b => b.IsCanceled)  // Endast bokningar som har blivit avbrutna
                 .ToList();
 
             if (!canceledBookings.Any())
             {
-                Console.WriteLine("No remmoved bookings found.");
+                Console.WriteLine("No canceled bookings found.");
             }
             else
             {
@@ -612,6 +632,7 @@ namespace HotelBookingApp
                 table.AddColumn("[bold yellow]Check-In Date[/]");
                 table.AddColumn("[bold yellow]Check-Out Date[/]");
 
+                // Lägg till rader för varje avbruten bokning
                 foreach (var booking in canceledBookings)
                 {
                     table.AddRow(
@@ -629,6 +650,7 @@ namespace HotelBookingApp
             Console.WriteLine("Press any key to return...");
             Console.ReadKey();
         }
+
 
 
 

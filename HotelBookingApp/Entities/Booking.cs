@@ -20,6 +20,7 @@ namespace HotelBookingApp.Entities
         public bool IsCheckedOut { get; set; }
 
         public bool BookingStatus { get; set; }
+        public bool IsCanceled { get; set; }
         public ICollection<Invoice> Invoices { get; set; }
 
         
