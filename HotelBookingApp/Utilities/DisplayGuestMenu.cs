@@ -7,20 +7,21 @@ namespace HotelBookingApp.Utilities
     public class DisplayGuestMenu
     {
         private readonly GuestController _guestController;
+        private readonly BookingController _bookingController;
 
-        public DisplayGuestMenu( GuestController guestController)
+        public DisplayGuestMenu( GuestController guestController, BookingController bookingController)
         {
             _guestController = guestController;
+            _bookingController = bookingController;
         }
 
         public void Menu()
         {
             Console.WriteLine("You are in DisplayGuestMenu.cs");
             string[] options = {
-                "View All Guests",
+                "Display guest information",
                 "Update Guest Information",
                 "Register New Guest",
-                "Remove guest",
                 "Main Menu"
             };
 
@@ -32,7 +33,8 @@ namespace HotelBookingApp.Utilities
                 switch (selectedOption)
                 {
                     case 0:
-                        _guestController.ViewAllGuests();
+                        _bookingController.DisplayAllGuestInfo();
+
                         break;
                     case 1:
                         _guestController.UpdateGuestInformation();
@@ -41,9 +43,6 @@ namespace HotelBookingApp.Utilities
                         _guestController.RegisterNewGuest();
                         break;
                     case 3:
-                        _guestController.RemoveGuest();
-                        break;
-                    case 4:
                         Console.WriteLine("Returning to Main Menu...");
                         return;
                     default:

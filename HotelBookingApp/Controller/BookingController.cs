@@ -163,7 +163,8 @@ namespace HotelBookingApp
                 Console.WriteLine("1. Active Bookings");
                 Console.WriteLine("2. History of Previous Guests");
                 Console.WriteLine("3. All Registered Guests");
-                Console.WriteLine("4. Return to Main Menu");
+                Console.WriteLine("4. History of removed bookings");
+                Console.WriteLine("5. Return to Main Menu");
                 Console.WriteLine(new string('-', 40));
 
                 Console.Write("Enter your choice (1-4): ");
@@ -184,6 +185,9 @@ namespace HotelBookingApp
                         DisplayAllRegisteredGuests();
                         break;
                     case "4":
+                        DisplayCanceledBookings();
+                        break;
+                    case "5":
                         return;
                     default:
                         Console.WriteLine("Invalid choice. Please try again.");
@@ -586,7 +590,7 @@ namespace HotelBookingApp
         public void DisplayCanceledBookings()
         {
             Console.Clear();
-            Console.WriteLine("CANCELED BOOKINGS HISTORY");
+            Console.WriteLine("REMOVED BOOKINGS HISTORY");
             Console.WriteLine(new string('-', 80));
 
             var canceledBookings = _bookingRepository.GetAllBookings()
@@ -595,7 +599,7 @@ namespace HotelBookingApp
 
             if (!canceledBookings.Any())
             {
-                Console.WriteLine("No canceled bookings found.");
+                Console.WriteLine("No remmoved bookings found.");
             }
             else
             {
