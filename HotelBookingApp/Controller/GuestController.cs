@@ -23,6 +23,7 @@ namespace HotelBookingApp.Controllers
             Console.Clear();
             AnsiConsole.MarkupLine("[bold green]Register new guest[/]\n");
 
+            // Samla in grundläggande information om gästen
             string firstName = AnsiConsole.Prompt(
                 new TextPrompt<string>("[yellow]Enter firstname[/]")
                     .ValidationErrorMessage("[red]Firstname cannot be empty[/]")
@@ -72,9 +73,7 @@ namespace HotelBookingApp.Controllers
                 PhoneNumber = phone
             };
 
-            bool createBooking = AnsiConsole.Confirm("Would you want to create aw booking ?");
-            Booking newBooking = null;
-            Invoice newInvoice = null;
+            bool createBooking = AnsiConsole.Confirm("Would you want to create a booking?");
 
             if (createBooking)
             {
@@ -83,8 +82,14 @@ namespace HotelBookingApp.Controllers
                         .ValidationErrorMessage("[red]Total guest must be a number![/]")
                         .Validate(input => input > 0));
 
-                DateTime startDate = SelectDate("[yellow]Enter start date:[/]");
-                DateTime endDate = SelectDate("[yellow]Entere a end date:[/]");
+                // Välj rumstyp (Single eller Double)
+                string roomType = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("[yellow]Select room type:[/]")
+                        .AddChoices("Single", "Double"));
+
+                DateTime startDate = SelectDate("[yellow]Enter start date:[/]", roomType); // Pass roomType here
+                DateTime endDate = SelectDate("[yellow]Enter end date:[/]", roomType); // Pass roomType here
 
                 if (endDate <= startDate)
                 {
@@ -93,11 +98,14 @@ namespace HotelBookingApp.Controllers
                     return;
                 }
 
-                var availableRooms = _guestRepository.GetAvailableRooms(startDate, endDate, guestCount);
+                // Filtrera rum baserat på rumstyp
+                var availableRooms = _guestRepository.GetAvailableRooms(startDate, endDate, guestCount)
+                                                     .Where(r => r.Type == roomType)
+                                                     .ToList();
 
                 if (!availableRooms.Any())
                 {
-                    AnsiConsole.MarkupLine("[red] No avaiable rooms found [/]");
+                    AnsiConsole.MarkupLine("[red] No available rooms found for the selected room type[/]");
                     Console.ReadKey();
                     return;
                 }
@@ -117,9 +125,10 @@ namespace HotelBookingApp.Controllers
                 AnsiConsole.Write(roomTable);
 
                 int roomId = AnsiConsole.Prompt(
-    new TextPrompt<int>("[yellow]Enter room ID to book:[/]")
-        .ValidationErrorMessage("[red]Invalid room Id![/]")
-        .Validate(input => availableRooms.Any(r => r.RoomId == input)));
+                    new TextPrompt<int>("[yellow]Enter room ID to book:[/]")
+                        .ValidationErrorMessage("[red]Invalid room Id![/]")
+                        .Validate(input => availableRooms.Any(r => r.RoomId == input)));
+
                 var selectedRoom = availableRooms.First(r => r.RoomId == roomId);
 
                 int extraBeds = 0;
@@ -144,18 +153,17 @@ namespace HotelBookingApp.Controllers
                 };
 
                 decimal totalAmount = _guestRepository.CalculateTotalAmount(booking);
-                totalAmount += extraBeds * selectedRoom.ExtraBedPrice; 
+                totalAmount += extraBeds * selectedRoom.ExtraBedPrice;
 
                 var invoice = new Invoice
                 {
                     BookingId = booking.BookingId,
                     TotalAmount = totalAmount,
                     IsPaid = false,
-                    PaymentDeadline = endDate.AddDays(7) 
+                    PaymentDeadline = endDate.AddDays(7)
                 };
 
                 _guestRepository.RegisterNewGuestWithBooking(newGuest, booking, invoice);
-
 
                 AnsiConsole.MarkupLine("[bold green]\nGuest has been registered![/]");
                 Console.ReadKey();
@@ -163,7 +171,8 @@ namespace HotelBookingApp.Controllers
         }
 
 
-        private DateTime SelectDate(string prompt)
+
+        private DateTime SelectDate(string prompt, string selectedRoomType)
         {
             DateTime currentDate = DateTime.Now.Date;
             DateTime selectedDate = currentDate;  // Starta med dagens datum
@@ -172,7 +181,7 @@ namespace HotelBookingApp.Controllers
             {
                 Console.Clear();
                 Console.WriteLine(prompt);
-                RenderCalendar(selectedDate);  // Visa kalendern
+                RenderCalendar(selectedDate, selectedRoomType);  // Visa kalendern baserat på rumstypen
 
                 var key = Console.ReadKey(true).Key;
                 switch (key)
@@ -190,17 +199,18 @@ namespace HotelBookingApp.Controllers
                         selectedDate = selectedDate.AddDays(7);  // Navigera en vecka framåt
                         break;
                     case ConsoleKey.Enter:
-                        // Kontrollera om det valda datumet är bokat
+                        // Kontrollera om det valda datumet är bokat för det valda rummet
                         var bookings = _bookingRepository.GetAllBookings()
                             .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue)
                             .Where(b => b.CheckInDate.Value.Date <= selectedDate.Date && b.CheckOutDate.Value.Date >= selectedDate.Date)
+                            .Where(b => b.Room.Type == selectedRoomType)  // Filtrera på rumstyp
                             .ToList();
 
                         if (bookings.Any())
                         {
-                            AnsiConsole.MarkupLine("[red]The selected date is already booked.[/]");  // Felmeddelande
+                            AnsiConsole.MarkupLine("[red]The selected date is already booked for this room type.[/]");  // Felmeddelande
                             Console.ReadKey(true);
-                            continue;  // Tillåt inte att välja ett bokat datum
+                            continue;  // Tillåt inte att välja ett bokat datum för detta rum
                         }
 
                         if (selectedDate >= currentDate)
@@ -216,9 +226,7 @@ namespace HotelBookingApp.Controllers
         }
 
 
-
-
-        private void RenderCalendar(DateTime selectedDate)
+        private void RenderCalendar(DateTime selectedDate, string selectedRoomType)
         {
             var calendarContent = new StringWriter();
             calendarContent.WriteLine($"[bold yellow]{selectedDate:MMMM yyyy}[/]".ToUpper());
@@ -230,13 +238,13 @@ namespace HotelBookingApp.Controllers
             int startDay = (int)firstDayOfMonth.DayOfWeek;
             startDay = (startDay == 0) ? 6 : startDay - 1; // Justera för att börja från måndag
 
-            // Hämta alla bokningar för den valda månaden
+            // Hämta bokningar för det valda rummet
             var bookings = _bookingRepository.GetAllBookings()
                 .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue)
                 .Where(b => b.CheckInDate.Value.Month == selectedDate.Month && b.CheckInDate.Value.Year == selectedDate.Year)
+                .Where(b => b.Room.Type == selectedRoomType)  // Filtrera på rumstyp
                 .ToList();
 
-            // Håll koll på alla bokade datum och tillgängliga datum efter utcheckning
             HashSet<DateTime> bookedDates = new HashSet<DateTime>();
             HashSet<DateTime> availableDatesAfterCheckout = new HashSet<DateTime>();
 
@@ -307,6 +315,8 @@ namespace HotelBookingApp.Controllers
             Console.WriteLine();
             AnsiConsole.MarkupLine("\nUse arrow keys [blue]\u25C4 \u25B2 \u25BA \u25BC[/] to navigate and [green]Enter[/] to select.");
         }
+
+
 
 
 
