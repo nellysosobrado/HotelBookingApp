@@ -21,46 +21,45 @@ namespace HotelBookingApp.Controllers
         public void RegisterNewGuest()
         {
             Console.Clear();
-            AnsiConsole.MarkupLine("[bold green]Register new guest[/]\n");
+            AnsiConsole.MarkupLine("[bold green]Register New Guest[/]\n");
 
-            // Samla in grundläggande information om gästen
+            // Samla in grundläggande information om gästen med tydliga meddelanden
             string firstName = AnsiConsole.Prompt(
-                new TextPrompt<string>("[yellow]Enter firstname[/]")
-                    .ValidationErrorMessage("[red]Firstname cannot be empty[/]")
+                new TextPrompt<string>("[yellow]Please enter your first name:[/]")
+                    .ValidationErrorMessage("[red]First name cannot be empty[/]")
                     .Validate(input => !string.IsNullOrWhiteSpace(input)));
 
             string lastName = AnsiConsole.Prompt(
-                new TextPrompt<string>("[yellow]Enter lastname[/]")
+                new TextPrompt<string>("[yellow]Please enter your last name:[/]")
                     .ValidationErrorMessage("[red]Last name cannot be empty[/]")
                     .Validate(input => !string.IsNullOrWhiteSpace(input)));
 
             string email = AnsiConsole.Prompt(
-                new TextPrompt<string>("[yellow]Enter gmail[/]")
-                    .ValidationErrorMessage("[red]Invalid gmail [/]")
+                new TextPrompt<string>("[yellow]Please enter your email address (must include @):[/]")
+                    .ValidationErrorMessage("[red]Invalid email[/]")
                     .Validate(input => input.Contains("@")));
 
             string phone = AnsiConsole.Prompt(
-                new TextPrompt<string>("[yellow]Enter phone number[/]")
+                new TextPrompt<string>("[yellow]Please enter your phone number:[/]")
                     .ValidationErrorMessage("[red]Invalid phone number![/]")
                     .Validate(input => long.TryParse(input, out _)));
 
-            AnsiConsole.MarkupLine("\n[bold green]Summary[/]");
+            AnsiConsole.MarkupLine("\n[bold green]Summary of your information:[/]");
             var table = new Table()
                 .Border(TableBorder.Rounded)
-                .AddColumn("[blue]Fält[/]")
-                .AddColumn("[blue]Värde[/]")
-                .AddRow("Firstname", firstName)
-                .AddRow("Lastname", lastName)
-                .AddRow("Gmail", email)
-                .AddRow("Phone number", phone);
+                .AddColumn("[blue]Field[/]")
+                .AddColumn("[blue]Value[/]")
+                .AddRow("First Name", firstName)
+                .AddRow("Last Name", lastName)
+                .AddRow("Email", email)
+                .AddRow("Phone Number", phone);
 
             AnsiConsole.Write(table);
 
-            bool confirm = AnsiConsole.Confirm("[bold]Would you want to continue?[/]");
-
+            bool confirm = AnsiConsole.Confirm("[bold]Do you want to continue?[/]");
             if (!confirm)
             {
-                AnsiConsole.MarkupLine("[red]Register has been cancelled.[/]");
+                AnsiConsole.MarkupLine("[red]Registration has been canceled.[/]");
                 Console.ReadKey();
                 return;
             }
@@ -73,49 +72,59 @@ namespace HotelBookingApp.Controllers
                 PhoneNumber = phone
             };
 
-            bool createBooking = AnsiConsole.Confirm("Would you want to create a booking?");
-
+            bool createBooking = AnsiConsole.Confirm("Would you like to create a booking for this guest?");
             if (createBooking)
             {
                 int guestCount = AnsiConsole.Prompt(
-                    new TextPrompt<int>("[yellow]Enter total guests:[/]")
-                        .ValidationErrorMessage("[red]Total guest must be a number![/]")
+                    new TextPrompt<int>("[yellow]Enter total number of guests:[/]")
+                        .ValidationErrorMessage("[red]Total guests must be a number![/]")
                         .Validate(input => input > 0));
 
                 // Välj rumstyp (Single eller Double)
                 string roomType = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
-                        .Title("[yellow]Select room type:[/]")
+                        .Title("[yellow]Please select room type:[/]")
                         .AddChoices("Single", "Double"));
 
-                DateTime startDate = SelectDate("[yellow]Enter start date:[/]", roomType); // Pass roomType here
-                DateTime endDate = SelectDate("[yellow]Enter end date:[/]", roomType); // Pass roomType here
+                DateTime startDate = DateTime.MinValue, endDate = DateTime.MinValue;
+                List<Room> availableRooms = null;
 
-                if (endDate <= startDate)
+                // Håll användaren kvar tills ett giltigt datum har valts
+                bool validDates = false;
+                while (!validDates)
                 {
-                    AnsiConsole.MarkupLine("[red]End date must be a valid date, and not in the past![/]");
-                    Console.ReadKey();
-                    return;
+                    startDate = SelectDate("[yellow]Select check-in date:[/]", roomType);
+                    endDate = SelectDate("[yellow]Select check-out date:[/]", roomType);
+
+                    if (endDate <= startDate)
+                    {
+                        AnsiConsole.MarkupLine("[red]Check-out date must be after the check-in date![/]");
+                        Console.ReadKey();
+                        continue; // Låt användaren välja på nytt
+                    }
+
+                    // Filtrera rum baserat på rumstyp och datum
+                    availableRooms = _guestRepository.GetAvailableRooms(startDate, endDate, guestCount)
+                        .Where(r => r.Type == roomType)
+                        .ToList();
+
+                    if (!availableRooms.Any())
+                    {
+                        AnsiConsole.MarkupLine("[red]No available rooms found for the selected room type. Please try again.[/]");
+                        Console.ReadKey();
+                        continue; // Låt användaren försöka igen
+                    }
+
+                    validDates = true; // Om vi når hit, så är datumet och rummet giltiga
                 }
 
-                // Filtrera rum baserat på rumstyp
-                var availableRooms = _guestRepository.GetAvailableRooms(startDate, endDate, guestCount)
-                                                     .Where(r => r.Type == roomType)
-                                                     .ToList();
-
-                if (!availableRooms.Any())
-                {
-                    AnsiConsole.MarkupLine("[red] No available rooms found for the selected room type[/]");
-                    Console.ReadKey();
-                    return;
-                }
-
-                AnsiConsole.MarkupLine("\n[bold green]Available rooms:[/]");
+                // Visa tillgängliga rum
+                AnsiConsole.MarkupLine("\n[bold green]Available Rooms:[/]");
                 var roomTable = new Table()
                     .Border(TableBorder.Rounded)
                     .AddColumn("[blue]Room ID[/]")
                     .AddColumn("[blue]Room Type[/]")
-                    .AddColumn("[blue]Price/night[/]");
+                    .AddColumn("[blue]Price per Night[/]");
 
                 foreach (var room in availableRooms)
                 {
@@ -125,8 +134,8 @@ namespace HotelBookingApp.Controllers
                 AnsiConsole.Write(roomTable);
 
                 int roomId = AnsiConsole.Prompt(
-                    new TextPrompt<int>("[yellow]Enter room ID to book:[/]")
-                        .ValidationErrorMessage("[red]Invalid room Id![/]")
+                    new TextPrompt<int>("[yellow]Enter Room ID to book:[/]")
+                        .ValidationErrorMessage("[red]Invalid Room ID![/]")
                         .Validate(input => availableRooms.Any(r => r.RoomId == input)));
 
                 var selectedRoom = availableRooms.First(r => r.RoomId == roomId);
@@ -136,7 +145,7 @@ namespace HotelBookingApp.Controllers
                 {
                     extraBeds = AnsiConsole.Prompt(
                         new TextPrompt<int>("[yellow]How many extra beds would you like? (0-2):[/]")
-                            .ValidationErrorMessage("[red]Invalid input! Enter a number between 0 and 2.[/]")
+                            .ValidationErrorMessage("[red]Enter a number between 0 and 2.[/]")
                             .Validate(input => input >= 0 && input <= 2));
 
                     selectedRoom.TotalPeople += extraBeds;
@@ -165,10 +174,12 @@ namespace HotelBookingApp.Controllers
 
                 _guestRepository.RegisterNewGuestWithBooking(newGuest, booking, invoice);
 
-                AnsiConsole.MarkupLine("[bold green]\nGuest has been registered![/]");
+                AnsiConsole.MarkupLine("[bold green]\nGuest has been successfully registered and booked![/]");
                 Console.ReadKey();
             }
         }
+
+
 
 
 
@@ -199,7 +210,7 @@ namespace HotelBookingApp.Controllers
                         selectedDate = selectedDate.AddDays(7);  // Navigera en vecka framåt
                         break;
                     case ConsoleKey.Enter:
-                        // Kontrollera om det valda datumet är bokat för det valda rummet
+                        // Kontrollera om det valda datumet är bokat för det valda rummet och rätt rumstyp
                         var bookings = _bookingRepository.GetAllBookings()
                             .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue)
                             .Where(b => b.CheckInDate.Value.Date <= selectedDate.Date && b.CheckOutDate.Value.Date >= selectedDate.Date)
@@ -226,6 +237,7 @@ namespace HotelBookingApp.Controllers
         }
 
 
+
         private void RenderCalendar(DateTime selectedDate, string selectedRoomType)
         {
             var calendarContent = new StringWriter();
@@ -238,7 +250,7 @@ namespace HotelBookingApp.Controllers
             int startDay = (int)firstDayOfMonth.DayOfWeek;
             startDay = (startDay == 0) ? 6 : startDay - 1; // Justera för att börja från måndag
 
-            // Hämta bokningar för det valda rummet
+            // Hämta bokningar för det valda rummet och datumet
             var bookings = _bookingRepository.GetAllBookings()
                 .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue)
                 .Where(b => b.CheckInDate.Value.Month == selectedDate.Month && b.CheckInDate.Value.Year == selectedDate.Year)
@@ -248,12 +260,12 @@ namespace HotelBookingApp.Controllers
             HashSet<DateTime> bookedDates = new HashSet<DateTime>();
             HashSet<DateTime> availableDatesAfterCheckout = new HashSet<DateTime>();
 
-            // Lägg till bokade datum
+            // Lägg till alla datum mellan check-in och check-out som bokade
             foreach (var booking in bookings)
             {
                 for (DateTime date = booking.CheckInDate.Value; date <= booking.CheckOutDate.Value; date = date.AddDays(1))
                 {
-                    bookedDates.Add(date);
+                    bookedDates.Add(date);  // Lägg till alla dagar för bokningen
                 }
                 // Lägg till datum efter utcheckning som tillgängliga
                 availableDatesAfterCheckout.Add(booking.CheckOutDate.Value.AddDays(1));
@@ -276,16 +288,16 @@ namespace HotelBookingApp.Controllers
                 {
                     calendarContent.Write($"[blue]{dateDisplay}[/]   ");  // Markera valda datumet med blått
                 }
-                // Om datumet är bokat, markera det som rött
-                else if (bookedDates.Contains(currentDateToDisplay))
-                {
-                    calendarContent.Write($"[red]{dateDisplay}[/]   ");
-                }
-                // Om datumet är tillgängligt efter utcheckning, markera det som grönt
-                else if (availableDatesAfterCheckout.Contains(currentDateToDisplay))
-                {
-                    calendarContent.Write($"[green]{dateDisplay}[/]   ");
-                }
+                //// Om datumet är bokat, markera det som rött
+                //else if (bookedDates.Contains(currentDateToDisplay))
+                //{
+                //    calendarContent.Write($"[red]{dateDisplay}[/]   ");
+                //}
+                //// Om datumet är tillgängligt efter utcheckning, markera det som grönt
+                //else if (availableDatesAfterCheckout.Contains(currentDateToDisplay))
+                //{
+                //    calendarContent.Write($"[green]{dateDisplay}[/]   ");
+                //}
                 // Om datumet är förflutet, markera det som överstruket i grått
                 else if (currentDateToDisplay < DateTime.Now.Date)
                 {
@@ -315,6 +327,9 @@ namespace HotelBookingApp.Controllers
             Console.WriteLine();
             AnsiConsole.MarkupLine("\nUse arrow keys [blue]\u25C4 \u25B2 \u25BA \u25BC[/] to navigate and [green]Enter[/] to select.");
         }
+
+
+
 
 
 

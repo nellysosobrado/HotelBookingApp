@@ -169,6 +169,7 @@ namespace HotelBookingApp.Controllers
             Console.Clear();
             AnsiConsole.Markup("[bold yellow]Rooms[/]\n");
 
+            // Hämta alla rum med deras bokningar
             var rooms = _roomRepository.GetRoomsWithBookings();
 
             if (!rooms.Any())
@@ -177,37 +178,68 @@ namespace HotelBookingApp.Controllers
                 return;
             }
 
-            var table = new Table();
-            table.Border(TableBorder.Rounded);
-            table.AddColumn("[bold yellow]Room ID[/]");
-            table.AddColumn("[bold yellow]Type[/]");
-            table.AddColumn("[bold yellow]Size (sqm)[/]");
-            table.AddColumn("[bold yellow]Price Per Night[/]");
-            table.AddColumn("[bold yellow]Extra Beds[/]");
-            table.AddColumn("[bold yellow]Booking Status[/]");
+            // Gruppera rum baserat på rumstyp
+            var groupedRooms = rooms.GroupBy(r => r.Type).ToList();
 
-            foreach (var room in rooms)
+            foreach (var roomGroup in groupedRooms)
             {
-                var activeBooking = room.Bookings.FirstOrDefault(b => !b.IsCheckedOut);
+                AnsiConsole.MarkupLine($"\n[bold green]Room Type: {roomGroup.Key}[/]");
 
-                string bookingStatus = activeBooking != null
-                    ? $"Booked by: {activeBooking.Guest.FirstName} {activeBooking.Guest.LastName}"
-                    : "Not booked by anyone, room is available";
+                var table = new Table();
+                table.Border(TableBorder.Rounded);
+                table.AddColumn("[bold yellow]Room ID[/]");
+                table.AddColumn("[bold yellow]Size (sqm)[/]");
+                table.AddColumn("[bold yellow]Price Per Night[/]");
+                table.AddColumn("[bold yellow]Booking Status[/]");
+                table.AddColumn("[bold yellow]Start Date[/]");
+                table.AddColumn("[bold yellow]End Date[/]");
 
-                table.AddRow(
-                    room.RoomId.ToString(),
-                    room.Type,
-                    $"{room.SizeInSquareMeters} sqm",
-                    $"{room.PricePerNight:C}",
-                    room.ExtraBeds.ToString(),
-                    bookingStatus
-                );
+                foreach (var room in roomGroup)
+                {
+                    // Hämta bokningar för detta rum
+                    var activeBookings = room.Bookings.Where(b => !b.IsCheckedOut).ToList();
+
+                    if (activeBookings.Any())
+                    {
+                        foreach (var booking in activeBookings)
+                        {
+                            string bookingStatus = booking.IsCheckedIn ? "[green]Checked In[/]" : "[blue]Not Checked In[/]";
+                            string guestName = $"{booking.Guest.FirstName} {booking.Guest.LastName}";
+                            string startDate = booking.CheckInDate.HasValue ? booking.CheckInDate.Value.ToString("yyyy-MM-dd") : "[grey]Not Set[/]";
+                            string endDate = booking.CheckOutDate.HasValue ? booking.CheckOutDate.Value.ToString("yyyy-MM-dd") : "[grey]Not Set[/]";
+
+                            table.AddRow(
+                                room.RoomId.ToString(),
+                                $"{room.SizeInSquareMeters} sqm",
+                                $"{room.PricePerNight:C}",
+                                bookingStatus,
+                                startDate,
+                                endDate
+                            );
+                        }
+                    }
+                    else
+                    {
+                        // Om inget är bokat, visa som ledigt
+                        table.AddRow(
+                            room.RoomId.ToString(),
+                            $"{room.SizeInSquareMeters} sqm",
+                            $"{room.PricePerNight:C}",
+                            "[green]Available[/]",
+                            "[grey]N/A[/]",
+                            "[grey]N/A[/]"
+                        );
+                    }
+                }
+
+                AnsiConsole.Write(table);
             }
 
-            AnsiConsole.Write(table);
             AnsiConsole.Markup("\n[bold yellow]Press any key to return...[/]");
             Console.ReadKey();
         }
+
+
 
         public void DeleteRoom() 
         {

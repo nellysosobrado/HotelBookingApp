@@ -26,8 +26,13 @@ namespace HotelBookingApp
                     continue;
                 }
 
-                // Hämta ett ledigt rum
-                var availableRoom = context.Rooms.FirstOrDefault(r => r.IsAvailable);
+                // Hämta ett ledigt rum baserat på att det inte är bokat under den föreslagna perioden
+                var availableRoom = context.Rooms
+                    .FirstOrDefault(r => r.IsAvailable && !context.Bookings
+                        .Any(b => b.RoomId == r.RoomId &&
+                                  b.CheckInDate < DateTime.Now.AddDays(3) &&  // Exempel på check-in period för den nya gästen
+                                  b.CheckOutDate > DateTime.Now)); // Kontrollera om rummet är upptaget under de nya datumen
+
                 if (availableRoom == null)
                 {
                     Console.WriteLine($"No available rooms for guest {guest.FirstName} {guest.LastName}.");
@@ -39,10 +44,11 @@ namespace HotelBookingApp
                 {
                     GuestId = guest.GuestId,
                     RoomId = availableRoom.RoomId,
-                    CheckInDate = DateTime.Now.AddDays(-1),
-                    CheckOutDate = DateTime.Now.AddDays(3),
-                    IsCheckedIn = true,
-                    IsCheckedOut = false
+                    CheckInDate = DateTime.Now.AddDays(1), // Gäller från en dag framåt
+                    CheckOutDate = DateTime.Now.AddDays(4), // Gäller i tre dagar framåt
+                    IsCheckedIn = false,
+                    IsCheckedOut = false,
+                    BookingStatus = false
                 };
 
                 // Uppdatera rummets status till upptaget

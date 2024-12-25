@@ -197,9 +197,9 @@ namespace HotelBookingApp
         }
         private void DisplayActiveBookings()
         {
-            // Filtrera bort bokningar som är avbrutna (IsCanceled == true) eller som har blivit utcheckade och betalda (BookingStatus == true)
+           
             var activeBookings = _bookingRepository.GetAllBookings()
-                .Where(b => !b.IsCanceled && b.BookingStatus != true) // Filtrera bort avbrutna bokningar och bokningar som har checkats ut och betalats
+                .Where(b => !b.IsCanceled && b.BookingStatus != true) 
                 .ToList();
 
             if (!activeBookings.Any())
@@ -212,6 +212,7 @@ namespace HotelBookingApp
                 table.Border(TableBorder.Rounded);
 
                 table.AddColumn("[bold yellow]Guest[/]");
+                table.AddColumn("[bold yellow]Guest ID[/]"); 
                 table.AddColumn("[bold yellow]Booking ID[/]");
                 table.AddColumn("[bold yellow]Room[/]");
                 table.AddColumn("[bold yellow]Status[/]");
@@ -238,6 +239,7 @@ namespace HotelBookingApp
 
                     table.AddRow(
                         $"{booking.Guest.FirstName} {booking.Guest.LastName}",
+                        booking.Guest.GuestId.ToString(), // Display Guest ID here
                         booking.BookingId.ToString(),
                         booking.RoomId.ToString(),
                         status,
