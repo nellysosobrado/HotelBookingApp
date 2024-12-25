@@ -52,15 +52,14 @@ namespace HotelBookingApp.Utilities
                         .PageSize(10)
                         .AddChoices(
                             "1. Register New Guest",
-                            "2. Check In Guest",
-                            "3. Check Out Guest",
-                            "4. Pay Invoice Before Checkout",
-                            "5. Display Guests",
-                            "6. Display Rooms",
-                            "7. Modify Rooms",
-                            "8. Modify Bookings",
-                            "9. Modify Guest",
-                            "10. Exit"
+                            "2. Check in/Check out guest",
+                            "3. Pay Invoice Before Checkout",
+                            "4. Display Guests",
+                            "5. Display Rooms",
+                            "6. Modify Rooms",
+                            "7. Modify Bookings",
+                            "8. Modify Guest",
+                            "9. Exit"
                         ));
 
                 switch (choice)
@@ -69,38 +68,33 @@ namespace HotelBookingApp.Utilities
                         _guestController.RegisterNewGuest();
                         break;
 
-                    case "2. Check In Guest":
-                        _bookingController.CheckIn();
+                    case "2. Check in/Check out guest":
+                        _bookingController.CheckInOrCheckOut();
                         break;
-
-                    case "3. Check Out Guest":
-                        _bookingController.CheckOut();
-                        break;
-
-                    case "4. Pay Invoice Before Checkout":
+                    case "3. Pay Invoice Before Checkout":
                         _bookingController.PayInvoiceBeforeCheckout();
                         break;
-                    case "5. Display Guests":
+                    case "4. Display Guests":
                         _bookingController.DisplayAllGuestInfo();
                         break;
 
-                    case "6. Display Rooms":
+                    case "5. Display Rooms":
                         _roomController.ViewAllRooms();
                         break;
 
-                    case "7. Modify Rooms":
+                    case "6. Modify Rooms":
                         _displayRoomMenu.Menu();
                         break;
 
-                    case "8. Modify Bookings":
+                    case "7. Modify Bookings":
                         _displayBookingMenu.Menu();
                         break;
 
-                    case "9. Modify Guest":
+                    case "8. Modify Guest":
                         _displayGuestMenu.Menu();
                         break;
 
-                    case "10. Exit":
+                    case "9. Exit":
                         AnsiConsole.Markup("[bold green]Exiting program...[/]\n");
                         return;
 

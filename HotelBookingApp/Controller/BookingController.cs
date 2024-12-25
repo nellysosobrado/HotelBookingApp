@@ -687,6 +687,168 @@ namespace HotelBookingApp
             Console.WriteLine("Invoice paid successfully.");
             Console.ReadKey();
         }
+        public void CheckInOrCheckOut()
+        {
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("CHECK-IN / CHECK-OUT GUEST");
+
+                // Display active bookings
+                DisplayActiveBookings();
+
+                Console.WriteLine("\nEnter 'ESC' to go back.");
+                Console.WriteLine("Enter Booking ID to Check-In/Check-Out:");
+
+                string input = Console.ReadLine()?.Trim();
+                if (input?.ToUpper() == "ESC") break;
+
+                if (!int.TryParse(input, out int bookingId))
+                {
+                    Console.WriteLine("Invalid Booking ID. Try again...");
+                    Console.ReadKey();
+                    continue;
+                }
+
+                var booking = _bookingRepository.GetBookingById(bookingId);
+
+                if (booking == null)
+                {
+                    Console.WriteLine($"Booking with ID {bookingId} does not exist.");
+                    Console.ReadKey();
+                    continue;
+                }
+
+                Console.WriteLine("\nWhat action would you like to perform?");
+                Console.WriteLine("1. Check In");
+                Console.WriteLine("2. Check Out");
+
+                Console.Write("Enter your choice (1 or 2): ");
+                if (!int.TryParse(Console.ReadLine(), out int actionChoice) || actionChoice < 1 || actionChoice > 2)
+                {
+                    Console.WriteLine("Invalid choice. Try again...");
+                    Console.ReadKey();
+                    continue;
+                }
+
+                switch (actionChoice)
+                {
+                    case 1: // Check-In
+                        if (booking.IsCheckedIn)
+                        {
+                            Console.WriteLine($"Booking ID {bookingId} is already checked in.");
+                        }
+                        else
+                        {
+                            // Ask if guest wants to pay at check-in
+                            bool payAtCheckIn = AnsiConsole.Confirm("Would the guest like to pay at check-in?");
+
+                            if (payAtCheckIn)
+                            {
+                                // Generate and display the invoice for payment at check-in
+                                var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId)
+                                                      ?? _bookingRepository.GenerateInvoiceForBooking(booking);
+
+                                Console.WriteLine($"Invoice Total: {invoice.TotalAmount:C}");
+
+                                decimal paymentAmount = 0;
+                                bool validPayment = false;
+
+                                // Loop until a valid payment amount is provided
+                                while (!validPayment)
+                                {
+                                    Console.Write("Enter payment amount: ");
+                                    if (decimal.TryParse(Console.ReadLine(), out paymentAmount) && paymentAmount >= invoice.TotalAmount)
+                                    {
+                                        validPayment = true; // Payment is valid
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("[red]Invalid or insufficient amount. Please try again.[/]");
+                                    }
+                                }
+
+                                _bookingRepository.ProcessPayment(invoice, paymentAmount);  // Process the payment immediately
+
+                                // Update booking status to checked-in
+                                booking.IsCheckedIn = true;
+                                _bookingRepository.UpdateBooking(booking);
+
+                                Console.WriteLine($"Guest {booking.Guest.FirstName} {booking.Guest.LastName} successfully checked in and paid!");
+                                Console.WriteLine($"Booking ID: {booking.BookingId}, Room ID: {booking.RoomId}");
+                            }
+                            else
+                            {
+                                _bookingRepository.CheckInGuest(booking);  // Just check-in without payment
+                                booking.IsCheckedIn = true;
+                                _bookingRepository.UpdateBooking(booking);
+                                Console.WriteLine($"Guest {booking.Guest.FirstName} {booking.Guest.LastName} successfully checked in without payment.");
+                            }
+                        }
+                        break;
+
+                    case 2: // Check-Out
+                        if (!booking.IsCheckedIn)
+                        {
+                            Console.WriteLine($"Booking ID {bookingId} has not checked in yet. You cannot check out before check-in.");
+                        }
+                        else if (booking.IsCheckedOut)
+                        {
+                            Console.WriteLine($"Booking ID {bookingId} is already checked out.");
+                        }
+                        else
+                        {
+                            // Process checkout and ensure payment
+                            var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId)
+                                                  ?? _bookingRepository.GenerateInvoiceForBooking(booking);
+
+                            Console.WriteLine($"Invoice Total: {invoice.TotalAmount:C}");
+
+                            decimal paymentAmount = 0;
+                            bool validPayment = false;
+
+                            // Loop until a valid payment amount is provided
+                            while (!validPayment)
+                            {
+                                Console.Write("Enter payment amount: ");
+                                if (decimal.TryParse(Console.ReadLine(), out paymentAmount) && paymentAmount >= invoice.TotalAmount)
+                                {
+                                    validPayment = true; // Payment is valid
+                                }
+                                else
+                                {
+                                    Console.WriteLine("[red]Invalid or insufficient amount. Please try again.[/]");
+                                }
+                            }
+
+                            _bookingRepository.ProcessPayment(invoice, paymentAmount);
+
+                            // Update the booking and room status
+                            booking.IsCheckedOut = true;
+                            booking.CheckOutDate = DateTime.Now;
+                            booking.BookingStatus = true; 
+
+                            _bookingRepository.UpdateBooking(booking);
+
+                            var room = _roomRepository.GetRoomById(booking.RoomId);
+                            if (room != null)
+                            {
+                                room.IsAvailable = true;  
+                                _roomRepository.UpdateRoom(room);
+                            }
+
+                            Console.WriteLine("Guest successfully checked out and payment processed.");
+                        }
+                        break;
+                }
+
+                Console.WriteLine("Press any key to return...");
+                Console.ReadKey();
+            }
+        }
+
+
+
 
 
 
