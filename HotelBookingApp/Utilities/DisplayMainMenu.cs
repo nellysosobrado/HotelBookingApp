@@ -80,7 +80,6 @@ namespace HotelBookingApp.Utilities
                     case "4. Pay Invoice Before Checkout":
                         _bookingController.PayInvoiceBeforeCheckout();
                         break;
-
                     case "5. Display Guests":
                         _bookingController.DisplayAllGuestInfo();
                         break;

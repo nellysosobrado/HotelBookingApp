@@ -9,11 +9,16 @@ namespace HotelBookingApp.Controllers
     public class RoomController
     {
         private readonly RoomRepository _roomRepository;
+        private readonly BookingRepository _bookingRepository;
 
-        public RoomController(RoomRepository roomRepository)
+        public RoomController(RoomRepository roomRepository, BookingRepository bookingRepository)
         {
             _roomRepository = roomRepository;
+            _bookingRepository = bookingRepository;
         }
+
+
+
 
         public void AddNewRoom()
         {
@@ -156,6 +161,8 @@ namespace HotelBookingApp.Controllers
 
             _roomRepository.UpdateRoom(room);
         }
+
+
 
         public void ViewAllRooms()
         {

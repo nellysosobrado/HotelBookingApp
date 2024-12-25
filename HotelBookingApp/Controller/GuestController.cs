@@ -11,10 +11,12 @@ namespace HotelBookingApp.Controllers
     public class GuestController
     {
         private readonly GuestRepository _guestRepository;
+        private readonly BookingRepository _bookingRepository;
 
-        public GuestController(AppDbContext context)
+        public GuestController(AppDbContext context, BookingRepository bookingRepository, GuestRepository guestRepository)
         {
-            _guestRepository = new GuestRepository(context);
+            _guestRepository = guestRepository;
+            _bookingRepository = bookingRepository;
         }
         public void RegisterNewGuest()
         {
@@ -164,77 +166,137 @@ namespace HotelBookingApp.Controllers
         private DateTime SelectDate(string prompt)
         {
             DateTime currentDate = DateTime.Now.Date;
-            DateTime selectedDate = new DateTime(currentDate.Year, currentDate.Month, 1);
+            DateTime selectedDate = currentDate;  // Starta med dagens datum
 
             while (true)
             {
                 Console.Clear();
                 Console.WriteLine(prompt);
-                RenderCalendar(selectedDate);
+                RenderCalendar(selectedDate);  // Visa kalendern
 
                 var key = Console.ReadKey(true).Key;
                 switch (key)
                 {
                     case ConsoleKey.RightArrow:
-                        selectedDate = selectedDate.AddDays(1);
+                        selectedDate = selectedDate.AddDays(1);  // Navigera till nästa dag
                         break;
                     case ConsoleKey.LeftArrow:
-                        if (selectedDate.AddDays(-1) >= currentDate)
-                            selectedDate = selectedDate.AddDays(-1);
+                        selectedDate = selectedDate.AddDays(-1);  // Navigera till föregående dag
                         break;
                     case ConsoleKey.UpArrow:
-                        if (selectedDate.AddDays(-7) >= currentDate)
-                            selectedDate = selectedDate.AddDays(-7);
+                        selectedDate = selectedDate.AddDays(-7); // Navigera en vecka bakåt
                         break;
                     case ConsoleKey.DownArrow:
-                        selectedDate = selectedDate.AddDays(7);
+                        selectedDate = selectedDate.AddDays(7);  // Navigera en vecka framåt
                         break;
                     case ConsoleKey.Enter:
+                        // Kontrollera om det valda datumet är bokat
+                        var bookings = _bookingRepository.GetAllBookings()
+                            .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue)
+                            .Where(b => b.CheckInDate.Value.Date <= selectedDate.Date && b.CheckOutDate.Value.Date >= selectedDate.Date)
+                            .ToList();
+
+                        if (bookings.Any())
+                        {
+                            AnsiConsole.MarkupLine("[red]The selected date is already booked.[/]");  // Felmeddelande
+                            Console.ReadKey(true);
+                            continue;  // Tillåt inte att välja ett bokat datum
+                        }
+
                         if (selectedDate >= currentDate)
-                            return selectedDate;
-                        AnsiConsole.MarkupLine("[red]The date cannot be in the past.[/]");
+                            return selectedDate;  // Välj datum om det är ett giltigt datum
+
+                        AnsiConsole.MarkupLine("[red]The date cannot be in the past.[/]");  // Förhindra val av förflutet datum
                         Console.ReadKey(true);
                         break;
                     case ConsoleKey.Escape:
-                        return DateTime.MinValue; 
+                        return DateTime.MinValue;  // Avbryt om ESC trycks
                 }
             }
         }
 
+
+
+
         private void RenderCalendar(DateTime selectedDate)
         {
             var calendarContent = new StringWriter();
-            calendarContent.WriteLine($"[red]{selectedDate:MMMM}[/]".ToUpper());
+            calendarContent.WriteLine($"[bold yellow]{selectedDate:MMMM yyyy}[/]".ToUpper());
             calendarContent.WriteLine("Mon  Tue  Wed  Thu  Fri  Sat  Sun");
             calendarContent.WriteLine("─────────────────────────────────");
 
             DateTime firstDayOfMonth = new DateTime(selectedDate.Year, selectedDate.Month, 1);
             int daysInMonth = DateTime.DaysInMonth(selectedDate.Year, selectedDate.Month);
             int startDay = (int)firstDayOfMonth.DayOfWeek;
-            startDay = (startDay == 0) ? 6 : startDay - 1;
+            startDay = (startDay == 0) ? 6 : startDay - 1; // Justera för att börja från måndag
 
-            for (int i = 0; i < startDay; i++)
+            // Hämta alla bokningar för den valda månaden
+            var bookings = _bookingRepository.GetAllBookings()
+                .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue)
+                .Where(b => b.CheckInDate.Value.Month == selectedDate.Month && b.CheckInDate.Value.Year == selectedDate.Year)
+                .ToList();
+
+            // Håll koll på alla bokade datum och tillgängliga datum efter utcheckning
+            HashSet<DateTime> bookedDates = new HashSet<DateTime>();
+            HashSet<DateTime> availableDatesAfterCheckout = new HashSet<DateTime>();
+
+            // Lägg till bokade datum
+            foreach (var booking in bookings)
             {
-                calendarContent.Write("     ");
+                for (DateTime date = booking.CheckInDate.Value; date <= booking.CheckOutDate.Value; date = date.AddDays(1))
+                {
+                    bookedDates.Add(date);
+                }
+                // Lägg till datum efter utcheckning som tillgängliga
+                availableDatesAfterCheckout.Add(booking.CheckOutDate.Value.AddDays(1));
             }
 
+            // Fyll i tomma celler innan första dagen
+            for (int i = 0; i < startDay; i++)
+            {
+                calendarContent.Write("     "); // Fyller tomt innan första dagen
+            }
+
+            // Loop genom alla dagar i månaden
             for (int day = 1; day <= daysInMonth; day++)
             {
-                if (day == selectedDate.Day)
+                DateTime currentDateToDisplay = new DateTime(selectedDate.Year, selectedDate.Month, day);
+                string dateDisplay = currentDateToDisplay.Day.ToString("D2");
+
+                // Markera det valda datumet
+                if (currentDateToDisplay.Date == selectedDate.Date)
                 {
-                    calendarContent.Write($"[green]{day,2}[/]   ");
+                    calendarContent.Write($"[blue]{dateDisplay}[/]   ");  // Markera valda datumet med blått
                 }
+                // Om datumet är bokat, markera det som rött
+                else if (bookedDates.Contains(currentDateToDisplay))
+                {
+                    calendarContent.Write($"[red]{dateDisplay}[/]   ");
+                }
+                // Om datumet är tillgängligt efter utcheckning, markera det som grönt
+                else if (availableDatesAfterCheckout.Contains(currentDateToDisplay))
+                {
+                    calendarContent.Write($"[green]{dateDisplay}[/]   ");
+                }
+                // Om datumet är förflutet, markera det som överstruket i grått
+                else if (currentDateToDisplay < DateTime.Now.Date)
+                {
+                    calendarContent.Write($"[grey]{dateDisplay}[/]   ");
+                }
+                // Om datumet är tillgängligt, markera det som normalt
                 else
                 {
-                    calendarContent.Write($"{day,2}   ");
+                    calendarContent.Write($"{dateDisplay}   ");
                 }
 
+                // När veckan är slut (7 dagar), börja på en ny rad
                 if ((startDay + day) % 7 == 0)
                 {
                     calendarContent.WriteLine();
                 }
             }
 
+            // Skapa och visa kalendern för varje rum
             var panel = new Panel(calendarContent.ToString())
             {
                 Border = BoxBorder.Double,
@@ -245,6 +307,55 @@ namespace HotelBookingApp.Controllers
             Console.WriteLine();
             AnsiConsole.MarkupLine("\nUse arrow keys [blue]\u25C4 \u25B2 \u25BA \u25BC[/] to navigate and [green]Enter[/] to select.");
         }
+
+
+
+
+
+        //private void RenderCalendar(DateTime selectedDate)
+        //{
+        //    var calendarContent = new StringWriter();
+        //    calendarContent.WriteLine($"[red]{selectedDate:MMMM}[/]".ToUpper());
+        //    calendarContent.WriteLine("Mon  Tue  Wed  Thu  Fri  Sat  Sun");
+        //    calendarContent.WriteLine("─────────────────────────────────");
+
+        //    DateTime firstDayOfMonth = new DateTime(selectedDate.Year, selectedDate.Month, 1);
+        //    int daysInMonth = DateTime.DaysInMonth(selectedDate.Year, selectedDate.Month);
+        //    int startDay = (int)firstDayOfMonth.DayOfWeek;
+        //    startDay = (startDay == 0) ? 6 : startDay - 1;
+
+        //    for (int i = 0; i < startDay; i++)
+        //    {
+        //        calendarContent.Write("     ");
+        //    }
+
+        //    for (int day = 1; day <= daysInMonth; day++)
+        //    {
+        //        if (day == selectedDate.Day)
+        //        {
+        //            calendarContent.Write($"[green]{day,2}[/]   ");
+        //        }
+        //        else
+        //        {
+        //            calendarContent.Write($"{day,2}   ");
+        //        }
+
+        //        if ((startDay + day) % 7 == 0)
+        //        {
+        //            calendarContent.WriteLine();
+        //        }
+        //    }
+
+        //    var panel = new Panel(calendarContent.ToString())
+        //    {
+        //        Border = BoxBorder.Double,
+        //        Header = new PanelHeader($"[red]{selectedDate:yyyy}[/]", Justify.Center)
+        //    };
+
+        //    AnsiConsole.Write(panel);
+        //    Console.WriteLine();
+        //    AnsiConsole.MarkupLine("\nUse arrow keys [blue]\u25C4 \u25B2 \u25BA \u25BC[/] to navigate and [green]Enter[/] to select.");
+        //}
 
 
         private DateTime PromptForDate(string message)
