@@ -164,10 +164,18 @@ namespace HotelBookingApp.Controllers
             Console.Clear();
             AnsiConsole.MarkupLine("[bold yellow]View Rooms and Availability[/]\n");
 
+            // Lägg till alternativet "Go Back" i menyn
             string roomType = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("[yellow]Select room type to view:[/]")
-                    .AddChoices("Single", "Double"));
+                    .AddChoices("Single", "Double", "Go Back"));
+
+            // Om användaren väljer "Go Back", avslutas metoden
+            if (roomType.Equals("Go Back", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.Clear();
+                return;
+            }
 
             var rooms = _roomRepository.GetRoomsWithBookings()
                 .Where(r => r.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase))
@@ -176,6 +184,8 @@ namespace HotelBookingApp.Controllers
             if (!rooms.Any())
             {
                 AnsiConsole.MarkupLine("[red]No rooms found for the selected type.[/]");
+                AnsiConsole.MarkupLine("[bold green]Press any key to go back to the main menu.[/]");
+                Console.ReadKey(true);
                 return;
             }
 
@@ -229,12 +239,16 @@ namespace HotelBookingApp.Controllers
 
             AnsiConsole.MarkupLine($"\n[bold green]Availability Calendar for {roomType} Rooms[/]\n");
             DateTime selectedDate = DateTime.Now.Date;
+
             while (true)
             {
                 Console.Clear();
                 AnsiConsole.MarkupLine($"[bold green]{roomType} Rooms[/]\n");
                 AnsiConsole.Write(table);
                 RenderCalendarForAvailability(selectedDate, roomType);
+
+                AnsiConsole.MarkupLine("[yellow]\nUse Left/Right arrows to navigate months.[/]");
+                AnsiConsole.MarkupLine("[yellow]Press [green]ESC[/] to go back[/]");
 
                 var key = Console.ReadKey(true).Key;
                 switch (key)
@@ -245,14 +259,13 @@ namespace HotelBookingApp.Controllers
                     case ConsoleKey.LeftArrow:
                         selectedDate = selectedDate.AddMonths(-1);
                         break;
-                    case ConsoleKey.Escape:
+                    case ConsoleKey.Escape: 
                         return;
-                    case ConsoleKey.Enter:
-                        Console.Clear();
-                        return;
+
                 }
             }
         }
+
 
         private void RenderCalendarForAvailability(DateTime selectedDate, string roomType)
         {

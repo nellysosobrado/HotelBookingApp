@@ -154,6 +154,7 @@ namespace HotelBookingApp
 
         public void DisplayGuestOptions()
         {
+            AnsiConsole.MarkupLine("[bold yellow]Guests[/]");
             var options = new List<string>
     {
         "Display Active Bookings",
@@ -263,7 +264,7 @@ namespace HotelBookingApp
 
                     table.AddRow(
                         $"{booking.Guest.FirstName} {booking.Guest.LastName}",
-                        booking.Guest.GuestId.ToString(), // Display Guest ID here
+                        booking.Guest.GuestId.ToString(),
                         booking.BookingId.ToString(),
                         booking.RoomId.ToString(),
                         status,
@@ -474,7 +475,6 @@ namespace HotelBookingApp
             Console.Clear();
             Console.WriteLine("\nCANCEL BOOKING");
 
-            // Begär inmatning av Booking ID från användaren
             Console.Write("Enter Booking ID to cancel: ");
             if (!int.TryParse(Console.ReadLine(), out int bookingId))
             {
@@ -492,15 +492,12 @@ namespace HotelBookingApp
                 return;
             }
 
-            // Markera bokningen som avbruten genom att sätta IsCanceled till true
             booking.IsCanceled = true;
 
-            // Uppdatera bokningen i databasen
             _bookingRepository.UpdateBooking(booking);
 
             Console.WriteLine($"Booking {booking.BookingId} has been canceled.\n");
 
-            // Visa alla avbrutna bokningar
             DisplayCanceledBookings();
         }
 
@@ -578,14 +575,14 @@ namespace HotelBookingApp
         public void CheckOut()
         {
             Console.Clear();
-            DisplayActiveBookings();  // Visa de aktiva bokningarna
+            DisplayActiveBookings();  
 
             Console.Write("Enter Guest ID to check out: ");
             if (!int.TryParse(Console.ReadLine(), out int guestId))
             {
                 Console.WriteLine("Invalid Guest ID.");
                 Console.WriteLine("Press any key to return to the main menu...");
-                Console.ReadKey();  // Vänta på att användaren trycker en knapp
+                Console.ReadKey();  
                 return;
             }
 
@@ -594,7 +591,7 @@ namespace HotelBookingApp
             {
                 Console.WriteLine("No active booking found.");
                 Console.WriteLine("Press any key to return to the main menu...");
-                Console.ReadKey();  // Vänta på att användaren trycker en knapp
+                Console.ReadKey();  
                 return;
             }
 
@@ -607,13 +604,12 @@ namespace HotelBookingApp
             {
                 Console.WriteLine("Invalid or insufficient amount.");
                 Console.WriteLine("Press any key to return to the main menu...");
-                Console.ReadKey();  // Vänta på att användaren trycker en knapp
+                Console.ReadKey(); 
                 return;
             }
 
             _bookingRepository.ProcessPayment(invoice, paymentAmount);
 
-            // Uppdatera bokningen och rummet
             booking.IsCheckedOut = true;
             booking.BookingStatus = true;
             booking.CheckOutDate = DateTime.Now;
@@ -623,13 +619,13 @@ namespace HotelBookingApp
             var room = _roomRepository.GetRoomById(booking.RoomId);
             if (room != null)
             {
-                room.IsAvailable = true;  // Gör rummet tillgängligt
+                room.IsAvailable = true; 
                 _roomRepository.UpdateRoom(room);
             }
 
             Console.WriteLine("Guest successfully checked out and payment processed.");
             Console.WriteLine("Press any key to return to the main menu...");
-            Console.ReadKey();  // Vänta på användaren att trycka en knapp innan man återgår
+            Console.ReadKey();  
         }
 
         public void DisplayCanceledBookings()
@@ -638,9 +634,8 @@ namespace HotelBookingApp
             Console.WriteLine("CANCELED BOOKINGS HISTORY");
             Console.WriteLine(new string('-', 80));
 
-            // Filtrera bokningar där IsCanceled är true
             var canceledBookings = _bookingRepository.GetAllBookings()
-                .Where(b => b.IsCanceled)  // Endast bokningar som har blivit avbrutna
+                .Where(b => b.IsCanceled)  
                 .ToList();
 
             if (!canceledBookings.Any())
@@ -658,7 +653,6 @@ namespace HotelBookingApp
                 table.AddColumn("[bold yellow]Check-In Date[/]");
                 table.AddColumn("[bold yellow]Check-Out Date[/]");
 
-                // Lägg till rader för varje avbruten bokning
                 foreach (var booking in canceledBookings)
                 {
                     table.AddRow(
@@ -721,7 +715,6 @@ namespace HotelBookingApp
                 Console.Clear();
                 Console.WriteLine("CHECK-IN / CHECK-OUT GUEST");
 
-                // Display active bookings
                 DisplayActiveBookings();
 
                 Console.WriteLine("\nEnter 'ESC' to go back.");
@@ -739,7 +732,7 @@ namespace HotelBookingApp
 
                 // Filter active bookings
                 var activeBookings = _bookingRepository.GetAllBookings()
-                    .Where(b => !b.IsCanceled && b.BookingStatus != true) // Only active bookings
+                    .Where(b => !b.IsCanceled && b.BookingStatus != true) 
                     .ToList();
 
                 var booking = activeBookings.FirstOrDefault(b => b.BookingId == bookingId);
@@ -765,11 +758,11 @@ namespace HotelBookingApp
 
                 switch (actionChoice)
                 {
-                    case 1: // Check-In
+                    case 1: 
                         HandleCheckIn(booking);
                         break;
 
-                    case 2: // Check-Out
+                    case 2: 
                         HandleCheckOut(booking);
                         break;
                 }
@@ -787,7 +780,6 @@ namespace HotelBookingApp
                 return;
             }
 
-            // Fråga om gästen vill betala vid incheckning
             bool payAtCheckIn = AnsiConsole.Confirm("Would the guest like to pay at check-in?");
 
             if (payAtCheckIn)
@@ -800,7 +792,6 @@ namespace HotelBookingApp
                 decimal paymentAmount = 0;
                 bool validPayment = false;
 
-                // Loopa tills användaren skriver in exakt korrekt belopp
                 while (!validPayment)
                 {
                     Console.Write("Enter payment amount: ");
@@ -821,11 +812,9 @@ namespace HotelBookingApp
                     }
                 }
 
-                // Behandla betalningen
                 _bookingRepository.ProcessPayment(invoice, paymentAmount);
             }
 
-            // Uppdatera bokningen som incheckad
             booking.IsCheckedIn = true;
             _bookingRepository.UpdateBooking(booking);
 
@@ -864,7 +853,6 @@ namespace HotelBookingApp
                 decimal paymentAmount = 0;
                 bool validPayment = false;
 
-                // Loopa tills användaren skriver in exakt korrekt belopp
                 while (!validPayment)
                 {
                     Console.Write("Enter payment amount: ");
@@ -885,11 +873,9 @@ namespace HotelBookingApp
                     }
                 }
 
-                // Behandla betalningen
                 _bookingRepository.ProcessPayment(invoice, paymentAmount);
             }
 
-            // Markera bokningen som utcheckad
             booking.IsCheckedOut = true;
             booking.CheckOutDate = DateTime.Now;
             booking.BookingStatus = true;
@@ -905,342 +891,6 @@ namespace HotelBookingApp
 
             AnsiConsole.MarkupLine("[green]Guest successfully checked out.[/]");
         }
-
-
-
-
-
-        //public void CheckInOrCheckOut()
-        //{
-        //    while (true)
-        //    {
-        //        Console.Clear();
-        //        Console.WriteLine("CHECK-IN / CHECK-OUT GUEST");
-
-        //        // Display active bookings
-        //        DisplayActiveBookings();
-
-        //        Console.WriteLine("\nEnter 'ESC' to go back.");
-        //        Console.WriteLine("Enter Booking ID to Check-In/Check-Out:");
-
-        //        string input = Console.ReadLine()?.Trim();
-        //        if (input?.ToUpper() == "ESC") break;
-
-        //        if (!int.TryParse(input, out int bookingId))
-        //        {
-        //            Console.WriteLine("Invalid Booking ID. Try again...");
-        //            Console.ReadKey();
-        //            continue;
-        //        }
-
-        //        var booking = _bookingRepository.GetBookingById(bookingId);
-
-        //        if (booking == null)
-        //        {
-        //            Console.WriteLine($"Booking with ID {bookingId} does not exist.");
-        //            Console.ReadKey();
-        //            continue;
-        //        }
-
-        //        Console.WriteLine("\nWhat action would you like to perform?");
-        //        Console.WriteLine("1. Check In");
-        //        Console.WriteLine("2. Check Out");
-
-        //        Console.Write("Enter your choice (1 or 2): ");
-        //        if (!int.TryParse(Console.ReadLine(), out int actionChoice) || actionChoice < 1 || actionChoice > 2)
-        //        {
-        //            Console.WriteLine("Invalid choice. Try again...");
-        //            Console.ReadKey();
-        //            continue;
-        //        }
-
-        //        switch (actionChoice)
-        //        {
-        //            case 1: // Check-In
-        //                if (booking.IsCheckedIn)
-        //                {
-        //                    Console.WriteLine($"Booking ID {bookingId} is already checked in.");
-        //                }
-        //                else
-        //                {
-        //                    // Ask if guest wants to pay at check-in
-        //                    bool payAtCheckIn = AnsiConsole.Confirm("Would the guest like to pay at check-in?");
-
-        //                    if (payAtCheckIn)
-        //                    {
-        //                        // Generate and display the invoice for payment at check-in
-        //                        var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId)
-        //                                              ?? _bookingRepository.GenerateInvoiceForBooking(booking);
-
-        //                        Console.WriteLine($"Invoice Total: {invoice.TotalAmount:C}");
-
-        //                        decimal paymentAmount = 0;
-        //                        bool validPayment = false;
-
-        //                        // Loop until a valid payment amount is provided
-        //                        while (!validPayment)
-        //                        {
-        //                            Console.Write("Enter payment amount: ");
-        //                            if (decimal.TryParse(Console.ReadLine(), out paymentAmount) && paymentAmount >= invoice.TotalAmount)
-        //                            {
-        //                                validPayment = true; // Payment is valid
-        //                            }
-        //                            else
-        //                            {
-        //                                Console.WriteLine("[red]Invalid or insufficient amount. Please try again.[/]");
-        //                            }
-        //                        }
-
-        //                        _bookingRepository.ProcessPayment(invoice, paymentAmount);  // Process the payment immediately
-
-        //                        // Update booking status to checked-in
-        //                        booking.IsCheckedIn = true;
-        //                        _bookingRepository.UpdateBooking(booking);
-
-        //                        Console.WriteLine($"Guest {booking.Guest.FirstName} {booking.Guest.LastName} successfully checked in and paid!");
-        //                        Console.WriteLine($"Booking ID: {booking.BookingId}, Room ID: {booking.RoomId}");
-        //                    }
-        //                    else
-        //                    {
-        //                        _bookingRepository.CheckInGuest(booking);  // Just check-in without payment
-        //                        booking.IsCheckedIn = true;
-        //                        _bookingRepository.UpdateBooking(booking);
-        //                        Console.WriteLine($"Guest {booking.Guest.FirstName} {booking.Guest.LastName} successfully checked in without payment.");
-        //                    }
-        //                }
-        //                break;
-
-        //            case 2: // Check-Out
-        //                if (!booking.IsCheckedIn)
-        //                {
-        //                    Console.WriteLine($"Booking ID {bookingId} has not checked in yet. You cannot check out before check-in.");
-        //                }
-        //                else if (booking.IsCheckedOut)
-        //                {
-        //                    Console.WriteLine($"Booking ID {bookingId} is already checked out.");
-        //                }
-        //                else
-        //                {
-        //                    // Kontrollera fakturans betalstatus
-        //                    var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId)
-        //                                          ?? _bookingRepository.GenerateInvoiceForBooking(booking);
-
-        //                    if (invoice.IsPaid)
-        //                    {
-        //                        Console.WriteLine($"Booking ID {bookingId} is already fully paid. No further payment is required.");
-        //                    }
-        //                    else
-        //                    {
-        //                        Console.WriteLine($"Invoice Total: {invoice.TotalAmount:C}");
-
-        //                        decimal paymentAmount = 0;
-        //                        bool validPayment = false;
-
-        //                        // Loop tills en giltig betalning är genomförd
-        //                        while (!validPayment)
-        //                        {
-        //                            Console.Write("Enter payment amount: ");
-        //                            if (decimal.TryParse(Console.ReadLine(), out paymentAmount) && paymentAmount >= invoice.TotalAmount)
-        //                            {
-        //                                validPayment = true; // Betalning är giltig
-        //                            }
-        //                            else
-        //                            {
-        //                                Console.WriteLine("[red]Invalid or insufficient amount. Please try again.[/]");
-        //                            }
-        //                        }
-
-        //                        _bookingRepository.ProcessPayment(invoice, paymentAmount);
-        //                    }
-
-        //                    // Uppdatera bokningen och rummets status
-        //                    booking.IsCheckedOut = true;
-        //                    booking.CheckOutDate = DateTime.Now;
-        //                    booking.BookingStatus = true;
-
-        //                    _bookingRepository.UpdateBooking(booking);
-
-        //                    var room = _roomRepository.GetRoomById(booking.RoomId);
-        //                    if (room != null)
-        //                    {
-        //                        room.IsAvailable = true; // Gör rummet tillgängligt igen
-        //                        _roomRepository.UpdateRoom(room);
-        //                    }
-
-        //                    Console.WriteLine("Guest successfully checked out.");
-        //                }
-        //                break;
-
-        //        }
-
-        //        Console.WriteLine("Press any key to return...");
-        //        Console.ReadKey();
-        //    }
-        //}
-        //public void CheckInOrCheckOut()
-        //{
-        //    while (true)
-        //    {
-        //        Console.Clear();
-        //        Console.WriteLine("CHECK-IN / CHECK-OUT GUEST");
-
-        //        // Display active bookings
-        //        DisplayActiveBookings();
-
-        //        Console.WriteLine("\nEnter 'ESC' to go back.");
-        //        Console.WriteLine("Enter Booking ID to Check-In/Check-Out:");
-
-        //        string input = Console.ReadLine()?.Trim();
-        //        if (input?.ToUpper() == "ESC") break;
-
-        //        if (!int.TryParse(input, out int bookingId))
-        //        {
-        //            Console.WriteLine("Invalid Booking ID. Try again...");
-        //            Console.ReadKey();
-        //            continue;
-        //        }
-
-        //        var booking = _bookingRepository.GetBookingById(bookingId);
-
-        //        if (booking == null)
-        //        {
-        //            Console.WriteLine($"Booking with ID {bookingId} does not exist.");
-        //            Console.ReadKey();
-        //            continue;
-        //        }
-
-        //        Console.WriteLine("\nWhat action would you like to perform?");
-        //        Console.WriteLine("1. Check In");
-        //        Console.WriteLine("2. Check Out");
-
-        //        Console.Write("Enter your choice (1 or 2): ");
-        //        if (!int.TryParse(Console.ReadLine(), out int actionChoice) || actionChoice < 1 || actionChoice > 2)
-        //        {
-        //            Console.WriteLine("Invalid choice. Try again...");
-        //            Console.ReadKey();
-        //            continue;
-        //        }
-
-        //        switch (actionChoice)
-        //        {
-        //            case 1: // Check-In
-        //                if (booking.IsCheckedIn)
-        //                {
-        //                    Console.WriteLine($"Booking ID {bookingId} is already checked in.");
-        //                }
-        //                else
-        //                {
-        //                    // Ask if guest wants to pay at check-in
-        //                    bool payAtCheckIn = AnsiConsole.Confirm("Would the guest like to pay at check-in?");
-
-        //                    if (payAtCheckIn)
-        //                    {
-        //                        // Generate and display the invoice for payment at check-in
-        //                        var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId)
-        //                                              ?? _bookingRepository.GenerateInvoiceForBooking(booking);
-
-        //                        Console.WriteLine($"Invoice Total: {invoice.TotalAmount:C}");
-
-        //                        decimal paymentAmount = 0;
-        //                        bool validPayment = false;
-
-        //                        // Loop until a valid payment amount is provided
-        //                        while (!validPayment)
-        //                        {
-        //                            Console.Write("Enter payment amount: ");
-        //                            if (decimal.TryParse(Console.ReadLine(), out paymentAmount) && paymentAmount >= invoice.TotalAmount)
-        //                            {
-        //                                validPayment = true; // Payment is valid
-        //                            }
-        //                            else
-        //                            {
-        //                                Console.WriteLine("[red]Invalid or insufficient amount. Please try again.[/]");
-        //                            }
-        //                        }
-
-        //                        _bookingRepository.ProcessPayment(invoice, paymentAmount);  // Process the payment immediately
-
-        //                        // Update booking status to checked-in
-        //                        booking.IsCheckedIn = true;
-        //                        _bookingRepository.UpdateBooking(booking);
-
-        //                        Console.WriteLine($"Guest {booking.Guest.FirstName} {booking.Guest.LastName} successfully checked in and paid!");
-        //                        Console.WriteLine($"Booking ID: {booking.BookingId}, Room ID: {booking.RoomId}");
-        //                    }
-        //                    else
-        //                    {
-        //                        _bookingRepository.CheckInGuest(booking);  // Just check-in without payment
-        //                        booking.IsCheckedIn = true;
-        //                        _bookingRepository.UpdateBooking(booking);
-        //                        Console.WriteLine($"Guest {booking.Guest.FirstName} {booking.Guest.LastName} successfully checked in without payment.");
-        //                    }
-        //                }
-        //                break;
-
-        //            case 2: // Check-Out
-        //                if (!booking.IsCheckedIn)
-        //                {
-        //                    Console.WriteLine($"Booking ID {bookingId} has not checked in yet. You cannot check out before check-in.");
-        //                }
-        //                else if (booking.IsCheckedOut)
-        //                {
-        //                    Console.WriteLine($"Booking ID {bookingId} is already checked out.");
-        //                }
-        //                else
-        //                {
-        //                    // Process checkout and ensure payment
-        //                    var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId)
-        //                                          ?? _bookingRepository.GenerateInvoiceForBooking(booking);
-
-        //                    Console.WriteLine($"Invoice Total: {invoice.TotalAmount:C}");
-
-        //                    decimal paymentAmount = 0;
-        //                    bool validPayment = false;
-
-        //                    // Loop until a valid payment amount is provided
-        //                    while (!validPayment)
-        //                    {
-        //                        Console.Write("Enter payment amount: ");
-        //                        if (decimal.TryParse(Console.ReadLine(), out paymentAmount) && paymentAmount >= invoice.TotalAmount)
-        //                        {
-        //                            validPayment = true; // Payment is valid
-        //                        }
-        //                        else
-        //                        {
-        //                            Console.WriteLine("[red]Invalid or insufficient amount. Please try again.[/]");
-        //                        }
-        //                    }
-
-        //                    _bookingRepository.ProcessPayment(invoice, paymentAmount);
-
-        //                    // Update the booking and room status
-        //                    booking.IsCheckedOut = true;
-        //                    booking.CheckOutDate = DateTime.Now;
-        //                    booking.BookingStatus = true; 
-
-        //                    _bookingRepository.UpdateBooking(booking);
-
-        //                    var room = _roomRepository.GetRoomById(booking.RoomId);
-        //                    if (room != null)
-        //                    {
-        //                        room.IsAvailable = true;  
-        //                        _roomRepository.UpdateRoom(room);
-        //                    }
-
-        //                    Console.WriteLine("Guest successfully checked out and payment processed.");
-        //                }
-        //                break;
-        //        }
-
-        //        Console.WriteLine("Press any key to return...");
-        //        Console.ReadKey();
-        //    }
-        //}
-
-
-
-
-
 
     }
 }
