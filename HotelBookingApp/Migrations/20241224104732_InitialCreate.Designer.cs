@@ -4,6 +4,7 @@ using HotelBookingApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBookingApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241224104732_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -67,8 +70,8 @@ namespace HotelBookingApp.Migrations
                         {
                             BookingId = 1,
                             BookingStatus = false,
-                            CheckInDate = new DateTime(2024, 12, 26, 0, 0, 0, 0, DateTimeKind.Local),
-                            CheckOutDate = new DateTime(2024, 12, 28, 0, 0, 0, 0, DateTimeKind.Local),
+                            CheckInDate = new DateTime(2024, 12, 29, 0, 0, 0, 0, DateTimeKind.Local),
+                            CheckOutDate = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Local),
                             GuestId = 1,
                             IsCanceled = false,
                             IsCheckedIn = false,
@@ -80,7 +83,7 @@ namespace HotelBookingApp.Migrations
                             BookingId = 2,
                             BookingStatus = false,
                             CheckInDate = new DateTime(2024, 12, 28, 0, 0, 0, 0, DateTimeKind.Local),
-                            CheckOutDate = new DateTime(2024, 12, 31, 0, 0, 0, 0, DateTimeKind.Local),
+                            CheckOutDate = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Local),
                             GuestId = 2,
                             IsCanceled = false,
                             IsCheckedIn = false,
@@ -91,8 +94,8 @@ namespace HotelBookingApp.Migrations
                         {
                             BookingId = 3,
                             BookingStatus = false,
-                            CheckInDate = new DateTime(2024, 12, 26, 0, 0, 0, 0, DateTimeKind.Local),
-                            CheckOutDate = new DateTime(2024, 12, 30, 0, 0, 0, 0, DateTimeKind.Local),
+                            CheckInDate = new DateTime(2024, 12, 25, 0, 0, 0, 0, DateTimeKind.Local),
+                            CheckOutDate = new DateTime(2024, 12, 26, 0, 0, 0, 0, DateTimeKind.Local),
                             GuestId = 3,
                             IsCanceled = false,
                             IsCheckedIn = false,
@@ -103,8 +106,8 @@ namespace HotelBookingApp.Migrations
                         {
                             BookingId = 4,
                             BookingStatus = false,
-                            CheckInDate = new DateTime(2024, 12, 26, 0, 0, 0, 0, DateTimeKind.Local),
-                            CheckOutDate = new DateTime(2024, 12, 31, 0, 0, 0, 0, DateTimeKind.Local),
+                            CheckInDate = new DateTime(2024, 12, 29, 0, 0, 0, 0, DateTimeKind.Local),
+                            CheckOutDate = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Local),
                             GuestId = 4,
                             IsCanceled = false,
                             IsCheckedIn = false,
@@ -154,8 +157,8 @@ namespace HotelBookingApp.Migrations
                             ExtraBedPrice = 0m,
                             ExtraBeds = 0,
                             IsAvailable = true,
-                            PricePerNight = 4096m,
-                            SizeInSquareMeters = 51,
+                            PricePerNight = 4125m,
+                            SizeInSquareMeters = 88,
                             TotalPeople = 0m,
                             Type = "Double"
                         },
@@ -163,10 +166,10 @@ namespace HotelBookingApp.Migrations
                         {
                             RoomId = 2,
                             ExtraBedPrice = 0m,
-                            ExtraBeds = 0,
+                            ExtraBeds = 2,
                             IsAvailable = true,
-                            PricePerNight = 1487m,
-                            SizeInSquareMeters = 84,
+                            PricePerNight = 4187m,
+                            SizeInSquareMeters = 83,
                             TotalPeople = 0m,
                             Type = "Double"
                         },
@@ -174,23 +177,23 @@ namespace HotelBookingApp.Migrations
                         {
                             RoomId = 3,
                             ExtraBedPrice = 0m,
-                            ExtraBeds = 0,
+                            ExtraBeds = 1,
                             IsAvailable = true,
-                            PricePerNight = 1607m,
-                            SizeInSquareMeters = 48,
+                            PricePerNight = 4028m,
+                            SizeInSquareMeters = 72,
                             TotalPeople = 0m,
-                            Type = "Single"
+                            Type = "Double"
                         },
                         new
                         {
                             RoomId = 4,
                             ExtraBedPrice = 0m,
-                            ExtraBeds = 2,
+                            ExtraBeds = 0,
                             IsAvailable = true,
-                            PricePerNight = 1634m,
-                            SizeInSquareMeters = 36,
+                            PricePerNight = 1069m,
+                            SizeInSquareMeters = 43,
                             TotalPeople = 0m,
-                            Type = "Single"
+                            Type = "Double"
                         });
                 });
 
@@ -226,34 +229,34 @@ namespace HotelBookingApp.Migrations
                         new
                         {
                             GuestId = 1,
-                            Email = "mafalda.gleichner0@example.com",
-                            FirstName = "Mafalda",
-                            LastName = "Gleichner",
-                            PhoneNumber = "679-759-8552 x99711"
+                            Email = "ara.lebsack0@example.com",
+                            FirstName = "Ara",
+                            LastName = "Lebsack",
+                            PhoneNumber = "205.693.2632 x39369"
                         },
                         new
                         {
                             GuestId = 2,
-                            Email = "katelyn.balistreri1@example.com",
-                            FirstName = "Katelyn",
-                            LastName = "Balistreri",
-                            PhoneNumber = "559-837-9563"
+                            Email = "aubree.weber1@example.com",
+                            FirstName = "Aubree",
+                            LastName = "Weber",
+                            PhoneNumber = "389-907-0384 x826"
                         },
                         new
                         {
                             GuestId = 3,
-                            Email = "dedric.borer2@example.com",
-                            FirstName = "Dedric",
-                            LastName = "Borer",
-                            PhoneNumber = "853-445-1967"
+                            Email = "lisette.kuhic2@example.com",
+                            FirstName = "Lisette",
+                            LastName = "Kuhic",
+                            PhoneNumber = "492.682.3090 x624"
                         },
                         new
                         {
                             GuestId = 4,
-                            Email = "davon.rodriguez3@example.com",
-                            FirstName = "Davon",
-                            LastName = "Rodriguez",
-                            PhoneNumber = "780-854-4991 x346"
+                            Email = "sherman.lehner3@example.com",
+                            FirstName = "Sherman",
+                            LastName = "Lehner",
+                            PhoneNumber = "(528) 276-9492 x50999"
                         });
                 });
 
@@ -289,32 +292,32 @@ namespace HotelBookingApp.Migrations
                             InvoiceId = 1,
                             BookingId = 1,
                             IsPaid = false,
-                            PaymentDeadline = new DateTime(2025, 1, 4, 0, 0, 0, 0, DateTimeKind.Local),
-                            TotalAmount = 5161m
+                            PaymentDeadline = new DateTime(2025, 1, 9, 0, 0, 0, 0, DateTimeKind.Local),
+                            TotalAmount = 5494m
                         },
                         new
                         {
                             InvoiceId = 2,
                             BookingId = 2,
                             IsPaid = false,
-                            PaymentDeadline = new DateTime(2025, 1, 7, 0, 0, 0, 0, DateTimeKind.Local),
-                            TotalAmount = 16124m
+                            PaymentDeadline = new DateTime(2025, 1, 9, 0, 0, 0, 0, DateTimeKind.Local),
+                            TotalAmount = 13637m
                         },
                         new
                         {
                             InvoiceId = 3,
                             BookingId = 3,
                             IsPaid = false,
-                            PaymentDeadline = new DateTime(2025, 1, 6, 0, 0, 0, 0, DateTimeKind.Local),
-                            TotalAmount = 11573m
+                            PaymentDeadline = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Local),
+                            TotalAmount = 11057m
                         },
                         new
                         {
                             InvoiceId = 4,
                             BookingId = 4,
                             IsPaid = false,
-                            PaymentDeadline = new DateTime(2025, 1, 7, 0, 0, 0, 0, DateTimeKind.Local),
-                            TotalAmount = 13557m
+                            PaymentDeadline = new DateTime(2025, 1, 9, 0, 0, 0, 0, DateTimeKind.Local),
+                            TotalAmount = 16384m
                         });
                 });
 
@@ -345,30 +348,30 @@ namespace HotelBookingApp.Migrations
                         new
                         {
                             PaymentId = 1,
-                            AmountPaid = 2580.5m,
+                            AmountPaid = 2747m,
                             InvoiceId = 1,
-                            PaymentDate = new DateTime(2024, 12, 22, 0, 0, 0, 0, DateTimeKind.Local)
+                            PaymentDate = new DateTime(2024, 12, 23, 0, 0, 0, 0, DateTimeKind.Local)
                         },
                         new
                         {
                             PaymentId = 2,
-                            AmountPaid = 8062m,
+                            AmountPaid = 6818.5m,
                             InvoiceId = 2,
-                            PaymentDate = new DateTime(2024, 12, 20, 0, 0, 0, 0, DateTimeKind.Local)
+                            PaymentDate = new DateTime(2024, 12, 23, 0, 0, 0, 0, DateTimeKind.Local)
                         },
                         new
                         {
                             PaymentId = 3,
-                            AmountPaid = 5786.5m,
+                            AmountPaid = 5528.5m,
                             InvoiceId = 3,
-                            PaymentDate = new DateTime(2024, 12, 22, 0, 0, 0, 0, DateTimeKind.Local)
+                            PaymentDate = new DateTime(2024, 12, 21, 0, 0, 0, 0, DateTimeKind.Local)
                         },
                         new
                         {
                             PaymentId = 4,
-                            AmountPaid = 6778.5m,
+                            AmountPaid = 8192m,
                             InvoiceId = 4,
-                            PaymentDate = new DateTime(2024, 12, 20, 0, 0, 0, 0, DateTimeKind.Local)
+                            PaymentDate = new DateTime(2024, 12, 22, 0, 0, 0, 0, DateTimeKind.Local)
                         });
                 });
 
