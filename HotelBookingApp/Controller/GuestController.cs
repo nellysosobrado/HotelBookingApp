@@ -239,7 +239,6 @@ namespace HotelBookingApp.Controllers
             int startDay = (int)firstDayOfMonth.DayOfWeek;
             startDay = (startDay == 0) ? 6 : startDay - 1;
 
-            // Hämta bokade datum specifikt för valt rumstyp
             var bookedDates = _bookingRepository.GetAllBookings()
                 .Where(b => b.Room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase)) 
                 .SelectMany(b => Enumerable.Range(0, 1 + (b.CheckOutDate.Value - b.CheckInDate.Value).Days)

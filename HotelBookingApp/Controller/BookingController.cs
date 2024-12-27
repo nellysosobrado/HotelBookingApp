@@ -154,47 +154,71 @@ namespace HotelBookingApp
 
         public void DisplayGuestOptions()
         {
+            var options = new List<string>
+    {
+        "Display Active Bookings",
+        "Display Booking History",
+        "Display All Registered Guests",
+        "Display History of Removed Bookings",
+        "Main Menu"
+    };
+
+            int selectedIndex = 0;
+
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("SELECT WHAT TO VIEW:");
-                Console.WriteLine(new string('-', 40));
-                Console.WriteLine("1. Active Bookings");
-                Console.WriteLine("2. History of Previous Guests");
-                Console.WriteLine("3. All Registered Guests");
-                Console.WriteLine("4. History of removed bookings");
-                Console.WriteLine("5. Return to Main Menu");
-                Console.WriteLine(new string('-', 40));
 
-                Console.Write("Enter your choice (1-4): ");
-                var choice = Console.ReadLine();
-
-                switch (choice)
+                for (int i = 0; i < options.Count; i++)
                 {
-                    case "1":
-                        Console.Clear();
-                        DisplayActiveBookings();
-                        Console.WriteLine("Enter anywhere to go back");
-                        Console.ReadKey();
+                    if (i == selectedIndex)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green; 
+                        Console.WriteLine($"> {options[i]}");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"  {options[i]}");
+                    }
+                }
+
+                var keyInfo = Console.ReadKey(true);
+
+                switch (keyInfo.Key)
+                {
+                    case ConsoleKey.UpArrow:
+                        selectedIndex = (selectedIndex - 1 + options.Count) % options.Count; 
                         break;
-                    case "2":
-                        DisplayPreviousGuestHistory();
+                    case ConsoleKey.DownArrow:
+                        selectedIndex = (selectedIndex + 1) % options.Count; 
                         break;
-                    case "3":
-                        DisplayAllRegisteredGuests();
-                        break;
-                    case "4":
-                        DisplayCanceledBookings();
-                        break;
-                    case "5":
-                        return;
-                    default:
-                        Console.WriteLine("Invalid choice. Please try again.");
-                        Console.ReadKey();
+                    case ConsoleKey.Enter:
+                        switch (selectedIndex)
+                        {
+                            case 0:
+                                Console.Clear();
+                                DisplayActiveBookings();
+                                Console.WriteLine("Press any key to go back...");
+                                Console.ReadKey(true);
+                                break;
+                            case 1:
+                                DisplayPreviousGuestHistory();
+                                break;
+                            case 2:
+                                DisplayAllRegisteredGuests();
+                                break;
+                            case 3:
+                                DisplayCanceledBookings();
+                                break;
+                            case 4:
+                                return; 
+                        }
                         break;
                 }
             }
         }
+
         private void DisplayActiveBookings()
         {
            
