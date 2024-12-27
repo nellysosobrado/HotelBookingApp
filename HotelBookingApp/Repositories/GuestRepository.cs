@@ -137,28 +137,74 @@ namespace HotelBookingApp.Repositories
             return _appDbContext.Rooms.FirstOrDefault(r => r.RoomId == roomId);
         }
 
+        //public List<Room> GetAvailableRooms(DateTime startDate, DateTime endDate, string roomType)
+        //{
+        //    // Hämta alla rum av rätt typ
+        //    var allRooms = _roomRepository.GetAllRooms()
+        //        .Where(room => room.Type == roomType) // Filtrera efter rumstyp
+        //        .ToList();
+
+        //    // Hämta bokade rum under det valda datumintervallet
+        //    var bookedRooms = _bookingRepository.GetAllBookings()
+        //        .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue)
+        //        .Where(b => b.CheckInDate.Value.Date < endDate && b.CheckOutDate.Value.Date > startDate)
+        //        .Select(b => b.RoomId)
+        //        .Distinct()
+        //        .ToList();
+
+        //    // Filtrera rum som inte är bokade
+        //    var availableRooms = allRooms
+        //        .Where(room => !bookedRooms.Contains(room.RoomId))
+        //        .ToList();
+
+        //    return availableRooms;
+        //}
+
+        //public List<Room> GetAvailableRooms(DateTime startDate, DateTime endDate, string roomType)
+        //{
+        //    // Hämta alla rum för den valda rumstypen
+        //    var allRooms = _roomRepository.GetAllRooms()
+        //        .Where(r => r.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase))
+        //        .ToList();
+
+        //    // Hämta rum som är bokade under den valda perioden
+        //    var bookedRoomIds = _bookingRepository.GetAllBookings()
+        //        .Where(b => b.Room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase)) // Filtrera på rumstyp
+        //        .Where(b => b.CheckInDate <= endDate && b.CheckOutDate >= startDate)
+        //        .Select(b => b.RoomId)
+        //        .ToHashSet();
+
+        //    // Filtrera tillgängliga rum
+        //    var availableRooms = allRooms.Where(r => !bookedRoomIds.Contains(r.RoomId)).ToList();
+
+        //    return availableRooms;
+        //}
         public List<Room> GetAvailableRooms(DateTime startDate, DateTime endDate, string roomType)
         {
-            // Hämta alla rum av rätt typ
+            // Hämta alla rum för den valda rumstypen
             var allRooms = _roomRepository.GetAllRooms()
-                .Where(room => room.Type == roomType) // Filtrera efter rumstyp
+                .Where(r => r.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
-            // Hämta bokade rum under det valda datumintervallet
-            var bookedRooms = _bookingRepository.GetAllBookings()
-                .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue)
-                .Where(b => b.CheckInDate.Value.Date < endDate && b.CheckOutDate.Value.Date > startDate)
+            Console.WriteLine($"All rooms for type '{roomType}': {string.Join(", ", allRooms.Select(r => r.RoomId))}");
+
+            // Hämta rum som är bokade under den valda perioden
+            var bookedRoomIds = _bookingRepository.GetAllBookings()
+                .Where(b => b.Room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase)) // Filtrera på rumstyp
+                .Where(b => b.CheckInDate <= endDate && b.CheckOutDate >= startDate)
                 .Select(b => b.RoomId)
-                .Distinct()
-                .ToList();
+                .ToHashSet();
 
-            // Filtrera rum som inte är bokade
-            var availableRooms = allRooms
-                .Where(room => !bookedRooms.Contains(room.RoomId))
-                .ToList();
+            Console.WriteLine($"Booked room IDs for type '{roomType}': {string.Join(", ", bookedRoomIds)}");
+
+            // Filtrera tillgängliga rum
+            var availableRooms = allRooms.Where(r => !bookedRoomIds.Contains(r.RoomId)).ToList();
+
+            Console.WriteLine($"Available room IDs for type '{roomType}': {string.Join(", ", availableRooms.Select(r => r.RoomId))}");
 
             return availableRooms;
         }
+
 
 
 

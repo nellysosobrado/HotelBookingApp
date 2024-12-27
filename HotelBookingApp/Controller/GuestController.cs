@@ -33,17 +33,25 @@ namespace HotelBookingApp.Controllers
             bool createBooking = AnsiConsole.Confirm("Would you like to create a booking for this guest?");
             if (createBooking)
             {
-                var booking = CollectBookingDetailsWithCalendar(guest);
-                if (booking == null)
+                Booking booking = null;
+
+                // Tillåt användaren att försöka flera gånger
+                while (booking == null)
                 {
-                    AnsiConsole.MarkupLine("[red]Booking has been canceled.[/]");
-                    return;
+                    booking = CollectBookingDetailsWithCalendar(guest);
+                    if (booking == null)
+                    {
+                        bool tryAgain = AnsiConsole.Confirm("No rooms available for the selected dates and room type. Would you like to try again?");
+                        if (!tryAgain)
+                        {
+                            AnsiConsole.MarkupLine("[red]Booking has been canceled.[/]");
+                            return;
+                        }
+                    }
                 }
 
-                // Beräkna det totala beloppet för bokningen
                 decimal totalAmount = _guestRepository.CalculateTotalAmount(booking);
 
-                // Skapa faktura kopplad till bokningen
                 var invoice = new Invoice
                 {
                     BookingId = booking.BookingId,
@@ -52,7 +60,6 @@ namespace HotelBookingApp.Controllers
                     PaymentDeadline = booking.CheckOutDate?.AddDays(7) ?? DateTime.Now.AddDays(7)
                 };
 
-                // Registrera gästen med bokning och faktura
                 _guestRepository.RegisterNewGuestWithBookingAndInvoice(guest, booking, invoice);
 
                 AnsiConsole.MarkupLine("[bold green]Guest has been successfully registered and booked![/]");
@@ -66,6 +73,7 @@ namespace HotelBookingApp.Controllers
 
             Console.ReadKey();
         }
+
 
 
         private Guest CollectGuestInformation()
@@ -157,6 +165,7 @@ namespace HotelBookingApp.Controllers
             };
         }
 
+
         private DateTime SelectDateWithCalendar(string prompt, string roomType)
         {
             DateTime currentDate = DateTime.Now.Date;
@@ -200,29 +209,39 @@ namespace HotelBookingApp.Controllers
             calendarContent.WriteLine("Mon  Tue  Wed  Thu  Fri  Sat  Sun");
             calendarContent.WriteLine("─────────────────────────────────");
 
-            // Hämta första dagen i månaden och antal dagar
             DateTime firstDayOfMonth = new DateTime(selectedDate.Year, selectedDate.Month, 1);
             int daysInMonth = DateTime.DaysInMonth(selectedDate.Year, selectedDate.Month);
             int startDay = (int)firstDayOfMonth.DayOfWeek;
-            startDay = (startDay == 0) ? 6 : startDay - 1; // Söndag som sista dag
+            startDay = (startDay == 0) ? 6 : startDay - 1;
 
-            // Hämta bokade datum för angivet rumstyp
-            var bookedDates = _guestRepository.GetBookedDates(selectedDate.Month, selectedDate.Year, roomType);
+            // Hämta bokningar för det valda rumstypen och skapa en lista med alla bokade datum
+            var bookedDates = _bookingRepository.GetAllBookings()
+                .Where(b => b.Room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase)) // Filtrera på rumstyp
+                .SelectMany(b =>
+                    Enumerable.Range(0, 1 + (b.CheckOutDate.Value - b.CheckInDate.Value).Days)
+                    .Select(offset => b.CheckInDate.Value.AddDays(offset)))
+                .ToHashSet();
 
-            // Fyll i tomma celler före första dagen i månaden
-            for (int i = 0; i < startDay; i++)
+            // Logga bokade datum för felsökning
+            Console.WriteLine($"Booked dates for room type '{roomType}':");
+            foreach (var date in bookedDates)
             {
-                calendarContent.Write("     "); // Skapa utrymme för veckostart
+                Console.WriteLine(date.ToString("yyyy-MM-dd"));
             }
 
-            // Skapa kalender med markerade dagar
+            // Fyll kalendern med rader och färgmarkera bokade datum
+            for (int i = 0; i < startDay; i++)
+            {
+                calendarContent.Write("     ");
+            }
+
             for (int day = 1; day <= daysInMonth; day++)
             {
                 DateTime currentDate = new DateTime(selectedDate.Year, selectedDate.Month, day);
 
                 if (currentDate == selectedDate)
                 {
-                    calendarContent.Write($"[blue]{day,2}[/]   "); // Markera valt datum
+                    calendarContent.Write($"[blue]{day,2}[/]   "); 
                 }
                 else if (bookedDates.Contains(currentDate))
                 {
@@ -237,14 +256,12 @@ namespace HotelBookingApp.Controllers
                     calendarContent.Write($"{day,2}   "); // Tillgängliga datum
                 }
 
-                // Bryt rad för varje vecka (7 dagar)
                 if ((startDay + day) % 7 == 0)
                 {
                     calendarContent.WriteLine();
                 }
             }
 
-            // Skapa och visa kalenderpanelen
             var panel = new Panel(calendarContent.ToString())
             {
                 Border = BoxBorder.Double,
@@ -255,6 +272,8 @@ namespace HotelBookingApp.Controllers
             Console.WriteLine();
             AnsiConsole.MarkupLine("[blue]Use arrow keys to navigate and Enter to select a date. Press Escape to cancel.[/]");
         }
+
+
 
 
 
