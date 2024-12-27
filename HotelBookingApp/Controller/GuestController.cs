@@ -340,8 +340,6 @@ namespace HotelBookingApp.Controllers
                 }
             }
         }
-
-
         private DateTime PromptForDate(string message)
         {
             while (true)
@@ -359,50 +357,135 @@ namespace HotelBookingApp.Controllers
                 Console.WriteLine("Invalid date format. Please use yyyy-MM-dd.");
             }
         }
-
         public void UpdateGuestInformation()
         {
             Console.Clear();
-            Console.WriteLine("UPDATE GUEST DETAILS");
+            AnsiConsole.MarkupLine("[bold cyan]UPDATE GUEST DETAILS[/]");
 
             var guests = _guestRepository.GetAllGuests();
 
             if (!guests.Any())
             {
-                Console.WriteLine("No guests found.");
+                AnsiConsole.MarkupLine("[red]No guests found.[/]");
                 Console.ReadKey(true);
                 return;
             }
 
-            Console.WriteLine("\nSelect a guest to update by ID:");
-            foreach (var guest in guests)
+            var table = new Table();
+            table.AddColumn("[bold yellow]ID[/]");
+            table.AddColumn("[bold yellow]First Name[/]");
+            table.AddColumn("[bold yellow]Last Name[/]");
+            table.AddColumn("[bold yellow]Email[/]");
+            table.AddColumn("[bold yellow]Phone Number[/]");
+
+            void RefreshTable()
             {
-                Console.WriteLine($"ID: {guest.GuestId} | Name: {guest.FirstName} {guest.LastName}");
+                table.Rows.Clear();
+                foreach (var guest in guests)
+                {
+                    table.AddRow(
+                        guest.GuestId.ToString(),
+                        guest.FirstName,
+                        guest.LastName,
+                        guest.Email,
+                        guest.PhoneNumber
+                    );
+                }
+                Console.Clear();
+                AnsiConsole.Write(table);
             }
 
-            var guestId = PromptForInt("Enter Guest ID: ");
-            var selectedGuest = _guestRepository.GetGuestById(guestId);
+            RefreshTable();
 
-            if (selectedGuest == null)
+            int guestId;
+            while (true)
             {
-                Console.WriteLine("Guest not found. Returning to menu...");
-                Console.ReadKey(true);
-                return;
+                Console.Clear();
+                AnsiConsole.Write(table);
+                AnsiConsole.MarkupLine("[bold grey] To go back enter 'back'[/]");
+                var input = AnsiConsole.Ask<string>("[bold green]\nEnter the Guest ID you want to update:[/]");
+                if (input.Trim().ToLower() == "back")
+                {
+                    AnsiConsole.MarkupLine("[yellow]Returning to menu...[/]");
+                    return;
+                }
+
+                if (!int.TryParse(input, out guestId))
+                {
+                    AnsiConsole.MarkupLine("[red]Enter a valid ID. Press any key to try again[/]");
+                    continue;
+                }
+
+                var selectedGuest = _guestRepository.GetGuestById(guestId);
+
+                if (selectedGuest == null)
+                {
+                    AnsiConsole.MarkupLine("[red]Guest not found. Press any key to try again.[/]");
+                    Console.ReadKey();
+                    continue; 
+                }
+
+                while (true)
+                {
+                    var columnToUpdate = AnsiConsole.Prompt(
+                        new SelectionPrompt<string>()
+                            .HighlightStyle(new Style(foreground: Color.Green))
+                            .Title("[bold green]Choose a option:[/]")
+                            .AddChoices("First Name", "Last Name", "Email", "Phone Number", "Back")
+                    );
+
+                    if (columnToUpdate.ToLower() == "back")
+                    {
+                        AnsiConsole.MarkupLine("[yellow]Returning to menu...[/]");
+                        return;
+                    }
+
+                    switch (columnToUpdate)
+                    {
+                        case "First Name":
+                            selectedGuest.FirstName = AnsiConsole.Ask<string>(
+                                $"[bold green]Current First Name:[/] {selectedGuest.FirstName}\nEnter new First Name ");
+                            break;
+                        case "Last Name":
+                            selectedGuest.LastName = AnsiConsole.Ask<string>(
+                                $"[bold green]Current Last Name:[/] {selectedGuest.LastName}\nEnter new Last Name ");
+                            break;
+                        case "Email":
+                            while (true)
+                            {
+                                var email = AnsiConsole.Ask<string>(
+                                    $"[bold green]Current Email:[/] {selectedGuest.Email}\nEnter new Email ");
+                                if (string.IsNullOrWhiteSpace(email) || email.Contains("@"))
+                                {
+                                    selectedGuest.Email = email;
+                                    break;
+                                }
+                                AnsiConsole.MarkupLine("[red]Invalid email format. Please enter a valid email address.[/]");
+                            }
+                            break;
+                        case "Phone Number":
+                            while (true)
+                            {
+                                var phone = AnsiConsole.Ask<string>(
+                                    $"[bold green]Current Phone Number:[/] {selectedGuest.PhoneNumber}\nEnter new Phone Number ");
+                                if (string.IsNullOrWhiteSpace(phone) || phone.All(char.IsDigit))
+                                {
+                                    selectedGuest.PhoneNumber = phone;
+                                    break;
+                                }
+                                AnsiConsole.MarkupLine("[red]Invalid phone number. Please enter only numeric values.[/]");
+                            }
+                            break;
+                    }
+
+                    _guestRepository.UpdateGuest(selectedGuest);
+                    AnsiConsole.MarkupLine("[bold green]\nGuest information has been updated! Press any key to continue[/]");
+                    Console.ReadKey();
+                    RefreshTable();
+                }
             }
-
-            Console.WriteLine("\nLeave fields blank to keep current value.");
-
-            selectedGuest.FirstName = PromptInput($"Current First Name: {selectedGuest.FirstName}\nEnter new First Name: ", selectedGuest.FirstName);
-            selectedGuest.LastName = PromptInput($"Current Last Name: {selectedGuest.LastName}\nEnter new Last Name: ", selectedGuest.LastName);
-            selectedGuest.Email = PromptInput($"Current Email: {selectedGuest.Email}\nEnter new Email: ", selectedGuest.Email);
-            selectedGuest.PhoneNumber = PromptInput($"Current Phone Number: {selectedGuest.PhoneNumber}\nEnter new Phone Number: ", selectedGuest.PhoneNumber);
-
-            _guestRepository.UpdateGuest(selectedGuest);
-
-            Console.WriteLine("\nGuest information updated successfully!");
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey(true);
         }
+
 
         public void ViewAllGuests()
         {
