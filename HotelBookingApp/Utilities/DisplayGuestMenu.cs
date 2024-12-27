@@ -17,7 +17,6 @@ namespace HotelBookingApp.Utilities
 
         public void Menu()
         {
-            Console.WriteLine("You are in DisplayGuestMenu.cs");
             string[] options = {
                 "Display guest information",
                 "Update Guest Information",
@@ -56,8 +55,6 @@ namespace HotelBookingApp.Utilities
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("Guest Management Menu");
-                Console.WriteLine(new string('=', 25));
 
                 for (int i = 0; i < options.Length; i++)
                 {
