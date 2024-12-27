@@ -17,9 +17,6 @@ namespace HotelBookingApp.Controllers
             _bookingRepository = bookingRepository;
         }
 
-
-
-
         public void AddNewRoom()
         {
             Console.Clear();
@@ -162,83 +159,155 @@ namespace HotelBookingApp.Controllers
             _roomRepository.UpdateRoom(room);
         }
 
-
-
         public void ViewAllRooms()
         {
             Console.Clear();
-            AnsiConsole.Markup("[bold yellow]Rooms[/]\n");
+            AnsiConsole.MarkupLine("[bold yellow]View Rooms and Availability[/]\n");
 
-            // Hämta alla rum med deras bokningar
-            var rooms = _roomRepository.GetRoomsWithBookings();
+            string roomType = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[yellow]Select room type to view:[/]")
+                    .AddChoices("Single", "Double"));
+
+            var rooms = _roomRepository.GetRoomsWithBookings()
+                .Where(r => r.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
             if (!rooms.Any())
             {
-                AnsiConsole.Markup("[red]No rooms found.[/]\n");
+                AnsiConsole.MarkupLine("[red]No rooms found for the selected type.[/]");
                 return;
             }
 
-            // Gruppera rum baserat på rumstyp
-            var groupedRooms = rooms.GroupBy(r => r.Type).ToList();
+            AnsiConsole.MarkupLine($"[bold green]{roomType} Rooms[/]\n");
 
-            foreach (var roomGroup in groupedRooms)
+            var table = new Table();
+            table.Border(TableBorder.Rounded);
+            table.AddColumn("[bold yellow]Room ID[/]");
+            table.AddColumn("[bold yellow]Size (sqm)[/]");
+            table.AddColumn("[bold yellow]Price Per Night[/]");
+            table.AddColumn("[bold yellow]Booking Status[/]");
+            table.AddColumn("[bold yellow]Start Date[/]");
+            table.AddColumn("[bold yellow]End Date[/]");
+
+            foreach (var room in rooms)
             {
-                AnsiConsole.MarkupLine($"\n[bold green]Room Type: {roomGroup.Key}[/]");
+                var activeBookings = room.Bookings.Where(b => !b.IsCheckedOut).ToList();
 
-                var table = new Table();
-                table.Border(TableBorder.Rounded);
-                table.AddColumn("[bold yellow]Room ID[/]");
-                table.AddColumn("[bold yellow]Size (sqm)[/]");
-                table.AddColumn("[bold yellow]Price Per Night[/]");
-                table.AddColumn("[bold yellow]Booking Status[/]");
-                table.AddColumn("[bold yellow]Start Date[/]");
-                table.AddColumn("[bold yellow]End Date[/]");
-
-                foreach (var room in roomGroup)
+                if (activeBookings.Any())
                 {
-                    // Hämta bokningar för detta rum
-                    var activeBookings = room.Bookings.Where(b => !b.IsCheckedOut).ToList();
-
-                    if (activeBookings.Any())
+                    foreach (var booking in activeBookings)
                     {
-                        foreach (var booking in activeBookings)
-                        {
-                            string bookingStatus = booking.IsCheckedIn ? "[green]Checked In[/]" : "[blue]Not Checked In[/]";
-                            string guestName = $"{booking.Guest.FirstName} {booking.Guest.LastName}";
-                            string startDate = booking.CheckInDate.HasValue ? booking.CheckInDate.Value.ToString("yyyy-MM-dd") : "[grey]Not Set[/]";
-                            string endDate = booking.CheckOutDate.HasValue ? booking.CheckOutDate.Value.ToString("yyyy-MM-dd") : "[grey]Not Set[/]";
+                        string bookingStatus = booking.IsCheckedIn ? "[green]Checked In[/]" : "[blue]Not Checked In[/]";
+                        string startDate = booking.CheckInDate.HasValue ? booking.CheckInDate.Value.ToString("yyyy-MM-dd") : "[grey]Not Set[/]";
+                        string endDate = booking.CheckOutDate.HasValue ? booking.CheckOutDate.Value.ToString("yyyy-MM-dd") : "[grey]Not Set[/]";
 
-                            table.AddRow(
-                                room.RoomId.ToString(),
-                                $"{room.SizeInSquareMeters} sqm",
-                                $"{room.PricePerNight:C}",
-                                bookingStatus,
-                                startDate,
-                                endDate
-                            );
-                        }
-                    }
-                    else
-                    {
-                        // Om inget är bokat, visa som ledigt
                         table.AddRow(
                             room.RoomId.ToString(),
                             $"{room.SizeInSquareMeters} sqm",
                             $"{room.PricePerNight:C}",
-                            "[green]Available[/]",
-                            "[grey]N/A[/]",
-                            "[grey]N/A[/]"
+                            bookingStatus,
+                            startDate,
+                            endDate
                         );
                     }
                 }
-
-                AnsiConsole.Write(table);
+                else
+                {
+                    table.AddRow(
+                        room.RoomId.ToString(),
+                        $"{room.SizeInSquareMeters} sqm",
+                        $"{room.PricePerNight:C}",
+                        "[green]Available[/]",
+                        "[grey]N/A[/]",
+                        "[grey]N/A[/]"
+                    );
+                }
             }
 
-            AnsiConsole.Markup("\n[bold yellow]Press any key to return...[/]");
-            Console.ReadKey();
+            AnsiConsole.Write(table);
+
+            AnsiConsole.MarkupLine($"\n[bold green]Availability Calendar for {roomType} Rooms[/]\n");
+            DateTime selectedDate = DateTime.Now.Date;
+            while (true)
+            {
+                Console.Clear();
+                AnsiConsole.MarkupLine($"[bold green]{roomType} Rooms[/]\n");
+                AnsiConsole.Write(table);
+                RenderCalendarForAvailability(selectedDate, roomType);
+
+                var key = Console.ReadKey(true).Key;
+                switch (key)
+                {
+                    case ConsoleKey.RightArrow:
+                        selectedDate = selectedDate.AddMonths(1);
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        selectedDate = selectedDate.AddMonths(-1);
+                        break;
+                    case ConsoleKey.Escape:
+                        return;
+                    case ConsoleKey.Enter:
+                        Console.Clear();
+                        return;
+                }
+            }
         }
 
+        private void RenderCalendarForAvailability(DateTime selectedDate, string roomType)
+        {
+            var calendarContent = new StringWriter();
+            calendarContent.WriteLine($"[bold yellow]{selectedDate:MMMM yyyy}[/]".ToUpper());
+            calendarContent.WriteLine("Mon  Tue  Wed  Thu  Fri  Sat  Sun");
+            calendarContent.WriteLine("─────────────────────────────────");
+
+            DateTime firstDayOfMonth = new DateTime(selectedDate.Year, selectedDate.Month, 1);
+            int daysInMonth = DateTime.DaysInMonth(selectedDate.Year, selectedDate.Month);
+            int startDay = (int)firstDayOfMonth.DayOfWeek;
+            startDay = (startDay == 0) ? 6 : startDay - 1;
+
+            var bookedDates = _bookingRepository.GetAllBookings()
+                .Where(b => b.Room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase))
+                .SelectMany(b => Enumerable.Range(0, 1 + (b.CheckOutDate.Value - b.CheckInDate.Value).Days)
+                                            .Select(offset => b.CheckInDate.Value.AddDays(offset)))
+                .ToHashSet();
+
+            for (int i = 0; i < startDay; i++)
+            {
+                calendarContent.Write("     ");
+            }
+
+            for (int day = 1; day <= daysInMonth; day++)
+            {
+                DateTime currentDate = new DateTime(selectedDate.Year, selectedDate.Month, day);
+
+                if (bookedDates.Contains(currentDate))
+                {
+                    calendarContent.Write($"[red]{day,2}[/]   ");
+                }
+                else if (currentDate < DateTime.Now.Date)
+                {
+                    calendarContent.Write($"[grey]{day,2}[/]   ");
+                }
+                else
+                {
+                    calendarContent.Write($"[green]{day,2}[/]   ");
+                }
+
+                if ((startDay + day) % 7 == 0)
+                {
+                    calendarContent.WriteLine();
+                }
+            }
+
+            var panel = new Panel(calendarContent.ToString())
+            {
+                Border = BoxBorder.Double,
+                Header = new PanelHeader($"[yellow]{selectedDate:yyyy}[/]", Justify.Center)
+            };
+
+            AnsiConsole.Write(panel);
+        }
 
 
         public void DeleteRoom() 
@@ -274,30 +343,5 @@ namespace HotelBookingApp.Controllers
             }
         }
 
-        private decimal GetValidDecimal(string prompt, string errorMessage)
-        {
-            while (true)
-            {
-                Console.Write($"{prompt}: ");
-                if (decimal.TryParse(Console.ReadLine(), out var value) && value > 0)
-                    return value;
-
-                AnsiConsole.Markup($"[red]{errorMessage}[/]\n");
-            }
-        }
-
-        private int GetValidInt(string prompt, string errorMessage, int? minValue = null, int? maxValue = null)
-        {
-            while (true)
-            {
-                Console.Write($"{prompt}: ");
-                if (int.TryParse(Console.ReadLine(), out var value) &&
-                    (!minValue.HasValue || value >= minValue.Value) &&
-                    (!maxValue.HasValue || value <= maxValue.Value))
-                    return value;
-
-                AnsiConsole.Markup($"[red]{errorMessage}[/]\n");
-            }
-        }
     }
 }
