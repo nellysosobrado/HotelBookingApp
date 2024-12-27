@@ -21,6 +21,14 @@ namespace HotelBookingApp.Controllers
         public void RegisterNewGuest()
         {
             Console.Clear();
+
+            bool proceed = AnsiConsole.Confirm("[bold yellow]Do you want to register a new guest?[/]");
+            if (!proceed)
+            {
+                AnsiConsole.MarkupLine("[red]Guest registration canceled. Returning to the main menu.[/]");
+                return;
+            }
+
             AnsiConsole.MarkupLine("[bold green]Register New Guest[/]\n");
 
             var guest = CollectGuestInformation();
@@ -72,6 +80,7 @@ namespace HotelBookingApp.Controllers
 
             Console.ReadKey();
         }
+
 
 
 
