@@ -18,6 +18,70 @@ namespace HotelBookingApp.Repositories
             _roomRepository = roomRepository;
             _bookingRepository = bookingRepository;
         }
+        public void RegisterNewGuestWithBookingAndInvoice(Guest guest, Booking booking, Invoice invoice)
+        {
+            _appDbContext.Guests.Add(guest);
+            _appDbContext.SaveChanges();
+
+            booking.GuestId = guest.GuestId;
+            _appDbContext.Bookings.Add(booking);
+            _appDbContext.SaveChanges();
+
+            invoice.BookingId = booking.BookingId;
+            _appDbContext.Invoices.Add(invoice);
+            _appDbContext.SaveChanges();
+        }
+
+
+        public HashSet<DateTime> GetBookedDates(int month, int year, string roomType)
+        {
+            var bookings = _appDbContext.Bookings
+                .Include(b => b.Room)
+                .Where(b => b.Room.Type == roomType &&
+                            b.CheckInDate.HasValue && b.CheckOutDate.HasValue &&
+                            b.CheckInDate.Value.Month == month &&
+                            b.CheckInDate.Value.Year == year)
+                .ToList();
+
+            HashSet<DateTime> bookedDates = new HashSet<DateTime>();
+            foreach (var booking in bookings)
+            {
+                for (DateTime date = booking.CheckInDate.Value; date <= booking.CheckOutDate.Value; date = date.AddDays(1))
+                {
+                    bookedDates.Add(date);
+                }
+            }
+
+            return bookedDates;
+        }
+
+
+        public void AddGuest(Guest guest)
+        {
+            _appDbContext.Guests.Add(guest);
+            _appDbContext.SaveChanges();
+        }
+
+        //public List<Room> GetAvailableRooms(DateTime startDate, DateTime endDate, int guestCount)
+        //{
+        //    return _appDbContext.Rooms
+        //        .Where(room => room.TotalPeople >= guestCount &&
+        //                       !_appDbContext.Bookings.Any(b => b.RoomId == room.RoomId &&
+        //                                                       b.CheckInDate < endDate &&
+        //                                                       b.CheckOutDate > startDate))
+        //        .ToList();
+        //}
+
+        public void RegisterNewGuestWithBooking(Guest guest, Booking booking)
+        {
+            _appDbContext.Guests.Add(guest);
+            _appDbContext.SaveChanges();
+
+            booking.GuestId = guest.GuestId;
+            _appDbContext.Bookings.Add(booking);
+            _appDbContext.SaveChanges();
+        }
+    
 
         public List<Guest> GetAllGuests()
         {
@@ -29,11 +93,11 @@ namespace HotelBookingApp.Repositories
             return _appDbContext.Guests.FirstOrDefault(g => g.GuestId == guestId);
         }
 
-        public void AddGuest(Guest guest)
-        {
-            _appDbContext.Guests.Add(guest);
-            _appDbContext.SaveChanges();
-        }
+        //public void AddGuest(Guest guest)
+        //{
+        //    _appDbContext.Guests.Add(guest);
+        //    _appDbContext.SaveChanges();
+        //}
 
         public void UpdateGuest(Guest guest)
         {
@@ -73,29 +137,29 @@ namespace HotelBookingApp.Repositories
             return _appDbContext.Rooms.FirstOrDefault(r => r.RoomId == roomId);
         }
 
-        public List<Room> GetAvailableRooms(DateTime startDate, DateTime endDate, int guestCount)
+        public List<Room> GetAvailableRooms(DateTime startDate, DateTime endDate, string roomType)
         {
-            // Hämta alla rum
-            var allRooms = _roomRepository.GetAllRooms();
+            // Hämta alla rum av rätt typ
+            var allRooms = _roomRepository.GetAllRooms()
+                .Where(room => room.Type == roomType) // Filtrera efter rumstyp
+                .ToList();
 
+            // Hämta bokade rum under det valda datumintervallet
             var bookedRooms = _bookingRepository.GetAllBookings()
                 .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue)
-                .Where(b =>
-                    (b.CheckInDate.Value.Date < endDate && b.CheckOutDate.Value.Date >= startDate)) 
-                .Select(b => b.RoomId)  
-                .ToList();
-
-            var availableAfterCheckoutRooms = _bookingRepository.GetAllBookings()
-                .Where(b => b.CheckOutDate.HasValue && b.CheckOutDate.Value.Date < startDate)
+                .Where(b => b.CheckInDate.Value.Date < endDate && b.CheckOutDate.Value.Date > startDate)
                 .Select(b => b.RoomId)
+                .Distinct()
                 .ToList();
 
-            var availableRooms = allRooms.Where(room =>
-                !bookedRooms.Contains(room.RoomId) || availableAfterCheckoutRooms.Contains(room.RoomId) 
-                && room.TotalPeople >= guestCount).ToList();
+            // Filtrera rum som inte är bokade
+            var availableRooms = allRooms
+                .Where(room => !bookedRooms.Contains(room.RoomId))
+                .ToList();
 
             return availableRooms;
         }
+
 
 
 
