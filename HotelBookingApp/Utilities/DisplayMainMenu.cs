@@ -35,71 +35,95 @@ namespace HotelBookingApp.Utilities
             {
                 Console.Clear();
 
-                AnsiConsole.Write(
-                    new FigletText("HOTEL BOOKING APP")
-                        .Centered()
-                        .Color(Color.Yellow));
+                var choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("[bold yellow] Hotel Booking Application[/]")
+                        .PageSize(10)
+                        .HighlightStyle(new Style(Color.Green, decoration: Decoration.Bold))
+                        .AddChoices(
+                            "Register New Guest",
+                            "Check in/Check out Guest",
+                            "Payment",
+                            "Display Guests",
+                            "Display Rooms",
+                            "Settings",
+                            "Exit")
+                );
 
-                AnsiConsole.Write(
-                    new Markup("[bold cyan]Welcome to the Hotel Booking App![/]")
-                        .Centered());
+                switch (choice)
+                {
+                    case "Register New Guest":
+                        _guestController.RegisterNewGuest();
+                        break;
 
-                AnsiConsole.Write(new Rule("[bold yellow]MAIN MENU[/]").Centered());
+                    case "Check in/Check out Guest":
+                        _bookingController.CheckInOrCheckOut();
+                        break;
+
+                    case "Payment":
+                        _bookingController.PayInvoiceBeforeCheckout();
+                        break;
+
+                    case "Display Guests":
+                        _bookingController.DisplayAllGuestInfo();
+                        break;
+
+                    case "Display Rooms":
+                        _roomController.ViewAllRooms();
+                        break;
+
+                    case "Settings":
+                        Settings();
+                        break;
+
+                    case "Exit":
+                        AnsiConsole.MarkupLine("[bold green]Thank you for using the Hotel Booking App. Goodbye![/]");
+                        return;
+
+                    default:
+                        AnsiConsole.MarkupLine("[bold red]Invalid choice. Please try again.[/]");
+                        break;
+                }
+            }
+        }
+
+        public void Settings()
+        {
+            while (true)
+            {
+                Console.Clear();
 
                 var choice = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
-                        .Title("[bold blue]Select an option:[/]")
-                        .PageSize(10)
+                        .Title("[bold yellow]Select a setting to modify:[/]")
+                        .PageSize(5)
+                        .HighlightStyle(new Style(Color.Green, decoration: Decoration.Bold))
                         .AddChoices(
-                            "1. Register New Guest",
-                            "2. Check in/Check out guest",
-                            "3. Pay Invoice Before Checkout",
-                            "4. Display Guests",
-                            "5. Display Rooms",
-                            "6. Modify Rooms",
-                            "7. Modify Bookings",
-                            "8. Modify Guest",
-                            "9. Exit"
+                            "Modify Rooms",
+                            "Modify Bookings",
+                            "Modify Guest",
+                            "Back to Main Menu"
                         ));
 
                 switch (choice)
                 {
-                    case "1. Register New Guest":
-                        _guestController.RegisterNewGuest();
-                        break;
-
-                    case "2. Check in/Check out guest":
-                        _bookingController.CheckInOrCheckOut();
-                        break;
-                    case "3. Pay Invoice Before Checkout":
-                        _bookingController.PayInvoiceBeforeCheckout();
-                        break;
-                    case "4. Display Guests":
-                        _bookingController.DisplayAllGuestInfo();
-                        break;
-
-                    case "5. Display Rooms":
-                        _roomController.ViewAllRooms();
-                        break;
-
-                    case "6. Modify Rooms":
+                    case "Modify Rooms":
                         _displayRoomMenu.Menu();
                         break;
 
-                    case "7. Modify Bookings":
+                    case "Modify Bookings":
                         _displayBookingMenu.Menu();
                         break;
 
-                    case "8. Modify Guest":
+                    case "Modify Guest":
                         _displayGuestMenu.Menu();
                         break;
 
-                    case "9. Exit":
-                        AnsiConsole.Markup("[bold green]Exiting program...[/]\n");
+                    case "Back to Main Menu":
                         return;
 
                     default:
-                        AnsiConsole.Markup("[bold red]Invalid choice. Please try again.[/]\n");
+                        AnsiConsole.MarkupLine("[bold red]Invalid choice. Please try again.[/]");
                         break;
                 }
             }
