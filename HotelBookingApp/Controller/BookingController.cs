@@ -1601,7 +1601,7 @@ namespace HotelBookingApp
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("[bold green]What would you like to do?[/]")
-                        .AddChoices(new[] { "Check In/Check Out", "Check Out", "Register New Booking", "Edit Booking", "Delete Booking", "Go Back" })
+                        .AddChoices(new[] { "Check In/Check Out", "Register New Booking", "Edit Booking", "Delete Booking", "Go Back" })
                         .HighlightStyle(new Style(foreground: Color.Green))
                 );
 
@@ -1609,9 +1609,6 @@ namespace HotelBookingApp
                 {
                     case "Check In/Check Out":
                         CheckInOrCheckOut();
-                        break;
-                    case "Check Out":
-                        CheckOut();
                         break;
                     case "Register New Booking":
                         _guestController.RegisterNewGuest();
