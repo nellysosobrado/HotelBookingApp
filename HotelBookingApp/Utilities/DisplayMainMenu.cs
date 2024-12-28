@@ -46,6 +46,7 @@ namespace HotelBookingApp.Utilities
                             "Payment",
                             "Display Guests",
                             "Display Rooms",
+                            "Display Bookings",
                             "Settings",
                             "Exit")
                 );
@@ -70,6 +71,10 @@ namespace HotelBookingApp.Utilities
 
                     case "Display Rooms":
                         _roomController.ViewAllRooms();
+                        break;
+                    case "Display Bookings":
+                        Console.WriteLine("test");
+                        Console.ReadKey();
                         break;
 
                     case "Settings":
