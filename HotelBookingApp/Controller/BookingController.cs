@@ -160,7 +160,9 @@ namespace HotelBookingApp
 
         public void DisplayAllGuestInfo()
         {
+            
             DisplayGuestOptions();
+   
         }
 
         public void DisplayGuestOptions()
@@ -172,7 +174,7 @@ namespace HotelBookingApp
         "Display Booking History",
         "Display All Registered Guests",
         "Display History of Removed Bookings",
-        "Main Menu"
+        "Go back"
     };
 
             int selectedIndex = 0;
@@ -397,17 +399,15 @@ namespace HotelBookingApp
                 AnsiConsole.Write(table);
             }
 
-            Console.WriteLine("\nPress any key to return...");
-            Console.ReadKey();
         }
         public void EditBooking()
         {
             Console.Clear();
-            AnsiConsole.Markup("[bold yellow]=== EDIT BOOKING ===[/]\n");
+            AnsiConsole.Markup("[bold yellow]Overview of all existing bookings[/]\n");
 
             DisplayActiveBookings();
 
-            Console.Write("Enter [green]Booking ID[/] to edit: ");
+            AnsiConsole.Markup("Enter a [green]Booking ID[/] you wish to edit:\n");
             if (!int.TryParse(Console.ReadLine(), out int bookingId))
             {
                 AnsiConsole.Markup("[red]Invalid Booking ID. Press any key to return...[/]\n");
@@ -456,17 +456,16 @@ namespace HotelBookingApp
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("[bold green]What would you like to edit?[/]")
-                        .AddChoices(new[] { "Guest Information", "Room Information", "Check-In Date", "Check-Out Date", "Finish Editing", "Go Back" })
+                        .AddChoices(new[] { "Edit Guest Information", "Edit Room Information", "Edit Check-In Date", "Edit Check-Out Date", "Confirm Edit", "Cancel" })
                         .HighlightStyle(new Style(foreground: Color.Green))
                 );
 
                 switch (action)
                 {
-                    case "Guest Information":
+                    case "Edit Guest Information":
                         while (true)
                         {
                             Console.Clear();
-                            AnsiConsole.Markup("[bold yellow]=== EDIT GUEST INFORMATION ===[/]\n");
 
                             var guestInfoTable = new Table()
                                 .Border(TableBorder.Rounded)
@@ -481,7 +480,7 @@ namespace HotelBookingApp
                             var guestAction = AnsiConsole.Prompt(
                                 new SelectionPrompt<string>()
                                     .Title("[bold green]Which detail would you like to edit?[/]")
-                                    .AddChoices(new[] { "First Name", "Last Name", "Email", "Phone Number", "Finish Editing Guest", "Go Back" })
+                                    .AddChoices(new[] { "First Name", "Last Name", "Email", "Phone Number", "Confirm Edit", "Cancel" })
                                     .HighlightStyle(new Style(foreground: Color.Green))
                             );
 
@@ -506,7 +505,7 @@ namespace HotelBookingApp
                                     booking.Guest.PhoneNumber = AnsiConsole.Ask<string>("Enter [green]new Phone Number[/]:");
                                     break;
 
-                                case "Finish Editing Guest":
+                                case "Confirm Edit":
                                     try
                                     {
                                         _bookingRepository.UpdateGuest(booking.Guest); 
@@ -529,7 +528,7 @@ namespace HotelBookingApp
                             }
                         }
                         break;
-                    case "Check-In Date":
+                    case "Edit Check-In Date":
                         DateTime newCheckInDate = AnsiConsole.Ask<DateTime>("Enter [green]new Check-In Date (yyyy-MM-dd)[/]:");
 
                         if (newCheckInDate < DateTime.Now.Date)
@@ -559,7 +558,7 @@ namespace HotelBookingApp
                         }
                         break;
 
-                    case "Check-Out Date":
+                    case "Edit Check-Out Date":
                         DateTime newCheckOutDate = AnsiConsole.Ask<DateTime>("Enter [green]new Check-Out Date (yyyy-MM-dd)[/]:");
 
                         if (newCheckOutDate <= booking.CheckInDate)
@@ -584,7 +583,7 @@ namespace HotelBookingApp
                         }
                         break;
 
-                    case "Room Information":
+                    case "Edit Room Information":
                         var roomToEdit = _roomRepository.GetRoomById(booking.RoomId);
                         if (roomToEdit == null)
                         {
@@ -600,7 +599,7 @@ namespace HotelBookingApp
                         break;
 
 
-                    case "Finish Editing":
+                    case "Confirm Edit":
                         try
                         {
                             _bookingRepository.UpdateBooking(booking); 
@@ -614,7 +613,7 @@ namespace HotelBookingApp
                         Console.ReadKey();
                         return;
 
-                    case "Go Back":
+                    case "Cancel":
                         return;
 
                     default:
@@ -1030,15 +1029,14 @@ namespace HotelBookingApp
                     return;
                 }
 
-                // Visa lista över bokningar med piltangenter
                 var bookingChoices = notCheckedInBookings
                     .Select(b => $"{b.BookingId}: {b.Guest.FirstName} {b.Guest.LastName} (Room ID: {b.RoomId}, Check-In: {b.CheckInDate:yyyy-MM-dd})")
                     .ToList();
-                bookingChoices.Add("Back"); // Alternativ för att gå tillbaka
+                bookingChoices.Add("Back"); 
 
                 var selectedBooking = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
-                        .Title("[bold yellow]Select a booking to cancel:[/]")
+                        .Title("[bold yellow] Select a booking to cancel:[/]")
                         .AddChoices(bookingChoices)
                         .HighlightStyle(new Style(foreground: Color.Green))
                 );

@@ -38,7 +38,7 @@ namespace HotelBookingApp.Controllers
                 return;
             }
 
-            bool createBooking = AnsiConsole.Confirm("Would you like to create a booking for this guest?");
+            bool createBooking = AnsiConsole.Confirm("Would you like to continue to create a booking for this guest or cancel registration?");
             if (createBooking)
             {
                 Booking booking = null;
@@ -80,6 +80,9 @@ namespace HotelBookingApp.Controllers
 
             Console.ReadKey();
         }
+
+
+
 
 
 
@@ -143,18 +146,28 @@ namespace HotelBookingApp.Controllers
             }
 
             AnsiConsole.MarkupLine("\n[bold green]Available Rooms:[/]");
+
             var table = new Table()
                 .Border(TableBorder.Rounded)
                 .AddColumn("[blue]Room ID[/]")
                 .AddColumn("[blue]Room Type[/]")
-                .AddColumn("[blue]Price per Night[/]");
+                .AddColumn("[blue]Price per Night[/]")
+                .AddColumn("[blue]Size (sqm)[/]")
+                .AddColumn("[blue]Max People[/]");
 
             foreach (var room in availableRooms)
             {
-                table.AddRow(room.RoomId.ToString(), room.Type, room.PricePerNight.ToString("C"));
+                table.AddRow(
+                    room.RoomId.ToString(),
+                    room.Type,
+                    room.PricePerNight.ToString("C"),
+                    room.SizeInSquareMeters.ToString(),
+                    room.TotalPeople.ToString()
+                );
             }
 
             AnsiConsole.Write(table);
+
             int roomId = AnsiConsole.Prompt(
                 new TextPrompt<int>("[yellow]Enter Room ID to book:[/]")
                     .ValidationErrorMessage("[red]Invalid Room ID![/]")

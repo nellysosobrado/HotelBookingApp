@@ -43,7 +43,7 @@ namespace HotelBookingApp.Utilities
                         .AddChoices(
                             "Register New Guest",
                             "Check in/Check out Guest",
-                            //"Payment",
+                            "Edit Guest information",
                             "Guests",
                             "Rooms",
                             "Bookings",
@@ -61,9 +61,9 @@ namespace HotelBookingApp.Utilities
                         _bookingController.CheckInOrCheckOut();
                         break;
 
-                    //case "Payment":
-                    //    _bookingController.PayInvoiceBeforeCheckout();
-                    //    break;
+                    case "Edit Guest information":
+                        _bookingController.EditBooking();
+                        break;
 
                     case "Guests":
                          _bookingController.DisplayAllGuestInfo();
