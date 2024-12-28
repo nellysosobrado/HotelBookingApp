@@ -7,11 +7,8 @@ using System.Threading.Tasks;
 
 namespace HotelBookingApp.Entities
 {
-    /// <summary>
-    /// Creates a 'Room' class. This will be read from the Entitiyframeworkcore and transforms it into a table inside the databas, along with the properties witch wil be the attriburtes in the database tab le 'room'
-    /// 
-    /// </summary>
-    public class Room//table
+
+    public class Room
     {
         [Key]
         public int RoomId { get; set; }
@@ -32,6 +29,7 @@ namespace HotelBookingApp.Entities
         public int SizeInSquareMeters { get; set; }
 
         public ICollection<Booking> Bookings { get; set; }
+        public bool IsDeleted { get; set; } 
 
     }
 }

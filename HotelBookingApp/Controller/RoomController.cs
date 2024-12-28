@@ -9,77 +9,34 @@ namespace HotelBookingApp.Controllers
     public class RoomController
     {
         private readonly RoomRepository _roomRepository;
-        private readonly BookingRepository _bookingRepository;
 
-        public RoomController(RoomRepository roomRepository, BookingRepository bookingRepository)
+        public RoomController(RoomRepository roomRepository)
         {
             _roomRepository = roomRepository;
-            _bookingRepository = bookingRepository;
         }
 
         public void AddNewRoom()
         {
             Console.Clear();
-            AnsiConsole.Write(new Panel("[bold yellow]REGISTER NEW ROOM[/]").Expand());
+
+            DisplayAllRooms();
 
             string roomType = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("Select [green]Room Type[/]:")
-                    .AddChoices("Single", "Double"));
+                    .AddChoices("Single", "Double")
+                    .HighlightStyle(new Style(foreground: Color.Green))
+                    );
 
-            decimal price;
-            while (true)
-            {
-                try
-                {
-                    price = AnsiConsole.Ask<decimal>("Enter [green]Price Per Night[/]:");
-                    if (price <= 0)
-                        throw new ArgumentException("[red]Price must be greater than 0.[/]");
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
-                }
-            }
+            decimal price = AnsiConsole.Ask<decimal>("Enter [green]Price Per Night[/]:");
 
-            int size;
-            while (true)
-            {
-                try
-                {
-                    size = AnsiConsole.Ask<int>("Enter [green]Size in Square Meters[/]:");
-                    if (size <= 0)
-                        throw new ArgumentException("[red]Size must be greater than 0.[/]");
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
-                }
-            }
+            int size = AnsiConsole.Ask<int>("Enter [green]Size in Square Meters[/]:");
 
-            int extraBeds = 0;
-            int maxPeople = roomType == "Double" ? 2 : 1;
+            int extraBeds = roomType == "Double"
+                ? AnsiConsole.Ask<int>("Enter [green]Number of Extra Beds (0-2)[/]:", 0)
+                : 0;
 
-            if (roomType == "Double")
-            {
-                while (true)
-                {
-                    try
-                    {
-                        extraBeds = AnsiConsole.Ask<int>("Enter [green]Number of Extra Beds[/] (0-2):");
-                        if (extraBeds < 0 || extraBeds > 2)
-                            throw new ArgumentException("[red]Extra beds must be between 0 and 2.[/]");
-                        maxPeople += extraBeds;
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
-                    }
-                }
-            }
+            int maxPeople = (roomType == "Double" ? 2 : 1) + extraBeds;
 
             var newRoom = new Room
             {
@@ -91,270 +48,443 @@ namespace HotelBookingApp.Controllers
                 TotalPeople = maxPeople
             };
 
-            var validator = new RoomValidator();
-            var validationResult = validator.Validate(newRoom);
+            var result = _roomRepository.AddRoom(newRoom);
 
-            if (!validationResult.IsValid)
+            if (result.IsSuccess)
             {
-                AnsiConsole.Write(
-                    new Panel("[bold red]Validation errors:[/]").Expand());
-                foreach (var error in validationResult.Errors)
+                AnsiConsole.Markup("[green]New room has been added successfully![/]\n");
+            }
+            else
+            {
+                AnsiConsole.Markup("[red]Validation Errors:[/]\n");
+                foreach (var error in result.Errors)
                 {
-                    AnsiConsole.MarkupLine($"[red]- {error.ErrorMessage}[/]");
+                    AnsiConsole.Markup($"[red]- {error}[/]\n");
                 }
-                return;
             }
 
-            _roomRepository.AddRoom(newRoom);
-
-            var table = new Table()
-                .Border(TableBorder.Rounded)
-                .AddColumn("[green]Property[/]")
-                .AddColumn("[cyan]Value[/]")
-                .AddRow("Room Type", roomType)
-                .AddRow("Price Per Night", price.ToString("C"))
-                .AddRow("Size in Square Meters", size.ToString())
-                .AddRow("Extra Beds", extraBeds.ToString())
-                .AddRow("Max People Allowed", maxPeople.ToString());
-
-            AnsiConsole.Write(new Panel(table).Header("[green]Room Added Successfully![/]"));
-
-            Console.WriteLine("\nPress any key to return to the menu...");
+            Console.WriteLine("\nPress any key to return...");
             Console.ReadKey();
         }
+
+
         public void EditRoom()
         {
             Console.Clear();
-            AnsiConsole.Markup("[bold yellow]=== EDIT ROOM ===[/]\n");
+            DisplayAllRooms();
 
-            Console.Write("Enter Room ID: ");
-            if (!int.TryParse(Console.ReadLine(), out var roomId))
-            {
-                AnsiConsole.Markup("[red]Invalid Room ID.[/]\n");
-                return;
-            }
+            int roomId = AnsiConsole.Ask<int>("Enter [green]Room ID[/]:");
+            var originalRoom = _roomRepository.GetRoomById(roomId);
 
-            var room = _roomRepository.GetRoomById(roomId);
-            if (room == null)
+            if (originalRoom == null)
             {
                 AnsiConsole.Markup("[red]Room not found.[/]\n");
+                Console.WriteLine("\nPress any key to return...");
+                Console.ReadKey();
                 return;
             }
 
-            AnsiConsole.Markup("[bold]Leave blank to keep current value.[/]\n");
-
-            Console.Write($"Current Type: {room.Type}\nEnter new Type: ");
-            var newType = Console.ReadLine()?.Trim();
-            if (!string.IsNullOrWhiteSpace(newType))
-                room.Type = newType;
-
-            Console.Write($"Current Price: {room.PricePerNight}\nEnter new Price: ");
-            if (decimal.TryParse(Console.ReadLine(), out var price))
-                room.PricePerNight = price;
-
-            Console.Write($"Current Size: {room.SizeInSquareMeters}\nEnter new Size: ");
-            if (int.TryParse(Console.ReadLine(), out var size))
-                room.SizeInSquareMeters = size;
-
-            _roomRepository.UpdateRoom(room);
-        }
-
-        public void ViewAllRooms()
-        {
-            Console.Clear();
-            AnsiConsole.MarkupLine("[bold yellow]View Rooms and Availability[/]\n");
-
-            // Lägg till alternativet "Go Back" i menyn
-            string roomType = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("[yellow]Select room type to view:[/]")
-                    .AddChoices("Single", "Double", "Go Back"));
-
-            // Om användaren väljer "Go Back", avslutas metoden
-            if (roomType.Equals("Go Back", StringComparison.OrdinalIgnoreCase))
+            var tempRoom = new Room
             {
-                Console.Clear();
-                return;
-            }
-
-            var rooms = _roomRepository.GetRoomsWithBookings()
-                .Where(r => r.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-
-            if (!rooms.Any())
-            {
-                AnsiConsole.MarkupLine("[red]No rooms found for the selected type.[/]");
-                AnsiConsole.MarkupLine("[bold green]Press any key to go back to the main menu.[/]");
-                Console.ReadKey(true);
-                return;
-            }
-
-            AnsiConsole.MarkupLine($"[bold green]{roomType} Rooms[/]\n");
-
-            var table = new Table();
-            table.Border(TableBorder.Rounded);
-            table.AddColumn("[bold yellow]Room ID[/]");
-            table.AddColumn("[bold yellow]Size (sqm)[/]");
-            table.AddColumn("[bold yellow]Price Per Night[/]");
-            table.AddColumn("[bold yellow]Booking Status[/]");
-            table.AddColumn("[bold yellow]Start Date[/]");
-            table.AddColumn("[bold yellow]End Date[/]");
-
-            foreach (var room in rooms)
-            {
-                var activeBookings = room.Bookings.Where(b => !b.IsCheckedOut).ToList();
-
-                if (activeBookings.Any())
-                {
-                    foreach (var booking in activeBookings)
-                    {
-                        string bookingStatus = booking.IsCheckedIn ? "[green]Checked In[/]" : "[blue]Not Checked In[/]";
-                        string startDate = booking.CheckInDate.HasValue ? booking.CheckInDate.Value.ToString("yyyy-MM-dd") : "[grey]Not Set[/]";
-                        string endDate = booking.CheckOutDate.HasValue ? booking.CheckOutDate.Value.ToString("yyyy-MM-dd") : "[grey]Not Set[/]";
-
-                        table.AddRow(
-                            room.RoomId.ToString(),
-                            $"{room.SizeInSquareMeters} sqm",
-                            $"{room.PricePerNight:C}",
-                            bookingStatus,
-                            startDate,
-                            endDate
-                        );
-                    }
-                }
-                else
-                {
-                    table.AddRow(
-                        room.RoomId.ToString(),
-                        $"{room.SizeInSquareMeters} sqm",
-                        $"{room.PricePerNight:C}",
-                        "[green]Available[/]",
-                        "[grey]N/A[/]",
-                        "[grey]N/A[/]"
-                    );
-                }
-            }
-
-            AnsiConsole.Write(table);
-
-            AnsiConsole.MarkupLine($"\n[bold green]Availability Calendar for {roomType} Rooms[/]\n");
-            DateTime selectedDate = DateTime.Now.Date;
+                RoomId = originalRoom.RoomId,
+                Type = originalRoom.Type,
+                PricePerNight = originalRoom.PricePerNight,
+                SizeInSquareMeters = originalRoom.SizeInSquareMeters,
+                ExtraBeds = originalRoom.ExtraBeds,
+                TotalPeople = originalRoom.TotalPeople,
+                IsAvailable = originalRoom.IsAvailable
+            };
 
             while (true)
             {
                 Console.Clear();
-                AnsiConsole.MarkupLine($"[bold green]{roomType} Rooms[/]\n");
-                AnsiConsole.Write(table);
-                RenderCalendarForAvailability(selectedDate, roomType);
+                AnsiConsole.Markup($"[bold green] Room '{tempRoom.RoomId}'[/]\n");
 
-                AnsiConsole.MarkupLine("[yellow]\nUse Left/Right arrows to navigate months.[/]");
-                AnsiConsole.MarkupLine("[yellow]Press [green]ESC[/] to go back[/]");
+                var roomDetails = new Table()
+                    .AddColumn("[bold]Editable[/]")
+                    .AddColumn("[bold]Description[/]")
+                    .AddRow("Type", tempRoom.Type)
+                    .AddRow("Price Per Night", tempRoom.PricePerNight.ToString("C"))
+                    .AddRow("Size (sqm)", tempRoom.SizeInSquareMeters.ToString());
+                AnsiConsole.Write(roomDetails);
 
-                var key = Console.ReadKey(true).Key;
-                switch (key)
+                var action = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("What would you like to edit?")
+                        .AddChoices(new[] { "Type", "Price Per Night", "Size", "Confirm Update", "Cancel and Go Back" })
+                        .HighlightStyle(new Style(foreground: Color.Green))); 
+
+                switch (action)
                 {
-                    case ConsoleKey.RightArrow:
-                        selectedDate = selectedDate.AddMonths(1);
+                    case "Type":
+                        string newType = AnsiConsole.Prompt(
+                            new SelectionPrompt<string>()
+                                .Title($"Enter new Type:")
+                                .AddChoices("Single", "Double")
+                                .HighlightStyle(new Style(foreground: Color.Green))); 
+                        tempRoom.Type = newType;
                         break;
-                    case ConsoleKey.LeftArrow:
-                        selectedDate = selectedDate.AddMonths(-1);
+
+                    case "Price Per Night":
+                        tempRoom.PricePerNight = AnsiConsole.Ask<decimal>("Enter new Price Per Night:");
                         break;
-                    case ConsoleKey.Escape: 
+
+                    case "Size":
+                        tempRoom.SizeInSquareMeters = AnsiConsole.Ask<int>("Enter new Size in Square Meters:");
+                        break;
+
+                    case "Confirm Update":
+                        var validator = new RoomValidator();
+                        var validationResult = validator.Validate(tempRoom);
+
+                        if (validationResult.IsValid)
+                        {
+                            originalRoom.Type = tempRoom.Type;
+                            originalRoom.PricePerNight = tempRoom.PricePerNight;
+                            originalRoom.SizeInSquareMeters = tempRoom.SizeInSquareMeters;
+
+                            var result = _roomRepository.UpdateRoom(originalRoom);
+                            if (result.IsSuccess)
+                            {
+                                AnsiConsole.Markup("[green]Room has been updated![/]\n");
+                                Console.WriteLine("\nPress any key to return...");
+                                Console.ReadKey();
+                                return; 
+                            }
+                            else
+                            {
+                                AnsiConsole.Markup("[red]Error saving the room.[/]\n");
+                            }
+                        }
+                        else
+                        {
+                            AnsiConsole.Markup("[red]Validation Errors:[/]\n");
+                            foreach (var error in validationResult.Errors)
+                            {
+                                AnsiConsole.Markup($"[red]- {error.ErrorMessage}[/]\n");
+                            }
+                            AnsiConsole.Markup("[yellow]Fix the errors before finishing![/]\n");
+                            Console.WriteLine("\nPress any key to continue...");
+                            Console.ReadKey();
+                        }
+                        break;
+
+                    case "Cancel and Go Back":
+                        AnsiConsole.Markup("[yellow]Editing cancelled. No changes have been saved.[/]\n");
+                        Console.WriteLine("\nPress any key to return...");
+                        Console.ReadKey();
                         return;
 
+                    default:
+                        AnsiConsole.Markup("[red]Invalid option selected.[/]\n");
+                        break;
                 }
             }
         }
 
-
-        private void RenderCalendarForAvailability(DateTime selectedDate, string roomType)
+        public void ViewAllRooms()
         {
-            var calendarContent = new StringWriter();
-            calendarContent.WriteLine($"[bold yellow]{selectedDate:MMMM yyyy}[/]".ToUpper());
-            calendarContent.WriteLine("Mon  Tue  Wed  Thu  Fri  Sat  Sun");
-            calendarContent.WriteLine("─────────────────────────────────");
-
-            DateTime firstDayOfMonth = new DateTime(selectedDate.Year, selectedDate.Month, 1);
-            int daysInMonth = DateTime.DaysInMonth(selectedDate.Year, selectedDate.Month);
-            int startDay = (int)firstDayOfMonth.DayOfWeek;
-            startDay = (startDay == 0) ? 6 : startDay - 1;
-
-            var bookedDates = _bookingRepository.GetAllBookings()
-                .Where(b => b.Room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase))
-                .SelectMany(b => Enumerable.Range(0, 1 + (b.CheckOutDate.Value - b.CheckInDate.Value).Days)
-                                            .Select(offset => b.CheckInDate.Value.AddDays(offset)))
-                .ToHashSet();
-
-            for (int i = 0; i < startDay; i++)
+            while (true)
             {
-                calendarContent.Write("     ");
-            }
+                Console.Clear();
 
-            for (int day = 1; day <= daysInMonth; day++)
-            {
-                DateTime currentDate = new DateTime(selectedDate.Year, selectedDate.Month, day);
+                var allRooms = _roomRepository.GetAllRooms(includeDeleted: true);
+                var activeRooms = allRooms.Where(r => !r.IsDeleted).ToList();
+                var removedRooms = allRooms.Where(r => r.IsDeleted).ToList();
 
-                if (bookedDates.Contains(currentDate))
+                if (!allRooms.Any())
                 {
-                    calendarContent.Write($"[red]{day,2}[/]   ");
-                }
-                else if (currentDate < DateTime.Now.Date)
-                {
-                    calendarContent.Write($"[grey]{day,2}[/]   ");
+                    AnsiConsole.Markup("[red]No rooms found in the database.[/]\n");
                 }
                 else
                 {
-                    calendarContent.Write($"[green]{day,2}[/]   ");
+                    if (activeRooms.Any())
+                    {
+                        AnsiConsole.Markup("[bold green]Overview of all existing rooms:[/]\n");
+                        var activeRoomsTable = new Table()
+                            .Border(TableBorder.Rounded)
+                            .AddColumn("[bold]Room ID[/]")
+                            .AddColumn("[bold]Type[/]")
+                            .AddColumn("[bold]Price[/]")
+                            .AddColumn("[bold]Size (sqm)[/]");
+
+                        foreach (var room in activeRooms)
+                        {
+                            activeRoomsTable.AddRow(
+                                room.RoomId.ToString(),
+                                room.Type,
+                                room.PricePerNight.ToString("C"),
+                                room.SizeInSquareMeters.ToString()
+                            );
+                        }
+
+                        AnsiConsole.Write(activeRoomsTable);
+                        DisplayBookedRooms(activeRooms, "Single");
+                        DisplayBookedRooms(activeRooms, "Double");
+                    }
+                    else
+                    {
+                        AnsiConsole.Markup("[red]No active rooms found in the database.[/]\n");
+                    }
+
+                    if (removedRooms.Any())
+                    {
+                        AnsiConsole.Markup("\n[bold yellow]All rooms that has been deleted[/]\n");
+                        var removedRoomsTable = new Table()
+                            .Border(TableBorder.Rounded)
+                            .AddColumn("[bold]Room ID[/]")
+                            .AddColumn("[bold]Type[/]")
+                            .AddColumn("[bold]Price[/]")
+                            .AddColumn("[bold]Size (sqm)[/]");
+
+                        foreach (var room in removedRooms)
+                        {
+                            removedRoomsTable.AddRow(
+                                room.RoomId.ToString(),
+                                room.Type,
+                                room.PricePerNight.ToString("C"),
+                                room.SizeInSquareMeters.ToString()
+                            );
+                        }
+
+                        AnsiConsole.Write(removedRoomsTable);
+                    }
+                    else
+                    {
+                        AnsiConsole.Markup("\n[red]No removed rooms found in the database.[/]\n");
+                    }
                 }
 
-                if ((startDay + day) % 7 == 0)
+                var action = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("What would you like to do?")
+                        .AddChoices(new[] { "Add a Room", "Edit a Room", "Delete a Room", "Find Room by Available Date", "Go Back" })
+                        .HighlightStyle(new Style(foreground: Color.Green)));
+
+                switch (action)
                 {
-                    calendarContent.WriteLine();
+                    case "Add a Room":
+                        AddNewRoom();
+                        break;
+
+                    case "Edit a Room":
+                        EditRoom();
+                        break;
+
+                    case "Delete a Room":
+                        DeleteRoom();
+                        break;
+
+                    case "Find Room by Available Date":
+                        FindRoomByAvailableDate();
+                        break;
+
+                    case "Go Back":
+                        return;
+
+                    default:
+                        AnsiConsole.Markup("[red]Invalid option selected.[/]\n");
+                        break;
                 }
             }
-
-            var panel = new Panel(calendarContent.ToString())
-            {
-                Border = BoxBorder.Double,
-                Header = new PanelHeader($"[yellow]{selectedDate:yyyy}[/]", Justify.Center)
-            };
-
-            AnsiConsole.Write(panel);
         }
 
-
-        public void DeleteRoom() 
+        private void FindRoomByAvailableDate()
         {
             Console.Clear();
-            AnsiConsole.Markup("[bold yellow]=== DELETE ROOM ===[/]\n");
 
-            Console.Write("Enter Room ID to delete: ");
-            if (!int.TryParse(Console.ReadLine(), out var roomId))
+            DisplayAllRooms();
+
+            var startDate = AnsiConsole.Ask<DateTime>("Enter [green]Start Date (yyyy-MM-dd)[/]:");
+            var endDate = AnsiConsole.Ask<DateTime>("Enter [green]End Date (yyyy-MM-dd)[/]:");
+
+            var dateRangeValidator = new DateRangeValidator();
+            var dateValidationResult = dateRangeValidator.Validate((startDate, endDate));
+
+            if (!dateValidationResult.IsValid)
             {
-                AnsiConsole.Markup("[red]Invalid Room ID.[/]\n");
+                AnsiConsole.Markup("[red]Validation Errors:[/]\n");
+                foreach (var error in dateValidationResult.Errors)
+                {
+                    AnsiConsole.Markup($"[red]- {error.ErrorMessage}[/]\n");
+                }
+                Console.ReadKey();
                 return;
             }
 
-            var room = _roomRepository.GetRoomById(roomId);
-            if (room == null)
-            {
-                AnsiConsole.Markup("[red]Room not found.[/]\n");
-                return;
-            }
+            var rooms = _roomRepository.GetRoomsWithBookings();
+            var availableRooms = rooms.Where(room =>
+                !room.Bookings.Any(booking =>
+                    booking.CheckInDate.HasValue &&
+                    booking.CheckOutDate.HasValue &&
+                    !(booking.CheckOutDate.Value < startDate || booking.CheckInDate.Value > endDate)))
+                .ToList();
 
-            Console.WriteLine($"Are you sure you want to delete Room ID {room.RoomId} (Type: {room.Type})? (Y/N)");
-            var confirmation = Console.ReadLine()?.Trim().ToUpper();
-
-            if (confirmation == "Y")
+            if (!availableRooms.Any())
             {
-                _roomRepository.DeleteRoom(roomId);
-                AnsiConsole.Markup($"[green]Room ID {roomId} has been successfully deleted.[/]\n");
+                AnsiConsole.Markup("[red]No rooms available for the selected dates.[/]\n");
             }
             else
             {
-                AnsiConsole.Markup("[yellow]Operation cancelled.[/]\n");
+                var table = new Table()
+                    .Border(TableBorder.Rounded)
+                    .AddColumn("[bold]Room ID[/]")
+                    .AddColumn("[bold]Type[/]")
+                    .AddColumn("[bold]Price[/]")
+                    .AddColumn("[bold]Size (sqm)[/]");
+
+                foreach (var room in availableRooms)
+                {
+                    table.AddRow(
+                        room.RoomId.ToString(),
+                        room.Type,
+                        room.PricePerNight.ToString("C"),
+                        room.SizeInSquareMeters.ToString()
+                    );
+                }
+
+                AnsiConsole.Markup("[bold green]Available Rooms for the Selected Dates:[/]\n");
+                AnsiConsole.Write(table);
+            }
+
+            Console.WriteLine("\nPress any key to go back..");
+            Console.ReadKey();
+        }
+
+        private void DisplayBookedRooms(IEnumerable<Room> rooms, string roomType)
+        {
+            if (rooms == null)
+            {
+                AnsiConsole.Markup("[red]No rooms found in the database.[/]\n");
+                return;
+            }
+
+            var bookedRooms = rooms
+                .Where(r =>
+                    r.Type != null &&
+                    r.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase) &&
+                    r.Bookings != null &&
+                    r.Bookings.Any(b => !b.IsCheckedOut))
+                .ToList();
+
+            if (bookedRooms.Any())
+            {
+                AnsiConsole.Markup($"\n[bold green]All '{roomType}' Rooms bookings:[/]\n");
+                var table = new Table()
+                    .Border(TableBorder.Rounded)
+                    .AddColumn("[bold]Room ID[/]")
+                    .AddColumn("[bold]Guest[/]")
+                    .AddColumn("[bold]Start Date[/]")
+                    .AddColumn("[bold]End Date[/]");
+
+                foreach (var room in bookedRooms)
+                {
+                    foreach (var booking in room.Bookings.Where(b => !b.IsCheckedOut))
+                    {
+                        table.AddRow(
+                            room.RoomId.ToString(),
+                            $"{booking.Guest.FirstName} {booking.Guest.LastName}",
+                            booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]",
+                            booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]"
+                        );
+                    }
+                }
+
+                AnsiConsole.Write(table);
+            }
+            else
+            {
+                AnsiConsole.Markup($"\n[red]No {roomType} Rooms are currently booked.[/]\n");
             }
         }
 
+        public void DisplayAllRooms()
+        {
+            var rooms = _roomRepository.GetAllRooms().Where(r => !r.IsDeleted).ToList();
+
+            if (!rooms.Any())
+            {
+                AnsiConsole.Markup("[red]No active rooms found in the database.[/]\n");
+                return;
+            }
+
+            var table = new Table()
+                .Border(TableBorder.Rounded)
+                .AddColumn("[bold]Room ID[/]")
+                .AddColumn("[bold]Type[/]")
+                .AddColumn("[bold]Price[/]")
+                .AddColumn("[bold]Size (sqm)[/]");
+
+            foreach (var room in rooms)
+            {
+                table.AddRow(
+                    room.RoomId.ToString(),
+                    room.Type,
+                    room.PricePerNight.ToString("C"),
+                    room.SizeInSquareMeters.ToString()
+                );
+            }
+
+            AnsiConsole.Markup("[bold green]All Existing Rooms in the Database:[/]\n");
+            AnsiConsole.Write(table);
+        }
+        public void DeleteRoom()
+        {
+            Console.Clear();
+
+            var rooms = _roomRepository.GetAllRooms().Where(r => !r.IsDeleted).ToList();
+            if (!rooms.Any())
+            {
+                AnsiConsole.Markup("[red]No available rooms to delete.[/]\n");
+                Console.WriteLine("\nPress any key to return...");
+                Console.ReadKey();
+                return;
+            }
+
+            DisplayAllRooms();
+
+            int roomId = AnsiConsole.Ask<int>("Enter [green]Room ID to delete[/]:");
+
+            var room = _roomRepository.GetRoomById(roomId);
+
+            if (room == null)
+            {
+                AnsiConsole.Markup("[red]Room not found. Please enter a valid Room ID.[/]\n");
+                Console.WriteLine("\nPress any key to return...");
+                Console.ReadKey();
+                return;
+            }
+
+            var validator = new RoomDeleteValidator();
+            var validationResult = validator.Validate(room);
+
+            if (!validationResult.IsValid)
+            {
+                AnsiConsole.Markup("[red]Validation Errors:[/]\n");
+                foreach (var error in validationResult.Errors)
+                {
+                    AnsiConsole.Markup($"[red]- {error.ErrorMessage}[/]\n");
+                }
+
+                Console.WriteLine("\nPress any key to return...");
+                Console.ReadKey();
+                return;
+            }
+
+            room.IsDeleted = true;
+            var result = _roomRepository.UpdateRoom(room);
+
+            if (result.IsSuccess)
+            {
+                AnsiConsole.Markup($"[green]Room ID {roomId} marked as deleted successfully![/]\n");
+            }
+            else
+            {
+                AnsiConsole.Markup($"[red]Error deleting room: {result.Errors.FirstOrDefault()}[/]\n");
+            }
+
+            Console.WriteLine("\nPress any key to return...");
+            Console.ReadKey();
+        }
     }
 }

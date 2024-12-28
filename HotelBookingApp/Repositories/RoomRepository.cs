@@ -1,8 +1,7 @@
 ﻿using HotelBookingApp.Data;
 using HotelBookingApp.Entities;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using Spectre.Console;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,32 +16,35 @@ namespace HotelBookingApp.Repositories
             _appDbContext = context;
         }
 
-        public void AddRoom(Room room)
+        public List<Room> GetAllRooms(bool includeDeleted = false)
+        {
+            return includeDeleted
+                ? _appDbContext.Rooms.ToList() 
+                : _appDbContext.Rooms.Where(r => !r.IsDeleted).ToList(); 
+        }
+
+
+        public IEnumerable<Room> GetRoomsWithBookings()
+        {
+            return _appDbContext.Rooms
+                .Include(r => r.Bookings) 
+                .ThenInclude(b => b.Guest) 
+                .ToList();
+        }
+
+        public RepositoryResult AddRoom(Room room)
         {
             var validator = new RoomValidator();
             var validationResult = validator.Validate(room);
 
             if (!validationResult.IsValid)
             {
-                AnsiConsole.Markup("[red]Validation errors:[/]\n");
-                foreach (var error in validationResult.Errors)
-                {
-                    AnsiConsole.Markup($"[red]- {error.ErrorMessage}[/]\n");
-                }
-                return;
+                return RepositoryResult.Failure(validationResult.Errors.Select(e => e.ErrorMessage).ToList());
             }
 
-            try
-            {
-                _appDbContext.Rooms.Add(room);
-                _appDbContext.SaveChanges();
-
-                AnsiConsole.Markup($"[green]Room id:{room.RoomId} added successfully![/]\n");
-            }
-            catch (Exception ex)
-            {
-                AnsiConsole.Markup($"[red]Error adding room: {ex.Message}[/]\n");
-            }
+            _appDbContext.Rooms.Add(room);
+            _appDbContext.SaveChanges();
+            return RepositoryResult.Success();
         }
 
         public Room GetRoomById(int roomId)
@@ -55,86 +57,56 @@ namespace HotelBookingApp.Repositories
             return _appDbContext.Rooms.ToList();
         }
 
-        public void UpdateRoom(Room room)
+        public RepositoryResult UpdateRoom(Room room)
         {
             var validator = new RoomValidator();
             var validationResult = validator.Validate(room);
 
             if (!validationResult.IsValid)
             {
-                AnsiConsole.Markup("[red]Validation errors:[/]\n");
-                foreach (var error in validationResult.Errors)
-                {
-                    AnsiConsole.Markup($"[red]- {error.ErrorMessage}[/]\n");
-                }
-                return;
+                return RepositoryResult.Failure(validationResult.Errors.Select(e => e.ErrorMessage).ToList());
             }
 
-            try
-            {
-                _appDbContext.Rooms.Update(room);
-                _appDbContext.SaveChanges();
-                AnsiConsole.Markup("[green]Room updated successfully![/]\n");
-            }
-            catch (Exception ex)
-            {
-                AnsiConsole.Markup($"[red]Error updating room: {ex.Message}[/]\n");
-            }
+            _appDbContext.Rooms.Update(room);
+            _appDbContext.SaveChanges();
+            return RepositoryResult.Success();
         }
 
-        public IEnumerable<Room> GetRoomsWithBookings()
-        {
-            return _appDbContext.Rooms
-                .Include(r => r.Bookings) 
-                    .ThenInclude(b => b.Guest) 
-                .ToList();
-        }
-
-
-        public void DeleteRoom(int roomId)
+        public RepositoryResult DeleteRoom(int roomId)
         {
             var room = GetRoomById(roomId);
+
             if (room == null)
             {
-                AnsiConsole.Markup("[red]Room not found.[/]\n");
-                return;
+                return RepositoryResult.Failure(new List<string> { "Room not found." });
             }
 
-            try
-            {
-                _appDbContext.Rooms.Remove(room);
-                _appDbContext.SaveChanges();
-                AnsiConsole.Markup($"[green]Room with ID {roomId} has been deleted successfully.[/]\n");
-            }
-            catch (Exception ex)
-            {
-                AnsiConsole.Markup($"[red]Error deleting room: {ex.Message}[/]\n");
-            }
+            _appDbContext.Rooms.Remove(room);
+            _appDbContext.SaveChanges();
+            return RepositoryResult.Success();
         }
+    }
 
-        public void DisplayRoomsTable(IEnumerable<Room> rooms)
+
+    public class RepositoryResult
+    {
+        public bool IsSuccess { get; private set; }
+        public List<string> Errors { get; private set; }
+
+        private RepositoryResult(bool isSuccess, List<string> errors = null)
         {
-            var table = new Table();
-            table.AddColumn("Room ID");
-            table.AddColumn("Room Type");
-            table.AddColumn("Price Per Night");
-            table.AddColumn("Guest Name");
-
-            foreach (var room in rooms)
-            {
-                var activeBooking = room.Bookings.FirstOrDefault(b => b.BookingStatus == false);
-                if (activeBooking != null)
-                {
-                    table.AddRow(
-                        room.RoomId.ToString(),
-                        room.Type,
-                        room.PricePerNight.ToString("C"),
-                        $"{activeBooking.Guest.FirstName} {activeBooking.Guest.LastName}");
-                }
-            }
-
-            AnsiConsole.Write(table);
+            IsSuccess = isSuccess;
+            Errors = errors ?? new List<string>();
         }
 
+        public static RepositoryResult Success()
+        {
+            return new RepositoryResult(true);
+        }
+
+        public static RepositoryResult Failure(List<string> errors)
+        {
+            return new RepositoryResult(false, errors);
+        }
     }
 }

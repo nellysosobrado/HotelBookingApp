@@ -99,7 +99,6 @@ namespace HotelBookingApp.Utilities
                         .PageSize(5)
                         .HighlightStyle(new Style(Color.Green, decoration: Decoration.Bold))
                         .AddChoices(
-                            "Modify Rooms",
                             "Modify Bookings",
                             "Modify Guest",
                             "Back to Main Menu"
@@ -107,9 +106,6 @@ namespace HotelBookingApp.Utilities
 
                 switch (choice)
                 {
-                    case "Modify Rooms":
-                        _displayRoomMenu.Menu();
-                        break;
 
                     case "Modify Bookings":
                         _displayBookingMenu.Menu();
