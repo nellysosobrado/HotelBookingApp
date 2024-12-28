@@ -256,8 +256,6 @@ namespace HotelBookingApp.Controllers
                 }
             }
         }
-
-
         public void ViewAllRooms()
         {
             while (true)
@@ -307,7 +305,7 @@ namespace HotelBookingApp.Controllers
 
                     if (removedRooms.Any())
                     {
-                        AnsiConsole.Markup("\n[bold yellow]All rooms that has been deleted[/]\n");
+                        AnsiConsole.Markup("\n[bold yellow]All rooms that have been deleted[/]\n");
                         var removedRoomsTable = new Table()
                             .Border(TableBorder.Rounded)
                             .AddColumn("[bold]Room ID[/]")
@@ -336,7 +334,7 @@ namespace HotelBookingApp.Controllers
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("What would you like to do?")
-                        .AddChoices(new[] { "Register a new room", "Edit a Room", "Delete a Room", "Find Room by Available Date", "Go Back" })
+                        .AddChoices(new[] { "Register a new room", "Edit a Room", "Delete a Room", "Find Available Room By Date", "Find Available Room By Total People", "Go Back" })
                         .HighlightStyle(new Style(foreground: Color.Green)));
 
                 switch (action)
@@ -353,8 +351,12 @@ namespace HotelBookingApp.Controllers
                         DeleteRoom();
                         break;
 
-                    case "Find Room by Available Date":
+                    case "Find Available Room By Date":
                         FindRoomByAvailableDate();
+                        break;
+
+                    case "Find Available Room By Total People":
+                        FindRoomByTotalPeople();
                         break;
 
                     case "Go Back":
@@ -365,6 +367,162 @@ namespace HotelBookingApp.Controllers
                         break;
                 }
             }
+        }
+
+
+        //public void ViewAllRooms()
+        //{
+        //    while (true)
+        //    {
+        //        Console.Clear();
+
+        //        var allRooms = _roomRepository.GetAllRooms(includeDeleted: true);
+        //        var activeRooms = allRooms.Where(r => !r.IsDeleted).ToList();
+        //        var removedRooms = allRooms.Where(r => r.IsDeleted).ToList();
+
+        //        if (!allRooms.Any())
+        //        {
+        //            AnsiConsole.Markup("[red]No rooms found in the database.[/]\n");
+        //        }
+        //        else
+        //        {
+        //            if (activeRooms.Any())
+        //            {
+        //                AnsiConsole.Markup("[bold green]Overview of all existing rooms:[/]\n");
+        //                var activeRoomsTable = new Table()
+        //                    .Border(TableBorder.Rounded)
+        //                    .AddColumn("[bold]Room ID[/]")
+        //                    .AddColumn("[bold]Type[/]")
+        //                    .AddColumn("[bold]Price[/]")
+        //                    .AddColumn("[bold]Size (sqm)[/]")
+        //                    .AddColumn("[bold]Max People[/]");
+
+        //                foreach (var room in activeRooms)
+        //                {
+        //                    activeRoomsTable.AddRow(
+        //                        room.RoomId.ToString(),
+        //                        room.Type,
+        //                        room.PricePerNight.ToString("C"),
+        //                        room.SizeInSquareMeters.ToString(),
+        //                        room.TotalPeople.ToString("F1")
+        //                    );
+        //                }
+
+        //                AnsiConsole.Write(activeRoomsTable);
+        //                DisplayBookedRooms(activeRooms, "Single");
+        //                DisplayBookedRooms(activeRooms, "Double");
+        //            }
+        //            else
+        //            {
+        //                AnsiConsole.Markup("[red]No active rooms found in the database.[/]\n");
+        //            }
+
+        //            if (removedRooms.Any())
+        //            {
+        //                AnsiConsole.Markup("\n[bold yellow]All rooms that has been deleted[/]\n");
+        //                var removedRoomsTable = new Table()
+        //                    .Border(TableBorder.Rounded)
+        //                    .AddColumn("[bold]Room ID[/]")
+        //                    .AddColumn("[bold]Type[/]")
+        //                    .AddColumn("[bold]Price[/]")
+        //                    .AddColumn("[bold]Size (sqm)[/]");
+
+        //                foreach (var room in removedRooms)
+        //                {
+        //                    removedRoomsTable.AddRow(
+        //                        room.RoomId.ToString(),
+        //                        room.Type,
+        //                        room.PricePerNight.ToString("C"),
+        //                        room.SizeInSquareMeters.ToString()
+        //                    );
+        //                }
+
+        //                AnsiConsole.Write(removedRoomsTable);
+        //            }
+        //            else
+        //            {
+        //                AnsiConsole.Markup("\n[red]No removed rooms found in the database.[/]\n");
+        //            }
+        //        }
+
+        //        var action = AnsiConsole.Prompt(
+        //            new SelectionPrompt<string>()
+        //                .Title("What would you like to do?")
+        //                .AddChoices(new[] { "Register a new room", "Edit a Room", "Delete a Room", "Find Available Room By Date", "Go Back" })
+        //                .HighlightStyle(new Style(foreground: Color.Green)));
+
+        //        switch (action)
+        //        {
+        //            case "Register a new room":
+        //                RegisterANewRoom();
+        //                break;
+
+        //            case "Edit a Room":
+        //                EditRoom();
+        //                break;
+
+        //            case "Delete a Room":
+        //                DeleteRoom();
+        //                break;
+
+        //            case "Find Available Room By Date":
+        //                FindRoomByAvailableDate();
+        //                break;
+
+        //            case "Go Back":
+        //                return;
+
+        //            default:
+        //                AnsiConsole.Markup("[red]Invalid option selected.[/]\n");
+        //                break;
+        //        }
+        //    }
+        //}
+
+        private void FindRoomByTotalPeople()
+        {
+            Console.Clear();
+            AnsiConsole.MarkupLine("[bold green]Find Available Room By Total People[/]");
+
+            int totalPeople = AnsiConsole.Prompt(
+                new TextPrompt<int>("[yellow]Enter total number of people (1-4):[/]")
+                    .ValidationErrorMessage("[red]Please enter a number between 1 and 4.[/]")
+                    .Validate(input => input >= 1 && input <= 4));
+
+            var availableRooms = _roomRepository.GetAllRooms(includeDeleted: false)
+                .Where(r => r.TotalPeople >= totalPeople && !r.IsDeleted)
+                .ToList();
+
+            if (!availableRooms.Any())
+            {
+                AnsiConsole.MarkupLine("[red]No available rooms found for the selected number of people.[/]");
+            }
+            else
+            {
+                var table = new Table()
+                    .Border(TableBorder.Rounded)
+                    .AddColumn("[blue]Room ID[/]")
+                    .AddColumn("[blue]Room Type[/]")
+                    .AddColumn("[blue]Price per Night[/]")
+                    .AddColumn("[blue]Size (sqm)[/]")
+                    .AddColumn("[blue]Max People[/]");
+
+                foreach (var room in availableRooms)
+                {
+                    table.AddRow(
+                        room.RoomId.ToString(),
+                        room.Type,
+                        room.PricePerNight.ToString("C"),
+                        room.SizeInSquareMeters.ToString(),
+                        room.TotalPeople.ToString()
+                    );
+                }
+
+                AnsiConsole.Write(table);
+            }
+
+            Console.WriteLine("\nPress any key to go back...");
+            Console.ReadKey();
         }
 
         private void FindRoomByAvailableDate()

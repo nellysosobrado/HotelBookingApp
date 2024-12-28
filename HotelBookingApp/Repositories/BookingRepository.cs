@@ -11,10 +11,24 @@ namespace HotelBookingApp.Repositories
     public class BookingRepository
     {
         private readonly AppDbContext _appDbContext;
+        private readonly List<Booking> _bookings; 
 
-        public BookingRepository(AppDbContext context)
+        public BookingRepository(AppDbContext context, List<Booking> bookings)
         {
             _appDbContext = context;
+            _bookings = _appDbContext.Bookings.ToList();
+        }
+        // Hämta bokningar baserat på GuestId
+        public IEnumerable<Booking> GetBookingsByGuestId(int guestId)
+        {
+            return _appDbContext.Bookings.Where(b => b.GuestId == guestId).ToList();
+        }
+
+
+        // Exempel på metod för att lägga till bokningar (om det behövs)
+        public void AddBooking(Booking booking)
+        {
+            _bookings.Add(booking);
         }
 
         public void UpdateGuest(Guest guest)

@@ -174,6 +174,7 @@ namespace HotelBookingApp
         "Display Booking History",
         "Display All Registered Guests",
         "Display History of Removed Bookings",
+        "Remove a Guest",
         "Go back"
     };
 
@@ -187,7 +188,7 @@ namespace HotelBookingApp
                 {
                     if (i == selectedIndex)
                     {
-                        Console.ForegroundColor = ConsoleColor.Green; 
+                        Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine($"> {options[i]}");
                         Console.ResetColor();
                     }
@@ -202,10 +203,10 @@ namespace HotelBookingApp
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.UpArrow:
-                        selectedIndex = (selectedIndex - 1 + options.Count) % options.Count; 
+                        selectedIndex = (selectedIndex - 1 + options.Count) % options.Count;
                         break;
                     case ConsoleKey.DownArrow:
-                        selectedIndex = (selectedIndex + 1) % options.Count; 
+                        selectedIndex = (selectedIndex + 1) % options.Count;
                         break;
                     case ConsoleKey.Enter:
                         switch (selectedIndex)
@@ -226,12 +227,79 @@ namespace HotelBookingApp
                                 DisplayCanceledBookings();
                                 break;
                             case 4:
-                                return; 
+                                RemoveGuest();
+                                break;
+                            case 5:
+                                return;
                         }
                         break;
                 }
             }
         }
+        private void RemoveGuest()
+        {
+            Console.Clear();
+            AnsiConsole.MarkupLine("[bold yellow]Remove a Guest[/]");
+
+            // Visa alla gäster
+            var allGuests = _guestRepository.GetAllGuests();
+            if (!allGuests.Any())
+            {
+                AnsiConsole.MarkupLine("[red]No registered guests found.[/]");
+                Console.ReadKey();
+                return;
+            }
+
+            var guestTable = new Table()
+                .Border(TableBorder.Rounded)
+                .AddColumn("[blue]Guest ID[/]")
+                .AddColumn("[blue]Name[/]")
+                .AddColumn("[blue]Lastname[/]")
+                .AddColumn("[blue]Email[/]")
+                .AddColumn("[blue]Phone[/]")
+                .AddColumn("[blue]Status[/]");
+
+            foreach (var guest in allGuests)
+            {
+                guestTable.AddRow(
+                    guest.GuestId.ToString(),
+                    guest.FirstName,
+                    guest.LastName,
+                    guest.Email,
+                    guest.PhoneNumber,
+                    guest.IsDeleted ? "[red]Deleted[/]" : "[green]Active[/]"
+                );
+            }
+
+            AnsiConsole.Write(guestTable);
+
+            // Be användaren välja en gäst att ta bort
+            int guestId = AnsiConsole.Prompt(
+                new TextPrompt<int>("[yellow]Enter the Guest ID to remove:[/]")
+                    .ValidationErrorMessage("[red]Invalid Guest ID![/]")
+                    .Validate(input => allGuests.Any(g => g.GuestId == input)));
+
+            var selectedGuest = allGuests.First(g => g.GuestId == guestId);
+
+            // Kontrollera om gästen har aktiva bokningar
+            var guestBookings = _bookingRepository.GetBookingsByGuestId(guestId);
+            if (guestBookings.Any(b => !b.IsCanceled))
+            {
+                AnsiConsole.MarkupLine("[red]This guest has active bookings and cannot be removed.[/]");
+                Console.ReadKey();
+                return;
+            }
+
+            // Utför soft delete
+            selectedGuest.IsDeleted = true;
+            _guestRepository.UpdateGuest(selectedGuest);
+
+            AnsiConsole.MarkupLine($"[green]Guest {selectedGuest.FirstName} (ID: {selectedGuest.GuestId}) has been successfully removed.[/]");
+            Console.ReadKey();
+        }
+
+
+
 
         public void DisplayActiveBookings()
         {
@@ -398,7 +466,7 @@ namespace HotelBookingApp
 
                 AnsiConsole.Write(table);
             }
-
+            Console.ReadKey();
         }
         public void EditBooking()
         {

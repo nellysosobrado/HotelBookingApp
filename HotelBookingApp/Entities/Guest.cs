@@ -19,5 +19,7 @@ namespace HotelBookingApp
 
         [Required] 
         public string PhoneNumber { get; set; }
+        public bool IsDeleted { get; set; }
+
     }
 }

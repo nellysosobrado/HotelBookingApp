@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using HotelBookingApp.Controllers;
 using HotelBookingApp.Data;
+using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
 using HotelBookingApp.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -57,6 +58,9 @@ namespace HotelBookingApp.DI
             builder.RegisterType<DisplayRoomMenu>().AsSelf();
             builder.RegisterType<RoomController>().AsSelf();
             builder.RegisterType<RoomRepository>().AsSelf();
+
+            builder.Register(ctx => new List<Booking>()).As<List<Booking>>();
+
 
 
 
