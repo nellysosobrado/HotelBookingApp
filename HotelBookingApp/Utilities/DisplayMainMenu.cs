@@ -66,15 +66,15 @@ namespace HotelBookingApp.Utilities
                         break;
 
                     case "Display Guests":
-                        _bookingController.DisplayAllGuestInfo();
+                         _bookingController.DisplayAllGuestInfo();
+                       
                         break;
 
                     case "Display Rooms":
                         _roomController.ViewAllRooms();
                         break;
                     case "Display Bookings":
-                        Console.WriteLine("test");
-                        Console.ReadKey();
+                        _bookingController.DisplayAllBookings();
                         break;
 
                     case "Settings":

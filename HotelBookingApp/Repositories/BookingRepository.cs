@@ -17,6 +17,13 @@ namespace HotelBookingApp.Repositories
             _appDbContext = context;
         }
 
+        public void UpdateGuest(Guest guest)
+        {
+            _appDbContext.Guests.Update(guest);
+            SaveChanges();
+        }
+
+
         public Booking GetBookingById(int bookingId)
         {
             return _appDbContext.Bookings
@@ -164,17 +171,24 @@ namespace HotelBookingApp.Repositories
             return true; 
         }
 
-        private void SaveChanges()
+        public void SaveChanges()
         {
             try
             {
                 _appDbContext.SaveChanges();
             }
+            catch (DbUpdateException dbEx)
+            {
+                // Extrahera detaljer från inner exception
+                var innerMessage = dbEx.InnerException?.Message ?? "No inner exception details available";
+                throw new Exception($"An error occurred while saving changes to the database: {innerMessage}", dbEx);
+            }
             catch (Exception ex)
             {
-                throw new Exception($"An error occurred while saving changes to the database: {ex.Message}");
+                throw new Exception($"An unexpected error occurred: {ex.Message}", ex);
             }
         }
+
 
         public List<Booking> GetExpiredUnpaidBookings()
         {
@@ -245,6 +259,14 @@ namespace HotelBookingApp.Repositories
             return _appDbContext.Bookings
                 .Where(b => !b.BookingStatus) // Assuming BookingStatus = false means canceled
                 .ToList();
+        }
+        public void DetachEntity(object entity)
+        {
+            var entry = _appDbContext.Entry(entity);
+            if (entry != null)
+            {
+                entry.State = EntityState.Detached;
+            }
         }
 
     }

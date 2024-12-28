@@ -31,12 +31,14 @@ namespace HotelBookingApp.Data
             var guests = guestFaker.Generate(4);
 
             var roomFaker = new Faker<Room>()
-                .RuleFor(r => r.RoomId, f => f.IndexFaker + 1)
-                .RuleFor(r => r.Type, f => f.PickRandom(new[] { "Single", "Double" }))
-                .RuleFor(r => r.ExtraBeds, f => f.Random.Int(0, 2))
-                .RuleFor(r => r.IsAvailable, f => true)
-                .RuleFor(r => r.PricePerNight, f => f.Random.Int(1000, 5000))
-                .RuleFor(r => r.SizeInSquareMeters, f => f.Random.Int(20, 100));
+    .RuleFor(r => r.RoomId, f => f.IndexFaker + 1)
+    .RuleFor(r => r.Type, f => f.PickRandom(new[] { "Single", "Double" }))
+    .RuleFor(r => r.ExtraBeds, f => f.Random.Int(0, 2))
+    .RuleFor(r => r.IsAvailable, f => true)
+    .RuleFor(r => r.PricePerNight, f => f.Random.Int(1000, 5000))
+    .RuleFor(r => r.SizeInSquareMeters, f => f.Random.Int(20, 100))
+    .RuleFor(r => r.TotalPeople, (f, r) => r.Type == "Single" ? 1 : 2 + r.ExtraBeds); 
+
             var rooms = roomFaker.Generate(4);
 
             var bookingFaker = new Faker<Booking>()
@@ -49,8 +51,8 @@ namespace HotelBookingApp.Data
                     : today.AddDays(f.Random.Int(1, 5)))
                 .RuleFor(b => b.IsCheckedIn, f => false)
                 .RuleFor(b => b.IsCheckedOut, f => false)
-                .RuleFor(b => b.BookingStatus, f => false) // Not canceled by default
-                .RuleFor(b => b.IsCanceled, f => false); // Add IsCanceled property
+                .RuleFor(b => b.BookingStatus, f => false) 
+                .RuleFor(b => b.IsCanceled, f => false); 
 
             var bookings = bookingFaker.Generate(4);
 

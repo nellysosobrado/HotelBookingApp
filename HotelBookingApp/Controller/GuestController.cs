@@ -182,6 +182,7 @@ namespace HotelBookingApp.Controllers
             var bookedDates = _bookingRepository.GetAllBookings()
                 .Where(b => b.Room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase))
                 .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue)
+                .Where(b => b.CheckOutDate.Value >= b.CheckInDate.Value) // Validera datum
                 .SelectMany(b => Enumerable.Range(0, 1 + (b.CheckOutDate.Value - b.CheckInDate.Value).Days)
                                             .Select(offset => b.CheckInDate.Value.AddDays(offset)))
                 .ToHashSet();
@@ -217,14 +218,15 @@ namespace HotelBookingApp.Controllers
                         }
                         else
                         {
-                            return selectedDate; 
+                            return selectedDate;
                         }
                         break;
                     case ConsoleKey.Escape:
-                        return DateTime.MinValue; 
+                        return DateTime.MinValue;
                 }
             }
         }
+
 
 
         private void RenderCalendar(DateTime selectedDate, string roomType)
@@ -291,54 +293,61 @@ namespace HotelBookingApp.Controllers
         private DateTime SelectDate(string prompt, string selectedRoomType)
         {
             DateTime currentDate = DateTime.Now.Date;
-            DateTime selectedDate = currentDate;  
+            DateTime selectedDate = currentDate;
+
+            // Förbereder alla bokade datum för det valda rumstypen
+            var bookedDates = _bookingRepository.GetAllBookings()
+                .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue) // Endast giltiga datum
+                .Where(b => b.Room.Type.Equals(selectedRoomType, StringComparison.OrdinalIgnoreCase)) // Filtrera på rumstyp
+                .SelectMany(b => Enumerable.Range(0, 1 + (b.CheckOutDate.Value - b.CheckInDate.Value).Days)
+                                            .Select(offset => b.CheckInDate.Value.AddDays(offset))) // Skapa datumintervall
+                .ToHashSet(); // För snabb lookup av bokade datum
 
             while (true)
             {
                 Console.Clear();
                 Console.WriteLine(prompt);
-                RenderCalendar(selectedDate, selectedRoomType);  
+                RenderCalendar(selectedDate, selectedRoomType); // Visa kalender med det valda datumet markerat
 
                 var key = Console.ReadKey(true).Key;
                 switch (key)
                 {
                     case ConsoleKey.RightArrow:
-                        selectedDate = selectedDate.AddDays(1); 
+                        selectedDate = selectedDate.AddDays(1); // Nästa dag
                         break;
                     case ConsoleKey.LeftArrow:
-                        selectedDate = selectedDate.AddDays(-1);  
+                        if (selectedDate > currentDate)
+                            selectedDate = selectedDate.AddDays(-1); // Föregående dag, ej tidigare än idag
                         break;
                     case ConsoleKey.UpArrow:
-                        selectedDate = selectedDate.AddDays(-7); 
+                        if (selectedDate.AddDays(-7) >= currentDate)
+                            selectedDate = selectedDate.AddDays(-7); // Föregående vecka, ej tidigare än idag
                         break;
                     case ConsoleKey.DownArrow:
-                        selectedDate = selectedDate.AddDays(7);  
+                        selectedDate = selectedDate.AddDays(7); // Nästa vecka
                         break;
                     case ConsoleKey.Enter:
-                        var bookings = _bookingRepository.GetAllBookings()
-                            .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue)
-                            .Where(b => b.CheckInDate.Value.Date <= selectedDate.Date && b.CheckOutDate.Value.Date >= selectedDate.Date)
-                            .Where(b => b.Room.Type == selectedRoomType)  
-                            .ToList();
-
-                        if (bookings.Any())
+                        // Kontrollera om datumet redan är bokat
+                        if (bookedDates.Contains(selectedDate))
                         {
-                            AnsiConsole.MarkupLine("[red]The selected date is already booked for this room type.[/]");  
+                            AnsiConsole.MarkupLine("[red]The selected date is already booked for this room type.[/]");
                             Console.ReadKey(true);
-                            continue;  
+                            continue; // Låt användaren välja igen
                         }
 
+                        // Validera att datumet inte är i det förflutna
                         if (selectedDate >= currentDate)
-                            return selectedDate;  
+                            return selectedDate;
 
-                        AnsiConsole.MarkupLine("[red]The date cannot be in the past.[/]");  
+                        AnsiConsole.MarkupLine("[red]The date cannot be in the past.[/]");
                         Console.ReadKey(true);
                         break;
                     case ConsoleKey.Escape:
-                        return DateTime.MinValue; 
+                        return DateTime.MinValue; // Returnera ett ogiltigt värde för att signalera avbrott
                 }
             }
         }
+
         private DateTime PromptForDate(string message)
         {
             while (true)

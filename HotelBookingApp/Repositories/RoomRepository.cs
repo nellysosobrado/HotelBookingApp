@@ -15,6 +15,32 @@ namespace HotelBookingApp.Repositories
         {
             _appDbContext = context;
         }
+        public IEnumerable<Room> GetAvailableRoomsByDate(DateTime startDate, DateTime endDate, string roomType)
+        {
+            return _appDbContext.Rooms
+                .Where(r => r.Type == roomType && r.IsAvailable && !_appDbContext.Bookings
+                    .Any(b => b.RoomId == r.RoomId &&
+                              ((b.CheckInDate <= endDate && b.CheckInDate >= startDate) ||
+                               (b.CheckOutDate <= endDate && b.CheckOutDate >= startDate))))
+                .ToList();
+        }
+
+        public bool IsRoomAvailable(int roomId, DateTime startDate, DateTime endDate)
+        {
+            return !_appDbContext.Bookings.Any(b =>
+                b.RoomId == roomId &&
+                b.CheckInDate.HasValue &&
+                b.CheckOutDate.HasValue &&
+                b.CheckInDate.Value < endDate &&
+                b.CheckOutDate.Value > startDate);
+        }
+
+        public IEnumerable<Room> GetRoomsByCapacity(int totalPeople)
+        {
+            return _appDbContext.Rooms
+                .Where(r => r.TotalPeople >= totalPeople && r.IsAvailable)
+                .ToList();
+        }
 
         public List<Room> GetAllRooms(bool includeDeleted = false)
         {
