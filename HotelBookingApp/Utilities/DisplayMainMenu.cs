@@ -44,9 +44,9 @@ namespace HotelBookingApp.Utilities
                             "Register New Guest",
                             "Check in/Check out Guest",
                             //"Payment",
-                            "Display Guests",
-                            "Display Rooms",
-                            "Display Bookings",
+                            "Guests",
+                            "Rooms",
+                            "Bookings",
                             //"Settings",
                             "Exit")
                 );
@@ -65,15 +65,15 @@ namespace HotelBookingApp.Utilities
                     //    _bookingController.PayInvoiceBeforeCheckout();
                     //    break;
 
-                    case "Display Guests":
+                    case "Guests":
                          _bookingController.DisplayAllGuestInfo();
                        
                         break;
 
-                    case "Display Rooms":
+                    case "Rooms":
                         _roomController.ViewAllRooms();
                         break;
-                    case "Display Bookings":
+                    case "Bookings":
                         _bookingController.DisplayAllBookings();
                         break;
 

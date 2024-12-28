@@ -15,29 +15,54 @@ namespace HotelBookingApp.Controllers
             _roomRepository = roomRepository;
         }
 
-        public void AddNewRoom()
+        public void RegisterANewRoom()
         {
             Console.Clear();
 
             DisplayAllRooms();
 
+            // Visa information om rumstyper och max personer
+            AnsiConsole.Markup("Room Types:\n");
+            AnsiConsole.Markup("[green]Single Room[/]: Max 1-2 People\n");
+            AnsiConsole.Markup("[green]Double Room[/]: Max 1-4 People\n");
+
+            // Välj rumstyp
             string roomType = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("Select [green]Room Type[/]:")
+                    .Title("\nSelect [green]Room Type[/]:")
                     .AddChoices("Single", "Double")
                     .HighlightStyle(new Style(foreground: Color.Green))
-                    );
+            );
 
-            decimal price = AnsiConsole.Ask<decimal>("Enter [green]Price Per Night[/]:");
+            // Ange pris
+            decimal price = AnsiConsole.Prompt(
+                new TextPrompt<decimal>("Enter [green]Price Per Night[/]:")
+                    .Validate(input => input > 0 ? ValidationResult.Success() : ValidationResult.Error("[red]Price must be greater than 0.[/]"))
+            );
 
-            int size = AnsiConsole.Ask<int>("Enter [green]Size in Square Meters[/]:");
+            // Ange storlek
+            int size = AnsiConsole.Prompt(
+                new TextPrompt<int>("Enter [green]Size in Square Meters[/]:")
+                    .Validate(input => input > 0 ? ValidationResult.Success() : ValidationResult.Error("[red]Size must be greater than 0.[/]"))
+            );
 
-            int extraBeds = roomType == "Double"
-                ? AnsiConsole.Ask<int>("Enter [green]Number of Extra Beds (0-2)[/]:", 0)
+            // Fråga om antalet personer baserat på rumstyp
+            int maxPeople = roomType == "Single"
+                ? AnsiConsole.Prompt(
+                    new TextPrompt<int>("Enter [green]Number of People (1-2)[/]:")
+                        .Validate(input => input >= 1 && input <= 2 ? ValidationResult.Success() : ValidationResult.Error("[red]Please enter a number between 1 and 2.[/]"))
+                )
+                : AnsiConsole.Prompt(
+                    new TextPrompt<int>("Enter [green]Number of People (1-4)[/]:")
+                        .Validate(input => input >= 1 && input <= 4 ? ValidationResult.Success() : ValidationResult.Error("[red]Please enter a number between 1 and 4.[/]"))
+                );
+
+            // Lägg till extra sängar om det är ett dubbelrum
+            int extraBeds = roomType == "Double" && maxPeople > 2
+                ? maxPeople - 2
                 : 0;
 
-            int maxPeople = (roomType == "Double" ? 2 : 1) + extraBeds;
-
+            // Skapa nytt rum
             var newRoom = new Room
             {
                 Type = roomType,
@@ -48,6 +73,7 @@ namespace HotelBookingApp.Controllers
                 TotalPeople = maxPeople
             };
 
+            // Lägg till rummet i repository
             var result = _roomRepository.AddRoom(newRoom);
 
             if (result.IsSuccess)
@@ -66,6 +92,8 @@ namespace HotelBookingApp.Controllers
             Console.WriteLine("\nPress any key to return...");
             Console.ReadKey();
         }
+
+
 
 
         public void EditRoom()
@@ -98,21 +126,23 @@ namespace HotelBookingApp.Controllers
             while (true)
             {
                 Console.Clear();
-                AnsiConsole.Markup($"[bold green] Room '{tempRoom.RoomId}'[/]\n");
+                AnsiConsole.Markup($"[bold green]Editing Room '{tempRoom.RoomId}'[/]\n");
 
                 var roomDetails = new Table()
                     .AddColumn("[bold]Editable[/]")
                     .AddColumn("[bold]Description[/]")
                     .AddRow("Type", tempRoom.Type)
                     .AddRow("Price Per Night", tempRoom.PricePerNight.ToString("C"))
-                    .AddRow("Size (sqm)", tempRoom.SizeInSquareMeters.ToString());
+                    .AddRow("Size (sqm)", tempRoom.SizeInSquareMeters.ToString())
+                    .AddRow("Extra Beds", tempRoom.ExtraBeds.ToString())
+                    .AddRow("Total People", tempRoom.TotalPeople.ToString());
                 AnsiConsole.Write(roomDetails);
 
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("What would you like to edit?")
-                        .AddChoices(new[] { "Type", "Price Per Night", "Size", "Confirm Update", "Cancel and Go Back" })
-                        .HighlightStyle(new Style(foreground: Color.Green))); 
+                        .AddChoices(new[] { "Type", "Price Per Night", "Size", "Extra Beds", "Total People", "Confirm Update", "Cancel and Go Back" })
+                        .HighlightStyle(new Style(foreground: Color.Green)));
 
                 switch (action)
                 {
@@ -121,7 +151,7 @@ namespace HotelBookingApp.Controllers
                             new SelectionPrompt<string>()
                                 .Title($"Enter new Type:")
                                 .AddChoices("Single", "Double")
-                                .HighlightStyle(new Style(foreground: Color.Green))); 
+                                .HighlightStyle(new Style(foreground: Color.Green)));
                         tempRoom.Type = newType;
                         break;
 
@@ -133,6 +163,49 @@ namespace HotelBookingApp.Controllers
                         tempRoom.SizeInSquareMeters = AnsiConsole.Ask<int>("Enter new Size in Square Meters:");
                         break;
 
+                    case "Extra Beds":
+                        if (tempRoom.Type == "Double")
+                        {
+                            int maxExtraBeds = tempRoom.SizeInSquareMeters > 50 ? 2 : 1;
+                            tempRoom.ExtraBeds = AnsiConsole.Prompt(
+                                new TextPrompt<int>($"Enter number of Extra Beds (0-{maxExtraBeds}):")
+                                    .Validate(input => input >= 0 && input <= maxExtraBeds
+                                        ? ValidationResult.Success()
+                                        : ValidationResult.Error($"[red]Extra Beds must be between 0 and {maxExtraBeds}.[/]")));
+                        }
+                        else
+                        {
+                            AnsiConsole.Markup("[yellow]Extra beds can only be added to Double rooms.[/]\n");
+                            Console.WriteLine("\nPress any key to continue...");
+                            Console.ReadKey();
+                        }
+                        break;
+
+                    case "Total People":
+                        if (tempRoom.Type == "Single")
+                        {
+                            tempRoom.TotalPeople = AnsiConsole.Prompt(
+                                new TextPrompt<decimal>("Enter Total People (1-2):")
+                                    .Validate(input => input >= 1 && input <= 2
+                                        ? ValidationResult.Success()
+                                        : ValidationResult.Error("[red]Total People for Single rooms must be between 1 and 2.[/]")));
+                        }
+                        else if (tempRoom.Type == "Double")
+                        {
+                            tempRoom.TotalPeople = AnsiConsole.Prompt(
+                                new TextPrompt<decimal>("Enter Total People (1-4):")
+                                    .Validate(input => input >= 1 && input <= 4
+                                        ? ValidationResult.Success()
+                                        : ValidationResult.Error("[red]Total People for Double rooms must be between 1 and 4.[/]")));
+                        }
+                        else
+                        {
+                            AnsiConsole.Markup("[red]Invalid room type.[/]\n");
+                            Console.WriteLine("\nPress any key to continue...");
+                            Console.ReadKey();
+                        }
+                        break;
+
                     case "Confirm Update":
                         var validator = new RoomValidator();
                         var validationResult = validator.Validate(tempRoom);
@@ -142,6 +215,8 @@ namespace HotelBookingApp.Controllers
                             originalRoom.Type = tempRoom.Type;
                             originalRoom.PricePerNight = tempRoom.PricePerNight;
                             originalRoom.SizeInSquareMeters = tempRoom.SizeInSquareMeters;
+                            originalRoom.ExtraBeds = tempRoom.ExtraBeds;
+                            originalRoom.TotalPeople = tempRoom.TotalPeople;
 
                             var result = _roomRepository.UpdateRoom(originalRoom);
                             if (result.IsSuccess)
@@ -149,7 +224,7 @@ namespace HotelBookingApp.Controllers
                                 AnsiConsole.Markup("[green]Room has been updated![/]\n");
                                 Console.WriteLine("\nPress any key to return...");
                                 Console.ReadKey();
-                                return; 
+                                return;
                             }
                             else
                             {
@@ -182,6 +257,7 @@ namespace HotelBookingApp.Controllers
             }
         }
 
+
         public void ViewAllRooms()
         {
             while (true)
@@ -206,7 +282,8 @@ namespace HotelBookingApp.Controllers
                             .AddColumn("[bold]Room ID[/]")
                             .AddColumn("[bold]Type[/]")
                             .AddColumn("[bold]Price[/]")
-                            .AddColumn("[bold]Size (sqm)[/]");
+                            .AddColumn("[bold]Size (sqm)[/]")
+                            .AddColumn("[bold]Max People[/]");
 
                         foreach (var room in activeRooms)
                         {
@@ -214,7 +291,8 @@ namespace HotelBookingApp.Controllers
                                 room.RoomId.ToString(),
                                 room.Type,
                                 room.PricePerNight.ToString("C"),
-                                room.SizeInSquareMeters.ToString()
+                                room.SizeInSquareMeters.ToString(),
+                                room.TotalPeople.ToString("F1")
                             );
                         }
 
@@ -258,13 +336,13 @@ namespace HotelBookingApp.Controllers
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("What would you like to do?")
-                        .AddChoices(new[] { "Add a Room", "Edit a Room", "Delete a Room", "Find Room by Available Date", "Go Back" })
+                        .AddChoices(new[] { "Register a new room", "Edit a Room", "Delete a Room", "Find Room by Available Date", "Go Back" })
                         .HighlightStyle(new Style(foreground: Color.Green)));
 
                 switch (action)
                 {
-                    case "Add a Room":
-                        AddNewRoom();
+                    case "Register a new room":
+                        RegisterANewRoom();
                         break;
 
                     case "Edit a Room":
@@ -369,11 +447,11 @@ namespace HotelBookingApp.Controllers
 
             if (bookedRooms.Any())
             {
-                AnsiConsole.Markup($"\n[bold green]All '{roomType}' Rooms bookings:[/]\n");
+                AnsiConsole.Markup($"\n[bold green]Overview of all booked '{roomType}' rooms[/]\n");
                 var table = new Table()
                     .Border(TableBorder.Rounded)
                     .AddColumn("[bold]Room ID[/]")
-                    .AddColumn("[bold]Guest[/]")
+                    .AddColumn("[bold]Booked By[/]")
                     .AddColumn("[bold]Start Date[/]")
                     .AddColumn("[bold]End Date[/]");
 
@@ -413,7 +491,8 @@ namespace HotelBookingApp.Controllers
                 .AddColumn("[bold]Room ID[/]")
                 .AddColumn("[bold]Type[/]")
                 .AddColumn("[bold]Price[/]")
-                .AddColumn("[bold]Size (sqm)[/]");
+                .AddColumn("[bold]Size (sqm)[/]")
+                .AddColumn("[bold]Max People[/]");
 
             foreach (var room in rooms)
             {
@@ -421,7 +500,8 @@ namespace HotelBookingApp.Controllers
                     room.RoomId.ToString(),
                     room.Type,
                     room.PricePerNight.ToString("C"),
-                    room.SizeInSquareMeters.ToString()
+                    room.SizeInSquareMeters.ToString(),
+                    room.TotalPeople.ToString("F1")
                 );
             }
 

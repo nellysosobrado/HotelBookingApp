@@ -63,7 +63,7 @@ namespace HotelBookingApp.Utilities
             switch (selectedIndex)
             {
                 case 0:
-                    _roomController.AddNewRoom();
+                    _roomController.RegisterANewRoom();
                     break;
                 case 1:
                     _roomController.EditRoom();
