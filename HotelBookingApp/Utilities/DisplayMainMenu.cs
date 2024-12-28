@@ -43,11 +43,11 @@ namespace HotelBookingApp.Utilities
                         .AddChoices(
                             "Register New Guest",
                             "Check in/Check out Guest",
-                            "Payment",
+                            //"Payment",
                             "Display Guests",
                             "Display Rooms",
                             "Display Bookings",
-                            "Settings",
+                            //"Settings",
                             "Exit")
                 );
 
@@ -61,9 +61,9 @@ namespace HotelBookingApp.Utilities
                         _bookingController.CheckInOrCheckOut();
                         break;
 
-                    case "Payment":
-                        _bookingController.PayInvoiceBeforeCheckout();
-                        break;
+                    //case "Payment":
+                    //    _bookingController.PayInvoiceBeforeCheckout();
+                    //    break;
 
                     case "Display Guests":
                          _bookingController.DisplayAllGuestInfo();
@@ -77,9 +77,9 @@ namespace HotelBookingApp.Utilities
                         _bookingController.DisplayAllBookings();
                         break;
 
-                    case "Settings":
-                        Settings();
-                        break;
+                    //case "Settings":
+                    //    Settings();
+                    //    break;
 
                     case "Exit":
                         AnsiConsole.MarkupLine("[bold green]Thank you for using the Hotel Booking App. Goodbye![/]");
@@ -92,42 +92,42 @@ namespace HotelBookingApp.Utilities
             }
         }
 
-        public void Settings()
-        {
-            while (true)
-            {
-                Console.Clear();
+        //public void Settings()
+        //{
+        //    while (true)
+        //    {
+        //        Console.Clear();
 
-                var choice = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("[bold yellow]Select a setting to modify:[/]")
-                        .PageSize(5)
-                        .HighlightStyle(new Style(Color.Green, decoration: Decoration.Bold))
-                        .AddChoices(
-                            "Modify Bookings",
-                            "Modify Guest",
-                            "Back to Main Menu"
-                        ));
+        //        var choice = AnsiConsole.Prompt(
+        //            new SelectionPrompt<string>()
+        //                .Title("[bold yellow]Select a setting to modify:[/]")
+        //                .PageSize(5)
+        //                .HighlightStyle(new Style(Color.Green, decoration: Decoration.Bold))
+        //                .AddChoices(
+        //                    "Modify Bookings",
+        //                    "Modify Guest",
+        //                    "Back to Main Menu"
+        //                ));
 
-                switch (choice)
-                {
+        //        switch (choice)
+        //        {
 
-                    case "Modify Bookings":
-                        _displayBookingMenu.Menu();
-                        break;
+        //            case "Modify Bookings":
+        //                _displayBookingMenu.Menu();
+        //                break;
 
-                    case "Modify Guest":
-                        _displayGuestMenu.Menu();
-                        break;
+        //            case "Modify Guest":
+        //                _displayGuestMenu.Menu();
+        //                break;
 
-                    case "Back to Main Menu":
-                        return;
+        //            case "Back to Main Menu":
+        //                return;
 
-                    default:
-                        AnsiConsole.MarkupLine("[bold red]Invalid choice. Please try again.[/]");
-                        break;
-                }
-            }
-        }
+        //            default:
+        //                AnsiConsole.MarkupLine("[bold red]Invalid choice. Please try again.[/]");
+        //                break;
+        //        }
+        //    }
+        //}
     }
 }
