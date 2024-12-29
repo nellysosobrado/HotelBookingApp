@@ -55,15 +55,22 @@ namespace HotelBookingApp.Services.RoomServices
                 .AddColumn("[bold]Room ID[/]")
                 .AddColumn("[bold]Type[/]")
                 .AddColumn("[bold]Price[/]")
-                .AddColumn("[bold]Size (sqm)[/]");
+                .AddColumn("[bold]Size (sqm)[/]")
+                .AddColumn("[bold]Status[/]");
 
+          
             foreach (var room in rooms)
             {
+                bool hasActiveBooking = room.Bookings?.Any(b => !b.IsCanceled) ?? false;
+                string status = hasActiveBooking
+                    ? "[green]Active, has booking attached[/]"
+                    : "[red]Does not have a booking attached[/]";
                 table.AddRow(
                     room.RoomId.ToString(),
                     room.Type,
                     room.PricePerNight.ToString("C"),
-                    room.SizeInSquareMeters.ToString()
+                    room.SizeInSquareMeters.ToString(),
+                    status
                 );
             }
 
@@ -82,7 +89,7 @@ namespace HotelBookingApp.Services.RoomServices
 
             if (activeBookings != null && activeBookings.Any())
             {
-                AnsiConsole.Markup("[red]The room cannot be deleted because it is associated with active bookings.[/]\n");
+                AnsiConsole.Markup("[red]The room cannot be deleted because it is associated with active bookings. Please go to bookings and unbook the room[/]\n");
                 foreach (var booking in activeBookings)
                 {
                     AnsiConsole.Markup($"[red]- Booking ID {booking.BookingId}: Check-In {booking.CheckInDate:yyyy-MM-dd}, Check-Out {booking.CheckOutDate:yyyy-MM-dd}[/]\n");
@@ -97,6 +104,28 @@ namespace HotelBookingApp.Services.RoomServices
 
         private void MarkRoomAsDeleted(Room room)
         {
+            if (room.IsDeleted)
+            {
+                AnsiConsole.Markup("[red]The room is already marked as deleted. No further action is required.[/]\n");
+                Console.WriteLine("\nPress any key to return...");
+                Console.ReadKey();
+                return;
+            }
+
+            var activeBookings = room.Bookings?.Where(b => !b.IsCanceled).ToList();
+
+            if (activeBookings != null && activeBookings.Any())
+            {
+                AnsiConsole.Markup("[red]The room cannot be deleted because it is associated with active bookings. Please unbook all bookings first.[/]\n");
+                foreach (var booking in activeBookings)
+                {
+                    AnsiConsole.Markup($"[red]- Booking ID {booking.BookingId}: Check-In {booking.CheckInDate:yyyy-MM-dd}, Check-Out {booking.CheckOutDate:yyyy-MM-dd}[/]\n");
+                }
+                Console.WriteLine("\nPress any key to return...");
+                Console.ReadKey();
+                return;
+            }
+
             room.IsDeleted = true;
             var result = _roomRepository.UpdateRoom(room);
 
@@ -112,5 +141,7 @@ namespace HotelBookingApp.Services.RoomServices
             Console.WriteLine("\nPress any key to return...");
             Console.ReadKey();
         }
+
+
     }
 }

@@ -52,7 +52,7 @@ namespace HotelBookingApp.DI
 
             builder.RegisterType<DisplayMainMenu>().AsSelf();
             builder.RegisterType<App>().AsSelf();
-            builder.RegisterType<DisplayBookingMenu>().AsSelf();
+            //builder.RegisterType<DisplayBookingMenu>().AsSelf();
             builder.RegisterType<BookingController>().AsSelf();
             builder.RegisterType<BookingRepository>().AsSelf();
             //Guest
@@ -60,7 +60,6 @@ namespace HotelBookingApp.DI
             builder.RegisterType<GuestRepository>().AsSelf();
             builder.RegisterType<GuestController>().AsSelf();
             //Room
-            builder.RegisterType<DisplayRoomMenu>().AsSelf();
             builder.RegisterType<RoomController>().AsSelf();
             builder.RegisterType<RoomRepository>().AsSelf();
 
@@ -80,6 +79,7 @@ namespace HotelBookingApp.DI
             builder.RegisterType<GuestRegistrationService>().AsSelf();
             builder.RegisterType<BookingEditService>().AsSelf();
             builder.RegisterType<UnbookBooking>().AsSelf();
+            builder.RegisterType<PaymentService>().AsSelf();
 
             builder.Register(ctx => new List<Booking>()).As<List<Booking>>();
 

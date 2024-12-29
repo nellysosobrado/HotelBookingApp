@@ -29,7 +29,9 @@ namespace HotelBookingApp.Entities
         public int SizeInSquareMeters { get; set; }
 
         public ICollection<Booking> Bookings { get; set; }
-        public bool IsDeleted { get; set; } 
+        public bool IsDeleted { get; set; }
+
+
 
     }
 }
