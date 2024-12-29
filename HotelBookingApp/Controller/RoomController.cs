@@ -1,5 +1,6 @@
 ﻿using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
+using HotelBookingApp.Services.DisplayServices;
 using HotelBookingApp.Services.RoomServices;
 using Spectre.Console;
 using System;
@@ -15,8 +16,15 @@ namespace HotelBookingApp.Controllers
         private readonly DeleteRoomService _deleteRoomService;
         private readonly EditRoomService _editRoomService;
         private readonly RegisterRoomService _registerRoomService;
+        private readonly TableDisplayService _tableDisplayService;
 
-        public RoomController(RoomRepository roomRepository, FindRoomByDate findRoomByDate, FindRoomByTotalPeople findRoomByTotalPeople, DeleteRoomService deleteRoomService, EditRoomService editRoomService, RegisterRoomService registerRoomService)
+        public RoomController(RoomRepository roomRepository,
+            FindRoomByDate findRoomByDate,
+            FindRoomByTotalPeople findRoomByTotalPeople,
+            DeleteRoomService deleteRoomService,
+            EditRoomService editRoomService,
+            RegisterRoomService registerRoomService,
+            TableDisplayService tableDisplayService)
         {
             _roomRepository = roomRepository;
             _findRoomByDate = findRoomByDate;
@@ -24,6 +32,7 @@ namespace HotelBookingApp.Controllers
             _deleteRoomService = deleteRoomService;
             _editRoomService = editRoomService;
             _registerRoomService = registerRoomService;
+            _tableDisplayService = tableDisplayService;
         }
         public void RegisterANewRoom()
         {
@@ -46,86 +55,6 @@ namespace HotelBookingApp.Controllers
         {
             _deleteRoomService.Execute();
         }
-        private void DisplayBookedActiveRooms(IEnumerable<Room> bookedRooms, string title)
-        {
-            if (bookedRooms == null || !bookedRooms.Any())
-            {
-                AnsiConsole.Markup($"[red]No {title} found.[/]\n");
-                return;
-            }
-
-            var table = new Table()
-                .Border(TableBorder.Rounded)
-                .AddColumn("[bold]Room ID[/]")
-                .AddColumn("[bold]Booked By[/]")
-                .AddColumn("[bold]Start Date[/]")
-                .AddColumn("[bold]End Date[/]");
-
-            foreach (var room in bookedRooms)
-            {
-                foreach (var booking in room.Bookings.Where(b => !b.IsCanceled))
-                {
-                    table.AddRow(
-                        room.RoomId.ToString(),
-                        $"{booking.Guest?.FirstName ?? "Unknown"} {booking.Guest?.LastName ?? "Unknown"}",
-                        booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "N/A",
-                        booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "N/A"
-                    );
-                }
-            }
-
-            AnsiConsole.Markup($"[bold green]{title}[/]\n");
-            AnsiConsole.Write(table);
-        }
-
-
-        private void ExistingRooms(IEnumerable<Room> rooms, string title, bool includeDeleted)
-        {
-            if (rooms == null || !rooms.Any())
-            {
-                AnsiConsole.Markup($"[red]No rooms found for {title}[/].\n");
-                return;
-            }
-
-            var table = new Table()
-                .Border(TableBorder.Rounded)
-                .AddColumn("[bold]Room ID[/]")
-                .AddColumn("[bold]Type[/]")
-                .AddColumn("[bold]Price[/]")
-                .AddColumn("[bold]Size (sqm)[/]");
-
-            if (!includeDeleted)
-            {
-                table.AddColumn("[bold]Max People[/]");
-            }
-
-            foreach (var room in rooms)
-            {
-                if (includeDeleted)
-                {
-                    table.AddRow(
-                        room.RoomId.ToString(),
-                        room.Type,
-                        room.PricePerNight.ToString("C"),
-                        room.SizeInSquareMeters.ToString()
-                    );
-                }
-                else
-                {
-                    table.AddRow(
-                        room.RoomId.ToString(),
-                        room.Type,
-                        room.PricePerNight.ToString("C"),
-                        room.SizeInSquareMeters.ToString(),
-                        room.TotalPeople.ToString("F1")
-                    );
-                }
-            }
-
-            AnsiConsole.Markup($"[bold green]{title}[/]\n");
-            AnsiConsole.Write(table);
-        }
-
         public void ViewAllRooms()
         {
             while (true)
@@ -145,9 +74,9 @@ namespace HotelBookingApp.Controllers
                 }
                 else
                 {
-                    ExistingRooms(activeRooms, "Overview of registered rooms", includeDeleted: false);
-                    DisplayBookedActiveRooms(bookedActiveRooms, "Booked Active Rooms");
-                    ExistingRooms(removedRooms, "Removed Rooms", includeDeleted: true);
+                    _tableDisplayService.DisplayRooms(activeRooms, "Overview of registered rooms", includeDeleted: false);
+                    _tableDisplayService.DisplayBookedRooms(bookedActiveRooms, "Booked Active Rooms");
+                    _tableDisplayService.DisplayRooms(removedRooms, "Removed Rooms", includeDeleted: true);
                 }
 
                 var action = AnsiConsole.Prompt(
@@ -185,7 +114,7 @@ namespace HotelBookingApp.Controllers
                         break;
                 }
             }
+
         }
-        
     }
 }

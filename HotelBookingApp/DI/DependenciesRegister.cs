@@ -3,6 +3,7 @@ using HotelBookingApp.Controllers;
 using HotelBookingApp.Data;
 using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
+using HotelBookingApp.Services.DisplayServices;
 using HotelBookingApp.Services.RoomServices;
 using HotelBookingApp.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -66,6 +67,7 @@ namespace HotelBookingApp.DI
             builder.RegisterType<DeleteRoomService>().AsSelf();
             builder.RegisterType<EditRoomService>().AsSelf();
             builder.RegisterType<RegisterRoomService>().AsSelf();
+            builder.RegisterType<TableDisplayService>().AsSelf();
 
             builder.Register(ctx => new List<Booking>()).As<List<Booking>>();
 
