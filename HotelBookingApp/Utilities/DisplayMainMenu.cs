@@ -14,6 +14,7 @@ namespace HotelBookingApp.Utilities
         private readonly CheckInOutService _checkInOutService;
         private readonly BookingEditService _bookingEditService;
         private readonly PaymentService _paymentService;
+        private readonly UnpaidBookingService _unpaidBookingService;
 
         public DisplayMainMenu(
             GuestController guestController,
@@ -21,7 +22,8 @@ namespace HotelBookingApp.Utilities
             RoomController roomController,
             CheckInOutService checkInOutService,
             BookingEditService bookingEditService,
-            PaymentService paymentSerice)
+            PaymentService paymentSerice,
+            UnpaidBookingService unpaidBookingService)
         {
             _guestController = guestController;
             _bookingController = bookingController;
@@ -29,6 +31,7 @@ namespace HotelBookingApp.Utilities
             _checkInOutService = checkInOutService;
             _bookingEditService = bookingEditService;
             _paymentService = paymentSerice;
+            _unpaidBookingService = unpaidBookingService;
         }
 
         public void Run()
@@ -43,6 +46,7 @@ namespace HotelBookingApp.Utilities
                         .PageSize(10)
                         .HighlightStyle(new Style(Color.Green, decoration: Decoration.Bold))
                         .AddChoices(
+                            "HandleUnpaidBookings",
                             "Pay",
                             "Register New Guest",
                             "Check in/Check out Guest",
@@ -55,6 +59,11 @@ namespace HotelBookingApp.Utilities
 
                 switch (choice)
                 {
+                    case "HandleUnpaidBookings":
+                        _unpaidBookingService.HandleUnpaidBookings();
+                        //_guestController.RegisterNewGuest();
+                        break;
+
                     case "Register New Guest":
                         _guestController.RegisterNewGuest();
                         break;

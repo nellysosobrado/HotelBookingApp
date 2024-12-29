@@ -130,8 +130,6 @@ namespace HotelBookingApp.Services.DisplayServices
             AnsiConsole.Write(table);
         }
 
-        //--
-
         public void DisplayCanceledBookings()
         {
             Console.Clear();

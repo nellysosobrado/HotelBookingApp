@@ -82,6 +82,8 @@ namespace HotelBookingApp.DI
             builder.RegisterType<PaymentService>().AsSelf();
             builder.RegisterType<GuestRemovalService>().AsSelf();
 
+            builder.RegisterType<UnpaidBookingService>().AsSelf();
+
             builder.Register(ctx => new List<Booking>()).As<List<Booking>>();
 
 

@@ -23,5 +23,6 @@ namespace HotelBookingApp.Entities
         public bool IsCanceled { get; set; }
         public ICollection<Invoice> Invoices { get; set; }
         public int ExtraBeds { get; set; }
+        public DateTime CreatedDate { get; set; } // Lägg till detta
     }
 }
