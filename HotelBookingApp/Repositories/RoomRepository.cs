@@ -15,6 +15,20 @@ namespace HotelBookingApp.Repositories
         {
             _appDbContext = context;
         }
+
+        public IEnumerable<(int RoomId, string BookedBy, string StartDate, string EndDate)> GetActiveBookings(IEnumerable<Room> rooms)
+        {
+            return rooms
+                .Where(r => r.Bookings != null && r.Bookings.Any(b => !b.IsCanceled))
+                .SelectMany(r => r.Bookings.Where(b => !b.IsCanceled), (room, booking) => (
+                    RoomId: room.RoomId,
+                    BookedBy: $"{booking.Guest?.FirstName ?? "Unknown"} {booking.Guest?.LastName ?? "Unknown"}",
+                    StartDate: booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "N/A",
+                    EndDate: booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "N/A"
+                ));
+        }
+
+
         public IEnumerable<Room> GetAvailableRoomsByDate(DateTime startDate, DateTime endDate, string roomType)
         {
             return _appDbContext.Rooms
