@@ -125,38 +125,6 @@ namespace HotelBookingApp.Controllers
             AnsiConsole.Markup($"[bold green]{title}[/]\n");
             AnsiConsole.Write(table);
         }
-        public void DisplayAllRooms()
-        {
-            var rooms = _roomRepository.GetAllRooms().Where(r => !r.IsDeleted).ToList();
-
-            if (!rooms.Any())
-            {
-                AnsiConsole.Markup("[red]No active rooms found in the database.[/]\n");
-                return;
-            }
-
-            var table = new Table()
-                .Border(TableBorder.Rounded)
-                .AddColumn("[bold]Room ID[/]")
-                .AddColumn("[bold]Type[/]")
-                .AddColumn("[bold]Price[/]")
-                .AddColumn("[bold]Size (sqm)[/]")
-                .AddColumn("[bold]Max People[/]");
-
-            foreach (var room in rooms)
-            {
-                table.AddRow(
-                    room.RoomId.ToString(),
-                    room.Type,
-                    room.PricePerNight.ToString("C"),
-                    room.SizeInSquareMeters.ToString(),
-                    room.TotalPeople.ToString("F1")
-                );
-            }
-
-            AnsiConsole.Markup("[bold green]All Existing Rooms in the Database:[/]\n");
-            AnsiConsole.Write(table);
-        }
 
         public void ViewAllRooms()
         {
