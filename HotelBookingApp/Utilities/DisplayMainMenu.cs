@@ -1,4 +1,5 @@
 ﻿using HotelBookingApp.Controllers;
+using HotelBookingApp.Services;
 using HotelBookingApp.Services.BookingServices;
 using Spectre.Console;
 using System;
@@ -11,17 +12,23 @@ namespace HotelBookingApp.Utilities
         private readonly BookingController _bookingController;
         private readonly RoomController _roomController;
         private readonly CheckInOutService _checkInOutService;
+        private readonly BookingEditService _bookingEditService;
+        private readonly PaymentService _paymentService;
 
         public DisplayMainMenu(
             GuestController guestController,
             BookingController bookingController,
             RoomController roomController,
-            CheckInOutService checkInOutService)
+            CheckInOutService checkInOutService,
+            BookingEditService bookingEditService,
+            PaymentService paymentSerice)
         {
             _guestController = guestController;
             _bookingController = bookingController;
             _roomController = roomController;
             _checkInOutService = checkInOutService;
+            _bookingEditService = bookingEditService;
+            _paymentService = paymentSerice;
         }
 
         public void Run()
@@ -57,7 +64,7 @@ namespace HotelBookingApp.Utilities
                         break;
 
                     case "Edit Guest information":
-                        _bookingController.EditBooking();
+                        _bookingEditService.EditBooking();
                         break;
 
                     case "Display all registered guests":
@@ -72,7 +79,7 @@ namespace HotelBookingApp.Utilities
                         _bookingController.BookingManagement();
                         break;
                     case "Pay":
-                        _bookingController.PayInvoiceBeforeCheckout();
+                        _paymentService.PayInvoiceBeforeCheckout();
                         break;
 
                     case "Exit":

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HotelBookingApp.Entities;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace HotelBookingApp
@@ -20,6 +21,7 @@ namespace HotelBookingApp
         [Required] 
         public string PhoneNumber { get; set; }
         public bool IsDeleted { get; set; }
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     }
 }

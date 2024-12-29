@@ -24,7 +24,7 @@ namespace HotelBookingApp.Services
                 Console.Clear();
                 _tableDisplayService.DisplayActiveBookings();
 
-                Console.Write("Enter Booking ID (or type 'back' to return): ");
+                Console.Write("Enter Booking ID, to pay the guest invoice (type 'back' to go back): ");
                 var input = Console.ReadLine();
 
                 if (input?.ToLower() == "back")

@@ -9,12 +9,42 @@ namespace HotelBookingApp.Services.DisplayServices
     public class TableDisplayService
     {
         private readonly BookingRepository _bookingRepository;
+        private readonly GuestRepository _guestRepository;
 
-        public TableDisplayService(BookingRepository bookingRepository)
+        public TableDisplayService(BookingRepository bookingRepository, GuestRepository guestRepository)
         {
             _bookingRepository = bookingRepository;
+            _guestRepository = guestRepository;
         }
-       
+        public void DisplayGuestTable(IEnumerable<Guest> guests)
+        {
+            var guestTable = new Table()
+                .Border(TableBorder.Rounded)
+                .AddColumn("[blue]Guest ID[/]")
+                .AddColumn("[blue]Name[/]")
+                .AddColumn("[blue]Lastname[/]")
+                .AddColumn("[blue]Email[/]")
+                .AddColumn("[blue]Phone[/]")
+                .AddColumn("[blue]Status[/]");
+
+            foreach (var guest in guests)
+            {
+                bool hasActiveBooking = guest.Bookings?.Any(b => !b.IsCanceled && !b.IsCheckedOut) ?? false;
+                guestTable.AddRow(
+                    guest.GuestId.ToString(),
+                    guest.FirstName,
+                    guest.LastName,
+                    guest.Email,
+                    guest.PhoneNumber,
+                    hasActiveBooking
+                        ? "[green]Has booking attached, cannot be removed[/]"
+                        : "[red]Has no booking attached[/]"
+                );
+            }
+
+            AnsiConsole.Write(guestTable);
+        }
+
 
         public void DisplayActiveBookings()
         {
@@ -32,13 +62,6 @@ namespace HotelBookingApp.Services.DisplayServices
             DisplayTable(bookings, "Completed Bookings:", includePaymentAndStatus: true);
         }
 
-        //public void DisplayCanceledBookings()
-        //{
-        //    var bookings = _bookingRepository.GetAllBookings()
-        //        .Where(b => b.IsCanceled)
-        //        .ToList();
-        //    DisplayTable(bookings, "Canceled Bookings:", includePaymentAndStatus: false);
-        //}
 
         private void DisplayTable(IEnumerable<Booking> bookings, string title, bool includePaymentAndStatus)
         {
