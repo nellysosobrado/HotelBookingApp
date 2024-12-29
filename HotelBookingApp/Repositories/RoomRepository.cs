@@ -53,10 +53,12 @@ namespace HotelBookingApp.Repositories
         public IEnumerable<Room> GetRoomsWithBookings()
         {
             return _appDbContext.Rooms
-                .Include(r => r.Bookings) 
+                .Where(r => !r.IsDeleted) 
+                .Include(r => r.Bookings.Where(b => !b.IsCanceled)) 
                 .ThenInclude(b => b.Guest) 
                 .ToList();
         }
+
 
         public RepositoryResult AddRoom(Room room)
         {

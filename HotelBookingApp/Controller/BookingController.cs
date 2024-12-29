@@ -4,6 +4,7 @@ using Spectre.Console;
 using HotelBookingApp.Entities;
 using HotelBookingApp.Data;
 using HotelBookingApp.Controllers;
+using HotelBookingApp.Services;
 
 //CRUD
 //CREATE - Register new booking
@@ -20,6 +21,7 @@ namespace HotelBookingApp
         private readonly GuestRepository _guestRepository;
         private readonly GuestController _guestController;
 
+
         public BookingController(BookingRepository bookingRepository, RoomRepository roomRepository, GuestRepository guestRepository, GuestController guestController)
         {
             _bookingRepository = bookingRepository;
@@ -28,47 +30,47 @@ namespace HotelBookingApp
             _guestController = guestController;
         }
 
-        public void SearchAvailableRooms()
-        {
-            Console.Clear();
-            Console.WriteLine("Function: Find Available Rooms");
+        //public void SearchAvailableRooms()
+        //{
+        //    Console.Clear();
+        //    Console.WriteLine("Function: Find Available Rooms");
 
-            DateTime startDate = SelectDate("Select start date:");
+        //    DateTime startDate = SelectDate("Select start date:");
 
-            DateTime endDate = SelectDate("Select end date:");
+        //    DateTime endDate = SelectDate("Select end date:");
 
-            if (endDate <= startDate)
-            {
-                Console.WriteLine("End date must be after start date.");
-                Console.ReadKey();
-                return;
-            }
+        //    if (endDate <= startDate)
+        //    {
+        //        Console.WriteLine("End date must be after start date.");
+        //        Console.ReadKey();
+        //        return;
+        //    }
 
-            Console.WriteLine("Enter the number of guests:");
-            if (!int.TryParse(Console.ReadLine(), out int guestCount) || guestCount <= 0)
-            {
-                Console.WriteLine("Invalid number of guests.");
-                return;
-            }
+        //    Console.WriteLine("Enter the number of guests:");
+        //    if (!int.TryParse(Console.ReadLine(), out int guestCount) || guestCount <= 0)
+        //    {
+        //        Console.WriteLine("Invalid number of guests.");
+        //        return;
+        //    }
 
-            var availableRooms = _bookingRepository.GetAvailableRooms(startDate, endDate, guestCount);
+        //    var availableRooms = _bookingRepository.GetAvailableRooms(startDate, endDate, guestCount);
 
-            if (!availableRooms.Any())
-            {
-                Console.WriteLine("No available rooms found.");
-            }
-            else
-            {
-                Console.WriteLine($"\nAvailable rooms from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}:");
-                foreach (var room in availableRooms)
-                {
-                    Console.WriteLine($"Room {room.RoomId}: {room.Type}, {room.PricePerNight:C} per night");
-                }
-            }
+        //    if (!availableRooms.Any())
+        //    {
+        //        Console.WriteLine("No available rooms found.");
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine($"\nAvailable rooms from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}:");
+        //        foreach (var room in availableRooms)
+        //        {
+        //            Console.WriteLine($"Room {room.RoomId}: {room.Type}, {room.PricePerNight:C} per night");
+        //        }
+        //    }
 
-            Console.WriteLine("\nPress any key to return to the menu...");
-            Console.ReadKey();
-        }
+        //    Console.WriteLine("\nPress any key to return to the menu...");
+        //    Console.ReadKey();
+        //}
 
         private DateTime SelectDate(string prompt)
         {

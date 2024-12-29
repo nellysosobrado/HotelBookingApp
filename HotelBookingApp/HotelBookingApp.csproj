@@ -10,13 +10,10 @@
   <ItemGroup>
     <Compile Remove="Controllers\**" />
     <Compile Remove="Manager\**" />
-    <Compile Remove="Services\**" />
     <EmbeddedResource Remove="Controllers\**" />
     <EmbeddedResource Remove="Manager\**" />
-    <EmbeddedResource Remove="Services\**" />
     <None Remove="Controllers\**" />
     <None Remove="Manager\**" />
-    <None Remove="Services\**" />
   </ItemGroup>
 
   <ItemGroup>

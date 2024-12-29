@@ -24,7 +24,6 @@ namespace HotelBookingApp.Utilities
                 "edit booking", 
                 "Unpaid bookings that havent been paid after 10 days",
                 "View canceled bookings history",
-                "Search availabe room by date",
                 "main menu"
             };
 
@@ -46,9 +45,6 @@ namespace HotelBookingApp.Utilities
                         break;
                     case 3:
                         _bookingController.DisplayCanceledBookings();
-                        break;
-                    case 4:
-                        _bookingController.SearchAvailableRooms();
                         break;
 
                     default:
