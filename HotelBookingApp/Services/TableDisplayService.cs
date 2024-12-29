@@ -7,6 +7,76 @@ namespace HotelBookingApp.Services.DisplayServices
 {
     public class TableDisplayService
     {
+
+        public void DisplayBookingTable(IEnumerable<Booking> bookings, string title, bool includePaymentAndStatus = true)
+        {
+            if (bookings == null || !bookings.Any())
+            {
+                AnsiConsole.Markup($"[red]No {title} found.[/]\n");
+                return;
+            }
+
+            var table = new Table().Border(TableBorder.Rounded);
+
+            table.AddColumn("[bold]Booking ID[/]");
+            table.AddColumn("[bold]Guest[/]");
+            table.AddColumn("[bold]Room ID[/]");
+            table.AddColumn("[bold]Check-In Date[/]");
+            table.AddColumn("[bold]Check-Out Date[/]");
+
+            if (includePaymentAndStatus)
+            {
+                table.AddColumn("[bold]Amount[/]");
+                table.AddColumn("[bold]Payment Status[/]");
+                table.AddColumn("[bold]Booking Status[/]");
+            }
+
+            foreach (var booking in bookings)
+            {
+                var invoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
+                string paymentStatus = includePaymentAndStatus && invoice != null && invoice.IsPaid
+                    ? "[green]Paid[/]"
+                    : "[red]Not Paid[/]";
+                string bookingStatus = includePaymentAndStatus
+                    ? (booking.IsCheckedIn ? "[green]Checked In[/]" : "[yellow]Not Checked In[/]")
+                    : string.Empty;
+                string amount = includePaymentAndStatus && invoice != null
+                    ? $"{invoice.TotalAmount:C}"
+                    : "[grey]No Invoice[/]";
+                string checkInDate = booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]";
+                string checkOutDate = booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]";
+
+                // Bygg raden dynamiskt baserat på antalet kolumner
+                if (includePaymentAndStatus)
+                {
+                    table.AddRow(
+                        booking.BookingId.ToString(),
+                        $"{booking.Guest.FirstName} {booking.Guest.LastName}",
+                        booking.RoomId.ToString(),
+                        checkInDate,
+                        checkOutDate,
+                        amount,
+                        paymentStatus,
+                        bookingStatus
+                    );
+                }
+                else
+                {
+                    table.AddRow(
+                        booking.BookingId.ToString(),
+                        $"{booking.Guest.FirstName} {booking.Guest.LastName}",
+                        booking.RoomId.ToString(),
+                        checkInDate,
+                        checkOutDate
+                    );
+                }
+            }
+
+            AnsiConsole.Markup($"[bold green]{title}[/]\n");
+            AnsiConsole.Write(table);
+        }
+
+
         public void DisplayRooms(IEnumerable<Room> rooms, string title, bool includeDeleted)
         {
             if (rooms == null || !rooms.Any())

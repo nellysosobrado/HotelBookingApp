@@ -5,6 +5,8 @@ using HotelBookingApp.Entities;
 using HotelBookingApp.Data;
 using HotelBookingApp.Controllers;
 using HotelBookingApp.Services;
+using HotelBookingApp.Services.DisplayServices;
+using HotelBookingApp.Services.BookingServices;
 
 //CRUD
 //CREATE - Register new booking
@@ -20,14 +22,30 @@ namespace HotelBookingApp
         private readonly RoomRepository _roomRepository;
         private readonly GuestRepository _guestRepository;
         private readonly GuestController _guestController;
+        private readonly TableDisplayService _tableDisplayService;
+        private readonly CheckInOutService _checkInOutService;
+        private readonly BookingEditService _bookingEditService;
+        private readonly UnbookBooking _unbookBooking;
 
 
-        public BookingController(BookingRepository bookingRepository, RoomRepository roomRepository, GuestRepository guestRepository, GuestController guestController)
+        public BookingController(
+            BookingRepository bookingRepository,
+            RoomRepository roomRepository, 
+            GuestRepository guestRepository, 
+            GuestController guestController,
+            TableDisplayService tableDisplayService,
+            CheckInOutService checkInOutService,
+            BookingEditService bookingEditService,
+            UnbookBooking unbookBooking)
         {
             _bookingRepository = bookingRepository;
             _roomRepository = roomRepository;
             _guestRepository = guestRepository;
             _guestController = guestController;
+            _tableDisplayService = tableDisplayService;
+            _checkInOutService = checkInOutService;
+            _bookingEditService = bookingEditService;
+            _unbookBooking = unbookBooking;
         }
 
        
@@ -429,228 +447,234 @@ namespace HotelBookingApp
             }
             Console.ReadKey();
         }
+
         public void EditBooking()
         {
-            Console.Clear();
-            AnsiConsole.Markup("[bold yellow]Overview of all existing bookings[/]\n");
-
-            DisplayActiveBookings();
-
-            AnsiConsole.Markup("Enter a [green]Booking ID[/] you wish to edit:\n");
-            if (!int.TryParse(Console.ReadLine(), out int bookingId))
-            {
-                AnsiConsole.Markup("[red]Invalid Booking ID. Press any key to return...[/]\n");
-                Console.ReadKey();
-                return;
-            }
-
-            var booking = _bookingRepository.GetBookingById(bookingId);
-
-            if (booking == null)
-            {
-                AnsiConsole.Markup("[red]Booking not found. Press any key to return...[/]\n");
-                Console.ReadKey();
-                return;
-            }
-
-            while (true)
-            {
-                Console.Clear();
-                AnsiConsole.Markup($"[bold green]Booking ID {booking.BookingId}[/]\n");
-
-                var room = _roomRepository.GetRoomById(booking.RoomId);
-                var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId);
-
-                if (room != null)
-                {
-                    invoice.TotalAmount = _bookingRepository.CalculateTotalAmount(booking);
-                    _bookingRepository.UpdateInvoice(invoice);
-                }
-
-                var bookingDetailsTable = new Table()
-                    .Border(TableBorder.Rounded)
-                    .AddColumn("[bold yellow]Detail[/]")
-                    .AddColumn("[bold yellow]Information[/]")
-                    .AddRow("Guest", $"{booking.Guest.FirstName} {booking.Guest.LastName}")
-                    .AddRow("Email", booking.Guest.Email)
-                    .AddRow("Phone Number", booking.Guest.PhoneNumber)
-                    .AddRow("Room ID", booking.RoomId.ToString())
-                    .AddRow("Room Type", room?.Type ?? "[red]N/A[/]")
-                    .AddRow("Check-In Date", booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "[grey]Not Set[/]")
-                    .AddRow("Check-Out Date", booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "[grey]Not Set[/]")
-                    .AddRow("Amount", $"{invoice.TotalAmount:C}")
-                    .AddRow("Booking Status", booking.IsCheckedIn ? "[green]Checked In[/]" : "[yellow]Not Checked In[/]");
-                AnsiConsole.Write(bookingDetailsTable);
-
-                var action = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("[bold green]What would you like to edit?[/]")
-                        .AddChoices(new[] { "Edit Guest Information", "Edit Room Information", "Edit Check-In Date", "Edit Check-Out Date", "Confirm Edit", "Cancel" })
-                        .HighlightStyle(new Style(foreground: Color.Green))
-                );
-
-                switch (action)
-                {
-                    case "Edit Guest Information":
-                        while (true)
-                        {
-                            Console.Clear();
-
-                            var guestInfoTable = new Table()
-                                .Border(TableBorder.Rounded)
-                                .AddColumn("[bold yellow]Detail[/]")
-                                .AddColumn("[bold yellow]Information[/]")
-                                .AddRow("First Name", booking.Guest.FirstName)
-                                .AddRow("Last Name", booking.Guest.LastName)
-                                .AddRow("Email", booking.Guest.Email)
-                                .AddRow("Phone Number", booking.Guest.PhoneNumber);
-                            AnsiConsole.Write(guestInfoTable);
-
-                            var guestAction = AnsiConsole.Prompt(
-                                new SelectionPrompt<string>()
-                                    .Title("[bold green]Which detail would you like to edit?[/]")
-                                    .AddChoices(new[] { "First Name", "Last Name", "Email", "Phone Number", "Confirm Edit", "Cancel" })
-                                    .HighlightStyle(new Style(foreground: Color.Green))
-                            );
-
-                            if (guestAction == "Go Back")
-                                break;
-
-                            switch (guestAction)
-                            {
-                                case "First Name":
-                                    booking.Guest.FirstName = AnsiConsole.Ask<string>("Enter [green]new First Name[/]:");
-                                    break;
-
-                                case "Last Name":
-                                    booking.Guest.LastName = AnsiConsole.Ask<string>("Enter [green]new Last Name[/]:");
-                                    break;
-
-                                case "Email":
-                                    booking.Guest.Email = AnsiConsole.Ask<string>("Enter [green]new Email[/]:");
-                                    break;
-
-                                case "Phone Number":
-                                    booking.Guest.PhoneNumber = AnsiConsole.Ask<string>("Enter [green]new Phone Number[/]:");
-                                    break;
-
-                                case "Confirm Edit":
-                                    try
-                                    {
-                                        _bookingRepository.UpdateGuest(booking.Guest); 
-                                        AnsiConsole.Markup("[green]Guest information updated successfully![/]\n");
-                                        Console.WriteLine("\nPress any key to return to booking menu...");
-                                        Console.ReadKey();
-                                        break;
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        AnsiConsole.Markup($"[red]Error updating guest: {ex.Message}[/]\n");
-                                        Console.WriteLine("\nPress any key to try again...");
-                                        Console.ReadKey();
-                                    }
-                                    return;
-
-                                default:
-                                    AnsiConsole.Markup("[red]Invalid option. Try again.[/]\n");
-                                    break;
-                            }
-                        }
-                        break;
-                    case "Edit Check-In Date":
-                        DateTime newCheckInDate = AnsiConsole.Ask<DateTime>("Enter [green]new Check-In Date (yyyy-MM-dd)[/]:");
-
-                        if (newCheckInDate < DateTime.Now.Date)
-                        {
-                            AnsiConsole.Markup("[red]Check-In Date cannot be in the past.[/]");
-                            Console.ReadKey();
-                        }
-                        else if (booking.CheckOutDate.HasValue && newCheckInDate >= booking.CheckOutDate.Value)
-                        {
-                            AnsiConsole.Markup("[red]Check-In Date cannot be on or after the Check-Out Date.[/]");
-                            Console.ReadKey();
-                        }
-                        else
-                        {
-                            booking.CheckInDate = newCheckInDate;
-                            try
-                            {
-                                invoice.TotalAmount = _bookingRepository.CalculateTotalAmount(booking); 
-                                _bookingRepository.UpdateInvoice(invoice); 
-                                AnsiConsole.Markup("[green]Check-In Date and invoice updated successfully![/]");
-                            }
-                            catch (Exception ex)
-                            {
-                                AnsiConsole.Markup($"[red]Error updating invoice: {ex.Message}[/]");
-                            }
-                            Console.ReadKey();
-                        }
-                        break;
-
-                    case "Edit Check-Out Date":
-                        DateTime newCheckOutDate = AnsiConsole.Ask<DateTime>("Enter [green]new Check-Out Date (yyyy-MM-dd)[/]:");
-
-                        if (newCheckOutDate <= booking.CheckInDate)
-                        {
-                            AnsiConsole.Markup("[red]Check-Out Date must be after the Check-In Date.[/]");
-                            Console.ReadKey();
-                        }
-                        else
-                        {
-                            booking.CheckOutDate = newCheckOutDate;
-                            try
-                            {
-                                invoice.TotalAmount = _bookingRepository.CalculateTotalAmount(booking); 
-                                _bookingRepository.UpdateInvoice(invoice); 
-                                AnsiConsole.Markup("[green]Check-Out Date and invoice updated successfully![/]");
-                            }
-                            catch (Exception ex)
-                            {
-                                AnsiConsole.Markup($"[red]Error updating invoice: {ex.Message}[/]");
-                            }
-                            Console.ReadKey();
-                        }
-                        break;
-
-                    case "Edit Room Information":
-                        var roomToEdit = _roomRepository.GetRoomById(booking.RoomId);
-                        if (roomToEdit == null)
-                        {
-                            AnsiConsole.Markup("[red]Room not found for the booking. Please check again.[/]\n");
-                            Console.ReadKey();
-                            break;
-                        }
-
-                        EditRoomDetails(roomToEdit, booking);
-
-                        invoice.TotalAmount = _bookingRepository.CalculateTotalAmount(booking); 
-                        _bookingRepository.UpdateInvoice(invoice); 
-                        break;
-
-
-                    case "Confirm Edit":
-                        try
-                        {
-                            _bookingRepository.UpdateBooking(booking); 
-                            AnsiConsole.Markup("[green]Booking updated successfully![/]\n");
-                        }
-                        catch (Exception ex)
-                        {
-                            AnsiConsole.Markup($"[red]Error updating booking: {ex.Message}[/]\n");
-                        }
-                        Console.WriteLine("\nPress any key to return...");
-                        Console.ReadKey();
-                        return;
-
-                    case "Cancel":
-                        return;
-
-                    default:
-                        AnsiConsole.Markup("[red]Invalid option selected. Try again.[/]\n");
-                        break;
-                }
-            }
+            
         }
+
+        //public void EditBooking()
+        //{
+        //    Console.Clear();
+        //    AnsiConsole.Markup("[bold yellow]Overview of all existing bookings[/]\n");
+
+        //    DisplayActiveBookings();
+
+        //    AnsiConsole.Markup("Enter a [green]Booking ID[/] you wish to edit:\n");
+        //    if (!int.TryParse(Console.ReadLine(), out int bookingId))
+        //    {
+        //        AnsiConsole.Markup("[red]Invalid Booking ID. Press any key to return...[/]\n");
+        //        Console.ReadKey();
+        //        return;
+        //    }
+
+        //    var booking = _bookingRepository.GetBookingById(bookingId);
+
+        //    if (booking == null)
+        //    {
+        //        AnsiConsole.Markup("[red]Booking not found. Press any key to return...[/]\n");
+        //        Console.ReadKey();
+        //        return;
+        //    }
+
+        //    while (true)
+        //    {
+        //        Console.Clear();
+        //        AnsiConsole.Markup($"[bold green]Booking ID {booking.BookingId}[/]\n");
+
+        //        var room = _roomRepository.GetRoomById(booking.RoomId);
+        //        var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId);
+
+        //        if (room != null)
+        //        {
+        //            invoice.TotalAmount = _bookingRepository.CalculateTotalAmount(booking);
+        //            _bookingRepository.UpdateInvoice(invoice);
+        //        }
+
+        //        var bookingDetailsTable = new Table()
+        //            .Border(TableBorder.Rounded)
+        //            .AddColumn("[bold yellow]Detail[/]")
+        //            .AddColumn("[bold yellow]Information[/]")
+        //            .AddRow("Guest", $"{booking.Guest.FirstName} {booking.Guest.LastName}")
+        //            .AddRow("Email", booking.Guest.Email)
+        //            .AddRow("Phone Number", booking.Guest.PhoneNumber)
+        //            .AddRow("Room ID", booking.RoomId.ToString())
+        //            .AddRow("Room Type", room?.Type ?? "[red]N/A[/]")
+        //            .AddRow("Check-In Date", booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "[grey]Not Set[/]")
+        //            .AddRow("Check-Out Date", booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "[grey]Not Set[/]")
+        //            .AddRow("Amount", $"{invoice.TotalAmount:C}")
+        //            .AddRow("Booking Status", booking.IsCheckedIn ? "[green]Checked In[/]" : "[yellow]Not Checked In[/]");
+        //        AnsiConsole.Write(bookingDetailsTable);
+
+        //        var action = AnsiConsole.Prompt(
+        //            new SelectionPrompt<string>()
+        //                .Title("[bold green]What would you like to edit?[/]")
+        //                .AddChoices(new[] { "Edit Guest Information", "Edit Room Information", "Edit Check-In Date", "Edit Check-Out Date", "Confirm Edit", "Cancel" })
+        //                .HighlightStyle(new Style(foreground: Color.Green))
+        //        );
+
+        //        switch (action)
+        //        {
+        //            case "Edit Guest Information":
+        //                while (true)
+        //                {
+        //                    Console.Clear();
+
+        //                    var guestInfoTable = new Table()
+        //                        .Border(TableBorder.Rounded)
+        //                        .AddColumn("[bold yellow]Detail[/]")
+        //                        .AddColumn("[bold yellow]Information[/]")
+        //                        .AddRow("First Name", booking.Guest.FirstName)
+        //                        .AddRow("Last Name", booking.Guest.LastName)
+        //                        .AddRow("Email", booking.Guest.Email)
+        //                        .AddRow("Phone Number", booking.Guest.PhoneNumber);
+        //                    AnsiConsole.Write(guestInfoTable);
+
+        //                    var guestAction = AnsiConsole.Prompt(
+        //                        new SelectionPrompt<string>()
+        //                            .Title("[bold green]Which detail would you like to edit?[/]")
+        //                            .AddChoices(new[] { "First Name", "Last Name", "Email", "Phone Number", "Confirm Edit", "Cancel" })
+        //                            .HighlightStyle(new Style(foreground: Color.Green))
+        //                    );
+
+        //                    if (guestAction == "Go Back")
+        //                        break;
+
+        //                    switch (guestAction)
+        //                    {
+        //                        case "First Name":
+        //                            booking.Guest.FirstName = AnsiConsole.Ask<string>("Enter [green]new First Name[/]:");
+        //                            break;
+
+        //                        case "Last Name":
+        //                            booking.Guest.LastName = AnsiConsole.Ask<string>("Enter [green]new Last Name[/]:");
+        //                            break;
+
+        //                        case "Email":
+        //                            booking.Guest.Email = AnsiConsole.Ask<string>("Enter [green]new Email[/]:");
+        //                            break;
+
+        //                        case "Phone Number":
+        //                            booking.Guest.PhoneNumber = AnsiConsole.Ask<string>("Enter [green]new Phone Number[/]:");
+        //                            break;
+
+        //                        case "Confirm Edit":
+        //                            try
+        //                            {
+        //                                _bookingRepository.UpdateGuest(booking.Guest); 
+        //                                AnsiConsole.Markup("[green]Guest information updated successfully![/]\n");
+        //                                Console.WriteLine("\nPress any key to return to booking menu...");
+        //                                Console.ReadKey();
+        //                                break;
+        //                            }
+        //                            catch (Exception ex)
+        //                            {
+        //                                AnsiConsole.Markup($"[red]Error updating guest: {ex.Message}[/]\n");
+        //                                Console.WriteLine("\nPress any key to try again...");
+        //                                Console.ReadKey();
+        //                            }
+        //                            return;
+
+        //                        default:
+        //                            AnsiConsole.Markup("[red]Invalid option. Try again.[/]\n");
+        //                            break;
+        //                    }
+        //                }
+        //                break;
+        //            case "Edit Check-In Date":
+        //                DateTime newCheckInDate = AnsiConsole.Ask<DateTime>("Enter [green]new Check-In Date (yyyy-MM-dd)[/]:");
+
+        //                if (newCheckInDate < DateTime.Now.Date)
+        //                {
+        //                    AnsiConsole.Markup("[red]Check-In Date cannot be in the past.[/]");
+        //                    Console.ReadKey();
+        //                }
+        //                else if (booking.CheckOutDate.HasValue && newCheckInDate >= booking.CheckOutDate.Value)
+        //                {
+        //                    AnsiConsole.Markup("[red]Check-In Date cannot be on or after the Check-Out Date.[/]");
+        //                    Console.ReadKey();
+        //                }
+        //                else
+        //                {
+        //                    booking.CheckInDate = newCheckInDate;
+        //                    try
+        //                    {
+        //                        invoice.TotalAmount = _bookingRepository.CalculateTotalAmount(booking); 
+        //                        _bookingRepository.UpdateInvoice(invoice); 
+        //                        AnsiConsole.Markup("[green]Check-In Date and invoice updated successfully![/]");
+        //                    }
+        //                    catch (Exception ex)
+        //                    {
+        //                        AnsiConsole.Markup($"[red]Error updating invoice: {ex.Message}[/]");
+        //                    }
+        //                    Console.ReadKey();
+        //                }
+        //                break;
+
+        //            case "Edit Check-Out Date":
+        //                DateTime newCheckOutDate = AnsiConsole.Ask<DateTime>("Enter [green]new Check-Out Date (yyyy-MM-dd)[/]:");
+
+        //                if (newCheckOutDate <= booking.CheckInDate)
+        //                {
+        //                    AnsiConsole.Markup("[red]Check-Out Date must be after the Check-In Date.[/]");
+        //                    Console.ReadKey();
+        //                }
+        //                else
+        //                {
+        //                    booking.CheckOutDate = newCheckOutDate;
+        //                    try
+        //                    {
+        //                        invoice.TotalAmount = _bookingRepository.CalculateTotalAmount(booking); 
+        //                        _bookingRepository.UpdateInvoice(invoice); 
+        //                        AnsiConsole.Markup("[green]Check-Out Date and invoice updated successfully![/]");
+        //                    }
+        //                    catch (Exception ex)
+        //                    {
+        //                        AnsiConsole.Markup($"[red]Error updating invoice: {ex.Message}[/]");
+        //                    }
+        //                    Console.ReadKey();
+        //                }
+        //                break;
+
+        //            case "Edit Room Information":
+        //                var roomToEdit = _roomRepository.GetRoomById(booking.RoomId);
+        //                if (roomToEdit == null)
+        //                {
+        //                    AnsiConsole.Markup("[red]Room not found for the booking. Please check again.[/]\n");
+        //                    Console.ReadKey();
+        //                    break;
+        //                }
+
+        //                EditRoomDetails(roomToEdit, booking);
+
+        //                invoice.TotalAmount = _bookingRepository.CalculateTotalAmount(booking); 
+        //                _bookingRepository.UpdateInvoice(invoice); 
+        //                break;
+
+
+        //            case "Confirm Edit":
+        //                try
+        //                {
+        //                    _bookingRepository.UpdateBooking(booking); 
+        //                    AnsiConsole.Markup("[green]Booking updated successfully![/]\n");
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    AnsiConsole.Markup($"[red]Error updating booking: {ex.Message}[/]\n");
+        //                }
+        //                Console.WriteLine("\nPress any key to return...");
+        //                Console.ReadKey();
+        //                return;
+
+        //            case "Cancel":
+        //                return;
+
+        //            default:
+        //                AnsiConsole.Markup("[red]Invalid option selected. Try again.[/]\n");
+        //                break;
+        //        }
+        //    }
+        //}
         public void EditRoomDetails(Room room, Booking booking)
         {
             while (true)
@@ -935,111 +959,6 @@ namespace HotelBookingApp
         }
 
 
-
-
-        //public void EditRoomDetails(Room room)
-        //{
-        //    while (true)
-        //    {
-        //        Console.Clear();
-        //        AnsiConsole.Markup($"[bold yellow]Editing Room ID {room.RoomId}[/]\n");
-
-        //        var roomDetailsTable = new Table()
-        //            .Border(TableBorder.Rounded)
-        //            .AddColumn("[bold]Property[/]")
-        //            .AddColumn("[bold]Value[/]")
-        //            .AddRow("Type", room.Type)
-        //            .AddRow("Price Per Night", room.PricePerNight.ToString("C"))
-        //            .AddRow("Size (sqm)", room.SizeInSquareMeters.ToString())
-        //            .AddRow("Extra Beds", room.ExtraBeds.ToString());
-        //        AnsiConsole.Write(roomDetailsTable);
-
-        //        var action = AnsiConsole.Prompt(
-        //            new SelectionPrompt<string>()
-        //                .Title("What would you like to edit?")
-        //                .AddChoices(new[] { "Type", "Price Per Night", "Size", "Extra Beds (if Double Room)", "Finish Editing" })
-        //                .HighlightStyle(new Style(foreground: Color.Green))
-        //        );
-
-        //        switch (action)
-        //        {
-        //            case "Type":
-        //                room.Type = AnsiConsole.Prompt(
-        //                    new SelectionPrompt<string>()
-        //                        .Title("Select new [green]Room Type[/]:")
-        //                        .AddChoices("Single", "Double")
-        //                        .HighlightStyle(new Style(foreground: Color.Green))
-        //                );
-
-        //                // Om typen ändras till "Single", återställ ExtraBeds
-        //                if (room.Type == "Single")
-        //                {
-        //                    room.ExtraBeds = 0;
-        //                    AnsiConsole.Markup("[yellow]Extra beds reset to 0 for Single Room.[/]\n");
-        //                }
-        //                break;
-
-        //            case "Price Per Night":
-        //                room.PricePerNight = AnsiConsole.Ask<decimal>("Enter new [green]Price Per Night[/]:");
-        //                break;
-
-        //            case "Size":
-        //                room.SizeInSquareMeters = AnsiConsole.Ask<int>("Enter new [green]Size in Square Meters[/]:");
-        //                break;
-
-        //            case "Extra Beds (if Double Room)":
-        //                if (room.Type != "Double")
-        //                {
-        //                    AnsiConsole.Markup("[red]Extra beds can only be added for Double Rooms.[/]\n");
-        //                }
-        //                else
-        //                {
-        //                    room.ExtraBeds = AnsiConsole.Prompt(
-        //                        new SelectionPrompt<int>()
-        //                            .Title("Select the number of [green]Extra Beds[/]:")
-        //                            .AddChoices(0, 1, 2)
-        //                            .HighlightStyle(new Style(foreground: Color.Green))
-        //                    );
-        //                    AnsiConsole.Markup($"[green]Extra beds updated to {room.ExtraBeds}.[/]\n");
-        //                }
-        //                break;
-
-        //            case "Finish Editing":
-        //                // Validera och spara till databasen
-        //                var validationResult = new RoomValidator().Validate(room);
-        //                if (validationResult.IsValid)
-        //                {
-        //                    try
-        //                    {
-        //                        _roomRepository.UpdateRoom(room); // Spara ändringar i databasen
-        //                        AnsiConsole.Markup("[green]Room details updated successfully![/]\n");
-        //                    }
-        //                    catch (Exception ex)
-        //                    {
-        //                        AnsiConsole.Markup($"[red]An error occurred while saving changes: {ex.Message}[/]\n");
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    AnsiConsole.Markup("[red]Validation Errors:[/]\n");
-        //                    foreach (var error in validationResult.Errors)
-        //                    {
-        //                        AnsiConsole.Markup($"[red]- {error.ErrorMessage}[/]\n");
-        //                    }
-        //                }
-        //                Console.WriteLine("\nPress any key to return...");
-        //                Console.ReadKey();
-        //                return;
-
-        //            default:
-        //                AnsiConsole.Markup("[red]Invalid option selected. Try again.[/]\n");
-        //                break;
-        //        }
-        //        Console.WriteLine("\nPress any key to continue...");
-        //        Console.ReadKey();
-        //    }
-        //}
-
         public void CancelBooking()
         {
             while (true)
@@ -1311,340 +1230,47 @@ namespace HotelBookingApp
 
 
 
-        public void CheckInOrCheckOut()
-        {
-            while (true)
-            {
-                Console.Clear();
-
-
-                DisplayActiveBookings();
-
-
-                var bookingChoices = _bookingRepository.GetAllBookings()
-                    .Where(b => !b.IsCanceled && b.BookingStatus != true)
-                    .Select(b => $"{b.BookingId}: {b.Guest.FirstName} {b.Guest.LastName}")
-                    .ToList();
-
-                bookingChoices.Add("Back");
-
-                var selectedBooking = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("[bold green]Select a booking [/]")
-                        .AddChoices(bookingChoices)
-                        .HighlightStyle(new Style(foreground: Color.Green))
-                );
-
-                if (selectedBooking == "Back")
-                    break;
-
-                var bookingId = int.Parse(selectedBooking.Split(':')[0]);
-
-                var booking = _bookingRepository.GetBookingById(bookingId);
-                if (booking == null)
-                {
-                    AnsiConsole.MarkupLine("[red]Selected booking could not be found. Try again.[/]");
-                    Console.ReadKey();
-                    continue;
-                }
-
-                // Alternativ för Check-In/Check-Out
-                var action = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("[bold green]What action would you like to perform?[/]")
-                        .AddChoices("Check In", "Check Out", "Go Back")
-                        .HighlightStyle(new Style(foreground: Color.Green))
-                );
-
-                switch (action)
-                {
-                    case "Check In":
-                        HandleCheckIn(booking);
-                        break;
-
-                    case "Check Out":
-                        HandleCheckOut(booking);
-                        break;
-
-                    case "Go Back":
-                        continue;
-                }
-
-                Console.WriteLine("Press any key to return...");
-                Console.ReadKey();
-            }
-        }
-
-
-        public void HandleCheckIn(Booking booking)
-        {
-            if (booking.IsCheckedIn)
-            {
-                AnsiConsole.MarkupLine($"[yellow]Booking ID {booking.BookingId} is already checked in.[/]");
-                return;
-            }
-
-            bool payAtCheckIn = AnsiConsole.Confirm("Would the guest like to pay at check-in?");
-
-            if (payAtCheckIn)
-            {
-                var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId)
-                                  ?? _bookingRepository.GenerateInvoiceForBooking(booking);
-
-                AnsiConsole.MarkupLine($"Invoice Total: [green]{invoice.TotalAmount:C}[/]");
-
-                decimal paymentAmount = 0;
-                bool validPayment = false;
-
-                while (!validPayment)
-                {
-                    Console.Write("Enter payment amount: ");
-                    if (decimal.TryParse(Console.ReadLine(), out paymentAmount))
-                    {
-                        if (paymentAmount == invoice.TotalAmount)
-                        {
-                            validPayment = true;
-                        }
-                        else
-                        {
-                            AnsiConsole.MarkupLine($"[red]Incorrect amount. The exact amount to pay is {invoice.TotalAmount:C}. Please try again.[/]");
-                        }
-                    }
-                    else
-                    {
-                        AnsiConsole.MarkupLine("[red]Invalid input. Please enter a numeric value.[/]");
-                    }
-                }
-
-                _bookingRepository.ProcessPayment(invoice, paymentAmount);
-            }
-
-            booking.IsCheckedIn = true;
-            _bookingRepository.UpdateBooking(booking);
-
-            AnsiConsole.MarkupLine($"[green]Guest {booking.Guest.FirstName} {booking.Guest.LastName} successfully checked in![/]");
-            AnsiConsole.MarkupLine($"[green]Booking ID: {booking.BookingId}, Room ID: {booking.RoomId}[/]");
-        }
-
-
-
-
-        public void HandleCheckOut(Booking booking)
-        {
-            if (!booking.IsCheckedIn)
-            {
-                AnsiConsole.MarkupLine($"[red]Booking ID {booking.BookingId} has not been checked in yet. You cannot check out before check-in.[/]");
-                return;
-            }
-
-            if (booking.IsCheckedOut)
-            {
-                AnsiConsole.MarkupLine($"[yellow]Booking ID {booking.BookingId} is already checked out.[/]");
-                return;
-            }
-
-            var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId)
-                              ?? _bookingRepository.GenerateInvoiceForBooking(booking);
-
-            if (invoice.IsPaid)
-            {
-                AnsiConsole.MarkupLine($"[green]Booking ID {booking.BookingId} is already fully paid. No further payment is required.[/]");
-            }
-            else
-            {
-                AnsiConsole.MarkupLine($"Invoice Total: [green]{invoice.TotalAmount:C}[/]");
-
-                decimal paymentAmount = 0;
-                bool validPayment = false;
-
-                while (!validPayment)
-                {
-                    Console.Write("Enter payment amount: ");
-                    if (decimal.TryParse(Console.ReadLine(), out paymentAmount))
-                    {
-                        if (paymentAmount == invoice.TotalAmount)
-                        {
-                            validPayment = true;
-                        }
-                        else
-                        {
-                            AnsiConsole.MarkupLine($"[red]Incorrect amount. The exact amount to pay is {invoice.TotalAmount:C}. Please try again.[/]");
-                        }
-                    }
-                    else
-                    {
-                        AnsiConsole.MarkupLine("[red]Invalid input. Please enter a numeric value.[/]");
-                    }
-                }
-
-                _bookingRepository.ProcessPayment(invoice, paymentAmount);
-            }
-
-            booking.IsCheckedOut = true;
-            booking.CheckOutDate = DateTime.Now;
-            booking.BookingStatus = true;
-
-            _bookingRepository.UpdateBooking(booking);
-
-            var room = _roomRepository.GetRoomById(booking.RoomId);
-            if (room != null)
-            {
-                room.IsAvailable = true;
-                _roomRepository.UpdateRoom(room);
-            }
-
-            AnsiConsole.MarkupLine("[green]Guest successfully checked out.[/]");
-        }
 
         public void DisplayAllBookings()
         {
             while (true)
             {
                 Console.Clear();
-                AnsiConsole.Markup("[bold yellow]=== ALL BOOKINGS ===[/]\n");
 
-                // Aktiva bokningar
                 var activeBookings = _bookingRepository.GetAllBookings()
                     .Where(b => !b.IsCanceled && !b.IsCheckedOut)
                     .ToList();
-
-                if (activeBookings.Any())
-                {
-                    AnsiConsole.Markup("\n[bold green]Active Bookings:[/]\n");
-                    var activeTable = new Table()
-                        .Border(TableBorder.Rounded)
-                        .AddColumn("[bold]Booking ID[/]")
-                        .AddColumn("[bold]Guest[/]")
-                        .AddColumn("[bold]Room ID[/]")
-                        .AddColumn("[bold]Check-In Date[/]")
-                        .AddColumn("[bold]Check-Out Date[/]")
-                        .AddColumn("[bold]Amount[/]")
-                        .AddColumn("[bold]Payment Status[/]")
-                        .AddColumn("[bold]Booking Status[/]");
-
-                    foreach (var booking in activeBookings)
-                    {
-                        var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId);
-                        string paymentStatus = invoice != null && invoice.IsPaid ? "[green]Paid[/]" : "[red]Not Paid[/]";
-                        string bookingStatus = booking.IsCheckedIn ? "[green]Checked In[/]" : "[yellow]Not Checked In[/]";
-                        string amount = invoice != null ? $"{invoice.TotalAmount:C}" : "[grey]No Invoice[/]";
-
-                        activeTable.AddRow(
-                            booking.BookingId.ToString(),
-                            $"{booking.Guest.FirstName} {booking.Guest.LastName}",
-                            booking.RoomId.ToString(),
-                            booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]",
-                            booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]",
-                            amount,
-                            paymentStatus,
-                            bookingStatus
-                        );
-                    }
-
-                    AnsiConsole.Write(activeTable);
-                }
-                else
-                {
-                    AnsiConsole.Markup("\n[red]No active bookings found.[/]\n");
-                }
-
-                // Historik över slutförda bokningar
                 var completedBookings = _bookingRepository.GetAllBookings()
                     .Where(b => b.IsCheckedOut)
                     .ToList();
-
-                if (completedBookings.Any())
-                {
-                    AnsiConsole.Markup("\n[bold green]Completed Bookings:[/]\n");
-                    var completedTable = new Table()
-                        .Border(TableBorder.Rounded)
-                        .AddColumn("[bold]Booking ID[/]")
-                        .AddColumn("[bold]Guest[/]")
-                        .AddColumn("[bold]Room ID[/]")
-                        .AddColumn("[bold]Check-In Date[/]")
-                        .AddColumn("[bold]Check-Out Date[/]")
-                        .AddColumn("[bold]Amount[/]")
-                        .AddColumn("[bold]Payment Status[/]");
-
-                    foreach (var booking in completedBookings)
-                    {
-                        var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId);
-                        string paymentStatus = invoice != null && invoice.IsPaid ? "[green]Paid[/]" : "[red]Not Paid[/]";
-                        string amount = invoice != null ? $"{invoice.TotalAmount:C}" : "[grey]No Invoice[/]";
-
-                        completedTable.AddRow(
-                            booking.BookingId.ToString(),
-                            $"{booking.Guest.FirstName} {booking.Guest.LastName}",
-                            booking.RoomId.ToString(),
-                            booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]",
-                            booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]",
-                            amount,
-                            paymentStatus
-                        );
-                    }
-
-                    AnsiConsole.Write(completedTable);
-                }
-                else
-                {
-                    AnsiConsole.Markup("\n[red]No completed bookings found.[/]\n");
-                }
-
-                // Historik över borttagna bokningar
                 var removedBookings = _bookingRepository.GetAllBookings()
                     .Where(b => b.IsCanceled)
                     .ToList();
 
-                if (removedBookings.Any())
-                {
-                    AnsiConsole.Markup("\n[bold red]Removed or Canceled Bookings History:[/]\n");
-                    var removedTable = new Table()
-                        .Border(TableBorder.Rounded)
-                        .AddColumn("[bold]Booking ID[/]")
-                        .AddColumn("[bold]Guest[/]")
-                        .AddColumn("[bold]Room ID[/]")
-                        .AddColumn("[bold]Check-In Date[/]")
-                        .AddColumn("[bold]Check-Out Date[/]");
+                _tableDisplayService.DisplayBookingTable(activeBookings, "Active Bookings:");
+                _tableDisplayService.DisplayBookingTable(completedBookings, "Completed Bookings:", includePaymentAndStatus: true);
+                _tableDisplayService.DisplayBookingTable(removedBookings, "Unbooked Bookings:", includePaymentAndStatus: false);
 
-                    foreach (var booking in removedBookings)
-                    {
-                        removedTable.AddRow(
-                            booking.BookingId.ToString(),
-                            $"{booking.Guest.FirstName} {booking.Guest.LastName}",
-                            booking.RoomId.ToString(),
-                            booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]",
-                            booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]"
-                        );
-                    }
-
-                    AnsiConsole.Write(removedTable);
-                }
-                else
-                {
-                    AnsiConsole.Markup("\n[red]No removed or canceled bookings found.[/]\n");
-                }
-
-                // Alternativ för bokningshantering
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("[bold green]What would you like to do?[/]")
-                        .AddChoices(new[] { "Check In/Check Out", "Register New Booking", "Edit Booking", "Delete Booking", "Go Back" })
+                        .AddChoices(new[] { "Check In/Check Out", "Register New Booking", "Edit Booking", "Cancel Booking", "Go Back" })
                         .HighlightStyle(new Style(foreground: Color.Green))
                 );
 
                 switch (action)
                 {
                     case "Check In/Check Out":
-                        CheckInOrCheckOut();
+                        _checkInOutService.Execute();
                         break;
                     case "Register New Booking":
                         _guestController.RegisterNewGuest();
                         break;
                     case "Edit Booking":
-                        EditBooking();
+                        _bookingEditService.EditBooking();
                         break;
-                    case "Delete Booking":
-                        CancelBooking();
+                    case "Cancel Booking":
+                        _unbookBooking.CancelBooking();
                         break;
                     case "Go Back":
                         return;
@@ -1654,6 +1280,7 @@ namespace HotelBookingApp
                 }
             }
         }
+
 
     }
 }

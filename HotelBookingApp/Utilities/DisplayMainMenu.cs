@@ -1,4 +1,5 @@
 ﻿using HotelBookingApp.Controllers;
+using HotelBookingApp.Services.BookingServices;
 using Spectre.Console;
 using System;
 
@@ -12,6 +13,7 @@ namespace HotelBookingApp.Utilities
         private readonly GuestController _guestController;
         private readonly BookingController _bookingController;
         private readonly RoomController _roomController;
+        private readonly CheckInOutService _checkInOutService;
 
         public DisplayMainMenu(
             DisplayRoomMenu roomMenu,
@@ -19,7 +21,8 @@ namespace HotelBookingApp.Utilities
             DisplayGuestMenu guestMenu,
             GuestController guestController,
             BookingController bookingController,
-            RoomController roomController)
+            RoomController roomController,
+            CheckInOutService checkInOutService)
         {
             _displayRoomMenu = roomMenu;
             _displayBookingMenu = bookingMenu;
@@ -27,6 +30,7 @@ namespace HotelBookingApp.Utilities
             _guestController = guestController;
             _bookingController = bookingController;
             _roomController = roomController;
+            _checkInOutService = checkInOutService;
         }
 
         public void Run()
@@ -58,7 +62,7 @@ namespace HotelBookingApp.Utilities
                         break;
 
                     case "Check in/Check out Guest":
-                        _bookingController.CheckInOrCheckOut();
+                        _checkInOutService.Execute();
                         break;
 
                     case "Edit Guest information":
@@ -76,10 +80,6 @@ namespace HotelBookingApp.Utilities
                     case "Bookings":
                         _bookingController.DisplayAllBookings();
                         break;
-
-                    //case "Settings":
-                    //    Settings();
-                    //    break;
 
                     case "Exit":
                         AnsiConsole.MarkupLine("[bold green]Thank you for using the Hotel Booking App. Goodbye![/]");
