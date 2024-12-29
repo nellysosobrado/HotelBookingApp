@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HotelBookingApp.Services
+namespace HotelBookingApp.Services.RoomServices
 {
     public class FindRoomByDate
     {
@@ -61,9 +61,9 @@ namespace HotelBookingApp.Services
 
             return rooms
         .Where(room =>
-            !room.IsDeleted && 
+            !room.IsDeleted &&
             !room.Bookings.Any(booking =>
-                !booking.IsCanceled && 
+                !booking.IsCanceled &&
                 booking.CheckInDate.HasValue &&
                 booking.CheckOutDate.HasValue &&
                 !(booking.CheckOutDate.Value < startDate || booking.CheckInDate.Value > endDate)))

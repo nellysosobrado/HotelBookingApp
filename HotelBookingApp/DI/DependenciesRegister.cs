@@ -3,7 +3,7 @@ using HotelBookingApp.Controllers;
 using HotelBookingApp.Data;
 using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
-using HotelBookingApp.Services;
+using HotelBookingApp.Services.RoomServices;
 using HotelBookingApp.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -64,6 +64,8 @@ namespace HotelBookingApp.DI
             builder.RegisterType<FindRoomByDate>().AsSelf();
             builder.RegisterType<FindRoomByTotalPeople>().AsSelf();
             builder.RegisterType<DeleteRoomService>().AsSelf();
+            builder.RegisterType<EditRoomService>().AsSelf();
+            builder.RegisterType<RegisterRoomService>().AsSelf();
 
             builder.Register(ctx => new List<Booking>()).As<List<Booking>>();
 

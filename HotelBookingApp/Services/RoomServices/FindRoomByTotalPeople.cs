@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HotelBookingApp.Services
+namespace HotelBookingApp.Services.RoomServices
 {
     public class FindRoomByTotalPeople
     {
