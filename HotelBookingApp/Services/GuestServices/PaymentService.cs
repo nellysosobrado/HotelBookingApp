@@ -20,48 +20,6 @@ namespace HotelBookingApp.Services.GuestServices
             _tableDisplayService = tableDisplayService;
             _unpaidBookingService = unpaidBookingService;
         }
-        public void Start()
-        {
-            bool exit = false;
-
-            while (!exit)
-            {
-                Console.Clear();
-                AnsiConsole.MarkupLine("[blue bold]Welcome to Payment Management[/]");
-
-                var choice = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("[green]Select an option:[/]")
-                        .AddChoices("Pay Guest Invoice", "Handle Unpaid Bookings", "Exit"));
-
-                switch (choice)
-                {
-                    case "Pay Guest Invoice":
-                        PayInvoiceBeforeCheckout();
-                        break;
-
-                    case "Handle Unpaid Bookings":
-                        _unpaidBookingService.HandleUnpaidBookings();
-                        break;
-
-                    case "Exit":
-                        exit = true;
-                        AnsiConsole.MarkupLine("[yellow]Exiting payment service. Goodbye![/]");
-                        break;
-
-                    default:
-                        AnsiConsole.MarkupLine("[red]Invalid option. Please try again.[/]");
-                        break;
-                }
-            }
-        }
-
-        public void Payment()
-        {
-            PayInvoiceBeforeCheckout();
-            _unpaidBookingService.HandleUnpaidBookings();
-        }
-
         public void PayInvoiceBeforeCheckout()
         {
             while (true)
