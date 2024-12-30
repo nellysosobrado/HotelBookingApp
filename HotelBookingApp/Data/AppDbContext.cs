@@ -80,6 +80,21 @@ namespace HotelBookingApp.Data
                     AmountPaid = invoice.TotalAmount
                 }).ToList();
 
+            modelBuilder.Entity<CanceledBookingHistory>()
+       .HasOne(c => c.Booking)
+       .WithMany()
+       .HasForeignKey(c => c.BookingId)
+       .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CanceledBookingHistory>()
+                .HasOne(c => c.Room)
+                .WithMany()
+                .HasForeignKey(c => c.RoomId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Guest>().HasData(guests);
             modelBuilder.Entity<Room>().HasData(rooms);
             modelBuilder.Entity<Booking>().HasData(bookings);
