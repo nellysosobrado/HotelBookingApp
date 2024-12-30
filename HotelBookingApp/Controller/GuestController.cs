@@ -81,12 +81,6 @@ namespace HotelBookingApp.Controllers
             Console.ReadKey();
         }
 
-
-
-
-
-
-
         private Guest CollectGuestInformation()
         {
             string firstName = AnsiConsole.Prompt(
@@ -308,47 +302,44 @@ namespace HotelBookingApp.Controllers
             DateTime currentDate = DateTime.Now.Date;
             DateTime selectedDate = currentDate;
 
-            // Förbereder alla bokade datum för det valda rumstypen
             var bookedDates = _bookingRepository.GetAllBookings()
-                .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue) // Endast giltiga datum
-                .Where(b => b.Room.Type.Equals(selectedRoomType, StringComparison.OrdinalIgnoreCase)) // Filtrera på rumstyp
+                .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue) 
+                .Where(b => b.Room.Type.Equals(selectedRoomType, StringComparison.OrdinalIgnoreCase)) 
                 .SelectMany(b => Enumerable.Range(0, 1 + (b.CheckOutDate.Value - b.CheckInDate.Value).Days)
-                                            .Select(offset => b.CheckInDate.Value.AddDays(offset))) // Skapa datumintervall
-                .ToHashSet(); // För snabb lookup av bokade datum
+                                            .Select(offset => b.CheckInDate.Value.AddDays(offset)))
+                .ToHashSet(); 
 
             while (true)
             {
                 Console.Clear();
                 Console.WriteLine(prompt);
-                RenderCalendar(selectedDate, selectedRoomType); // Visa kalender med det valda datumet markerat
+                RenderCalendar(selectedDate, selectedRoomType); 
 
                 var key = Console.ReadKey(true).Key;
                 switch (key)
                 {
                     case ConsoleKey.RightArrow:
-                        selectedDate = selectedDate.AddDays(1); // Nästa dag
+                        selectedDate = selectedDate.AddDays(1);
                         break;
                     case ConsoleKey.LeftArrow:
                         if (selectedDate > currentDate)
-                            selectedDate = selectedDate.AddDays(-1); // Föregående dag, ej tidigare än idag
+                            selectedDate = selectedDate.AddDays(-1); 
                         break;
                     case ConsoleKey.UpArrow:
                         if (selectedDate.AddDays(-7) >= currentDate)
-                            selectedDate = selectedDate.AddDays(-7); // Föregående vecka, ej tidigare än idag
+                            selectedDate = selectedDate.AddDays(-7); 
                         break;
                     case ConsoleKey.DownArrow:
-                        selectedDate = selectedDate.AddDays(7); // Nästa vecka
+                        selectedDate = selectedDate.AddDays(7); 
                         break;
                     case ConsoleKey.Enter:
-                        // Kontrollera om datumet redan är bokat
                         if (bookedDates.Contains(selectedDate))
                         {
                             AnsiConsole.MarkupLine("[red]The selected date is already booked for this room type.[/]");
                             Console.ReadKey(true);
-                            continue; // Låt användaren välja igen
+                            continue; 
                         }
 
-                        // Validera att datumet inte är i det förflutna
                         if (selectedDate >= currentDate)
                             return selectedDate;
 
@@ -356,7 +347,7 @@ namespace HotelBookingApp.Controllers
                         Console.ReadKey(true);
                         break;
                     case ConsoleKey.Escape:
-                        return DateTime.MinValue; // Returnera ett ogiltigt värde för att signalera avbrott
+                        return DateTime.MinValue; 
                 }
             }
         }
@@ -506,8 +497,6 @@ namespace HotelBookingApp.Controllers
                 }
             }
         }
-
-
         public void ViewAllGuests()
         {
             Console.Clear();

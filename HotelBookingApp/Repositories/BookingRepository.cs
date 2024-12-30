@@ -39,26 +39,20 @@ namespace HotelBookingApp.Repositories
             return _appDbContext.CanceledBookingsHistory.ToList();
         }
 
-        // Hämta bokningar baserat på GuestId
         public IEnumerable<Booking> GetBookingsByGuestId(int guestId)
         {
             return _appDbContext.Bookings.Where(b => b.GuestId == guestId).ToList();
         }
 
-
-        // Exempel på metod för att lägga till bokningar (om det behövs)
         public void AddBooking(Booking booking)
         {
             _bookings.Add(booking);
         }
-
         public void UpdateGuest(Guest guest)
         {
             _appDbContext.Guests.Update(guest);
             SaveChanges();
         }
-
-
         public Booking GetBookingById(int bookingId)
         {
             return _appDbContext.Bookings
@@ -79,8 +73,6 @@ namespace HotelBookingApp.Repositories
         {
             return _appDbContext.Guests.FirstOrDefault(g => g.GuestId == guestId);
         }
-
-
         public Room GetRoomById(int roomId)
         {
             return _appDbContext.Rooms.FirstOrDefault(r => r.RoomId == roomId);
@@ -214,7 +206,6 @@ namespace HotelBookingApp.Repositories
             }
             catch (DbUpdateException dbEx)
             {
-                // Extrahera detaljer från inner exception
                 var innerMessage = dbEx.InnerException?.Message ?? "No inner exception details available";
                 throw new Exception($"An error occurred while saving changes to the database: {innerMessage}", dbEx);
             }
@@ -292,16 +283,8 @@ namespace HotelBookingApp.Repositories
         public IEnumerable<Booking> GetCanceledBookings()
         {
             return _appDbContext.Bookings
-                .Where(b => !b.BookingStatus) // Assuming BookingStatus = false means canceled
+                .Where(b => !b.BookingStatus) 
                 .ToList();
-        }
-        public void DetachEntity(object entity)
-        {
-            var entry = _appDbContext.Entry(entity);
-            if (entry != null)
-            {
-                entry.State = EntityState.Detached;
-            }
         }
 
     }

@@ -61,7 +61,7 @@ namespace HotelBookingApp.Services.BookingServices
             var unpaidBookings = _bookingRepository.GetAllBookings()
                 .Where(b => !b.IsCanceled
                 && b.Invoices != null
-                && b.Invoices.Any(i => !i.IsPaid && (DateTime.Now - i.CreatedDate).Days > 10)) // Basera på fakturans datum
+                && b.Invoices.Any(i => !i.IsPaid && (DateTime.Now - i.CreatedDate).Days > 10)) 
                 .ToList();
 
 
@@ -128,13 +128,10 @@ namespace HotelBookingApp.Services.BookingServices
                     booking.IsCanceled = true;
                     booking.CanceledDate = DateTime.Now;
 
-                    // Uppdatera bokningen och fakturan i databasen
                     _bookingRepository.UpdateBooking(booking);
 
-                    // Lägg till i historik
                     _bookingRepository.AddCanceledBooking(booking, "Canceled due to unpaid invoice over 10 days overdue.");
 
-                    // Lägg till i tabellen
                     table.AddRow(
                         booking.BookingId.ToString(),
                         $"{booking.Guest.FirstName} {booking.Guest.LastName}",
@@ -145,7 +142,6 @@ namespace HotelBookingApp.Services.BookingServices
                 }
                 else
                 {
-                    // Logga varför bokningen inte annulleras
                     Console.WriteLine($"Skipping Booking ID: {booking.BookingId}");
                     if (unpaidInvoice == null)
                     {

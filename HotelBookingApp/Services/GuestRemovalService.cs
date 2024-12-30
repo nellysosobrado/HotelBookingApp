@@ -22,6 +22,7 @@ namespace HotelBookingApp.Services
             Console.WriteLine("REMOVE GUEST");
             Console.WriteLine(new string('-', 60));
 
+
             var guests = _guestRepository.GetAllGuests();
 
             if (!guests.Any())
@@ -31,38 +32,44 @@ namespace HotelBookingApp.Services
                 return;
             }
 
-            var guestId = AnsiConsole.Prompt(
-                new SelectionPrompt<int>()
-                    .Title("[green]Select a guest to remove (by Guest ID):[/]")
-                    .AddChoices(guests.Select(g => g.GuestId))
+            var guestChoices = guests
+                .Select(g => new { g.GuestId, Display = $"{g.GuestId}: {g.FirstName} {g.LastName}" })
+                .ToList();
+
+            var selectedGuestDisplay = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[green]Select a guest to remove (ID: Name):[/]")
+                    .AddChoices(guestChoices.Select(g => g.Display)) 
             );
 
-            var guest = guests.FirstOrDefault(g => g.GuestId == guestId);
+            var selectedGuest = guestChoices
+                .FirstOrDefault(g => g.Display == selectedGuestDisplay);
 
-            if (guest == null)
+            if (selectedGuest == null)
             {
                 AnsiConsole.MarkupLine("[red]Guest not found.[/]");
                 Console.ReadKey();
                 return;
             }
 
-            // Kontrollera om gästen har aktiva bokningar
-            var activeBookings = _bookingRepository.GetBookingsByGuestId(guestId)
+            var guest = guests.FirstOrDefault(g => g.GuestId == selectedGuest.GuestId);
+
+            var activeBookings = _bookingRepository.GetBookingsByGuestId(guest.GuestId)
                 .Where(b => !b.IsCanceled && !b.IsCheckedOut);
 
             if (activeBookings.Any())
             {
-                AnsiConsole.MarkupLine("[red]Cannot remove guest with active bookings.[/]");
+                AnsiConsole.MarkupLine("[red]Cannot remove guest with active bookings. Unbook the booking of the guest first! Then Remove guest![/]");
                 Console.ReadKey();
                 return;
             }
 
-            // Ta bort gästen
             _guestRepository.RemoveGuest(guest);
 
             AnsiConsole.MarkupLine($"[green]Guest {guest.FirstName} {guest.LastName} has been removed successfully.[/]");
             Console.ReadKey();
         }
+
     }
 
 }
