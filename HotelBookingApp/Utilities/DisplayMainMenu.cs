@@ -1,6 +1,6 @@
 ﻿using HotelBookingApp.Controllers;
-using HotelBookingApp.Services;
 using HotelBookingApp.Services.BookingServices;
+using HotelBookingApp.Services.GuestServices;
 using Spectre.Console;
 using System;
 

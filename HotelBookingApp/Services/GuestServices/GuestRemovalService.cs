@@ -3,7 +3,7 @@ using HotelBookingApp.Services.DisplayServices;
 using Spectre.Console;
 using System.Linq;
 
-namespace HotelBookingApp.Services
+namespace HotelBookingApp.Services.GuestServices
 {
     public class GuestRemovalService
     {
@@ -39,7 +39,7 @@ namespace HotelBookingApp.Services
             var selectedGuestDisplay = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("[green]Select a guest to remove (ID: Name):[/]")
-                    .AddChoices(guestChoices.Select(g => g.Display)) 
+                    .AddChoices(guestChoices.Select(g => g.Display))
             );
 
             var selectedGuest = guestChoices

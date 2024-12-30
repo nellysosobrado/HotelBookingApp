@@ -4,7 +4,7 @@ using HotelBookingApp.Services.DisplayServices;
 using Spectre.Console;
 using System;
 
-namespace HotelBookingApp.Services
+namespace HotelBookingApp.Services.GuestServices
 {
     public class PaymentService
     {
@@ -109,7 +109,7 @@ namespace HotelBookingApp.Services
                 {
                     Console.WriteLine("Returning to the main menu.");
                     Console.ReadKey();
-                    continue; 
+                    continue;
                 }
             }
         }

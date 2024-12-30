@@ -3,7 +3,6 @@ using HotelBookingApp.Controllers;
 using HotelBookingApp.Data;
 using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
-using HotelBookingApp.Services;
 using HotelBookingApp.Services.BookingServices;
 using HotelBookingApp.Services.DisplayServices;
 using HotelBookingApp.Services.GuestServices;

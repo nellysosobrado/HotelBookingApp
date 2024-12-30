@@ -3,7 +3,7 @@ using Spectre.Console;
 using System;
 using System.Linq;
 
-namespace HotelBookingApp.Services
+namespace HotelBookingApp.Services.BookingServices
 {
     public class UnbookBooking
     {
@@ -21,7 +21,7 @@ namespace HotelBookingApp.Services
                 Console.Clear();
 
                 var notCheckedInBookings = _bookingRepository.GetAllBookings()
-                    .Where(b => !b.IsCanceled && !b.IsCheckedIn && !b.IsCheckedOut) 
+                    .Where(b => !b.IsCanceled && !b.IsCheckedIn && !b.IsCheckedOut)
                     .ToList();
 
                 if (!notCheckedInBookings.Any())

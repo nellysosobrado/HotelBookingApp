@@ -4,9 +4,9 @@ using Spectre.Console;
 using HotelBookingApp.Entities;
 using HotelBookingApp.Data;
 using HotelBookingApp.Controllers;
-using HotelBookingApp.Services;
 using HotelBookingApp.Services.DisplayServices;
 using HotelBookingApp.Services.BookingServices;
+using HotelBookingApp.Services.GuestServices;
 
 //CRUD
 //CREATE - Register new booking
