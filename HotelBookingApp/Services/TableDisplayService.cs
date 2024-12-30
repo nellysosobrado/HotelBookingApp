@@ -177,7 +177,7 @@ namespace HotelBookingApp.Services.DisplayServices
         {
             if (bookings == null || !bookings.Any())
             {
-                AnsiConsole.Markup($"[red]No {title} found.[/]\n");
+                AnsiConsole.Markup($"[bold gray]There's no existing '{title}' currently.[/]\n");
                 return;
             }
 
@@ -201,13 +201,13 @@ namespace HotelBookingApp.Services.DisplayServices
                 var invoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
                 string paymentStatus = includePaymentAndStatus && invoice != null && invoice.IsPaid
                     ? "[green]Paid[/]"
-                    : "[red]Not Paid[/]";
+                    : "[gray]not Paid[/]";
                 string bookingStatus = includePaymentAndStatus
-                    ? (booking.IsCheckedIn ? "[green]Checked In[/]" : "[yellow]Not Checked In[/]")
+                    ? (booking.IsCheckedIn ? "[green]Checked In[/]" : "[gray]Not Checked In[/]")
                     : string.Empty;
                 string amount = includePaymentAndStatus && invoice != null
                     ? $"{invoice.TotalAmount:C}"
-                    : "[grey]No Invoice[/]";
+                    : "[red]No Invoice[/]";
                 string checkInDate = booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]";
                 string checkOutDate = booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]";
 
@@ -236,7 +236,7 @@ namespace HotelBookingApp.Services.DisplayServices
                 }
             }
 
-            AnsiConsole.Markup($"[bold green]{title}[/]\n");
+            AnsiConsole.Markup($"[bold yellow]{title}[/]\n");
             AnsiConsole.Write(table);
         }
 

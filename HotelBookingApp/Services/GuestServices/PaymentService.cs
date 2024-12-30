@@ -67,7 +67,12 @@ namespace HotelBookingApp.Services.GuestServices
             while (true)
             {
                 Console.Clear();
-                _tableDisplayService.DisplayActiveBookings();
+                var activeBookings = _bookingRepository.GetAllBookings()
+                  .Where(b => !b.IsCanceled && !b.IsCheckedOut)
+                  .ToList();
+
+                _tableDisplayService.DisplayBookingTable(activeBookings, "Active Bookings:");
+                Console.WriteLine(new string('-', 100));
                 Console.Write("Enter Booking ID, to pay the guest invoice (type 'back' to go back): ");
                 var input = Console.ReadLine();
 
@@ -76,7 +81,7 @@ namespace HotelBookingApp.Services.GuestServices
 
                 if (!int.TryParse(input, out int bookingId))
                 {
-                    Console.WriteLine("Invalid Booking ID. Please try again.");
+                    AnsiConsole.MarkupLine("[red]Invalid Booking ID. Please try again[/]");
                     Console.ReadKey();
                     continue;
                 }
@@ -84,30 +89,29 @@ namespace HotelBookingApp.Services.GuestServices
                 var invoice = _bookingRepository.GetInvoiceByBookingId(bookingId);
                 if (invoice == null || invoice.IsPaid)
                 {
-                    Console.WriteLine("No unpaid invoice found for this booking.");
+                    AnsiConsole.MarkupLine("[red]No unpaid invoice found for this booking[/]");
                     Console.ReadKey();
                     continue;
                 }
-
-                Console.WriteLine($"Invoice Total: {invoice.TotalAmount:C}");
+                AnsiConsole.MarkupLine($"[green]Invoice Total: {invoice.TotalAmount:C}[/]");
 
                 var confirmPayment = AnsiConsole.Confirm($"Do you want to pay this invoice of {invoice.TotalAmount:C}?");
                 if (!confirmPayment)
                 {
-                    Console.WriteLine("Payment cancelled. Returning to the main menu.");
+                    AnsiConsole.MarkupLine($"[red]Payment cancelled. Enter any key to continue[/]");
                     Console.ReadKey();
                     continue;
                 }
 
                 _bookingRepository.ProcessPayment(invoice, invoice.TotalAmount);
-                Console.WriteLine("Invoice paid successfully.");
+                AnsiConsole.MarkupLine($"[green]Invoice paid successfully.[/]");
 
-                Console.Write("Do you want to pay another invoice? (yes/no): ");
+                AnsiConsole.MarkupLine($"[white]Do you want to pay another invoice? (yes/no).[/]");
                 var choice = Console.ReadLine()?.ToLower();
 
                 if (choice == "no")
                 {
-                    Console.WriteLine("Returning to the main menu.");
+                    Console.WriteLine("Enter any key to continue.");
                     Console.ReadKey();
                     continue;
                 }

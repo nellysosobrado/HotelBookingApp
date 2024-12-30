@@ -28,6 +28,7 @@ namespace HotelBookingApp
         private readonly UnbookBooking _unbookBooking;
         private readonly PaymentService _paymentService;
         private readonly GuestRemovalService _guestRemovalService;
+        private readonly UnpaidBookingService _unpaidBookingService;
 
 
         public BookingController(
@@ -40,7 +41,8 @@ namespace HotelBookingApp
             BookingEditService bookingEditService,
             UnbookBooking unbookBooking,
             PaymentService paymentService,
-            GuestRemovalService guestRemovalService)
+            GuestRemovalService guestRemovalService,
+            UnpaidBookingService UnpaidBookingService)
         {
             _bookingRepository = bookingRepository;
             _roomRepository = roomRepository;
@@ -52,6 +54,7 @@ namespace HotelBookingApp
             _unbookBooking = unbookBooking;
             _paymentService = paymentService;   
             _guestRemovalService = guestRemovalService;
+            _unpaidBookingService = UnpaidBookingService;
         }
 
 
@@ -118,9 +121,12 @@ namespace HotelBookingApp
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }
-   
         public void BookingManagement()
         {
+            Console.Clear();
+            AnsiConsole.MarkupLine("[bold yellow]Processing unpaid bookings...[/]");
+            _unpaidBookingService.HandleUnpaidBookings();
+
             while (true)
             {
                 Console.Clear();
@@ -136,25 +142,26 @@ namespace HotelBookingApp
                     .ToList();
 
                 _tableDisplayService.DisplayBookingTable(activeBookings, "Active Bookings:");
-                Console.WriteLine(new string('-', 125));
+                Console.WriteLine(new string('-', 100));
 
                 _tableDisplayService.DisplayBookingTable(completedBookings, "Completed Bookings:", includePaymentAndStatus: true);
-                Console.WriteLine(new string('-', 125));
+                Console.WriteLine(new string('-', 100));
 
                 _tableDisplayService.DisplayBookingTable(removedBookings, "Unbooked Bookings:", includePaymentAndStatus: false);
-                Console.WriteLine(new string('-', 125));
+                Console.WriteLine(new string('-', 100));
 
+                _unpaidBookingService.DisplayCanceledBookingHistory();
+               Console.WriteLine(new string('-', 100));
 
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("[bold green]What would you like to do?[/]")
-                        .AddChoices(new[] { "Check In/Check Out", "Register New Booking", "Edit Booking", "Unbook Booking", "Guest Payments", "Display All Registered Guests", "Remove Guest", "Go Back" })
+                        .AddChoices(new[] { "Check In/Check Out", "Register New Booking", "Edit Booking", "Unbook Booking", "Guest Payments", "Display All Registered Guests", "Remove Guest", "Back" })
                         .HighlightStyle(new Style(foreground: Color.Green))
                 );
 
                 switch (action)
                 {
-                    //HandleUnpaidBookings
                     case "Check In/Check Out":
                         _checkInOutService.Execute();
                         break;
@@ -168,16 +175,15 @@ namespace HotelBookingApp
                         _unbookBooking.UnbookBookings();
                         break;
                     case "Guest Payments":
-                        _paymentService.Start();
+                        _paymentService.PayInvoiceBeforeCheckout();
                         break;
                     case "Display All Registered Guests":
                         DisplayAllRegisteredGuests();
                         break;
                     case "Remove Guest":
                         _guestRemovalService.Execute();
-                        
                         break;
-                    case "Go Back":
+                    case "Back":
                         return;
                     default:
                         AnsiConsole.Markup("[red]Invalid option. Try again.[/]\n");
@@ -185,6 +191,77 @@ namespace HotelBookingApp
                 }
             }
         }
+
+
+        //public void BookingManagement()
+        //{
+        //    while (true)
+        //    {
+        //        Console.Clear();
+
+        //        var activeBookings = _bookingRepository.GetAllBookings()
+        //            .Where(b => !b.IsCanceled && !b.IsCheckedOut)
+        //            .ToList();
+        //        var completedBookings = _bookingRepository.GetAllBookings()
+        //            .Where(b => b.IsCheckedOut)
+        //            .ToList();
+        //        var removedBookings = _bookingRepository.GetAllBookings()
+        //            .Where(b => b.IsCanceled)
+        //            .ToList();
+
+        //        _tableDisplayService.DisplayBookingTable(activeBookings, "Active Bookings:");
+        //        Console.WriteLine(new string('-', 100));
+
+        //        _tableDisplayService.DisplayBookingTable(completedBookings, "Completed Bookings:", includePaymentAndStatus: true);
+        //        Console.WriteLine(new string('-', 100));
+
+        //        _tableDisplayService.DisplayBookingTable(removedBookings, "Unbooked Bookings:", includePaymentAndStatus: false);
+        //        Console.WriteLine(new string('-', 100));
+
+        //        _unpaidBookingService.HandleUnpaidBookings();
+        //        Console.WriteLine(new string('-', 100));
+
+
+        //        var action = AnsiConsole.Prompt(
+        //            new SelectionPrompt<string>()
+        //                .Title("[bold green]What would you like to do?[/]")
+        //                .AddChoices(new[] { "Check In/Check Out", "Register New Booking", "Edit Booking", "Unbook Booking", "Guest Payments", "Display All Registered Guests", "Remove Guest", "Go Back" })
+        //                .HighlightStyle(new Style(foreground: Color.Green))
+        //        );
+
+        //        switch (action)
+        //        {
+        //            //HandleUnpaidBookings
+        //            case "Check In/Check Out":
+        //                _checkInOutService.Execute();
+        //                break;
+        //            case "Register New Booking":
+        //                _guestController.RegisterNewGuest();
+        //                break;
+        //            case "Edit Booking":
+        //                _bookingEditService.EditBooking();
+        //                break;
+        //            case "Unbook Booking":
+        //                _unbookBooking.UnbookBookings();
+        //                break;
+        //            case "Guest Payments":
+        //                _paymentService.Start();
+        //                break;
+        //            case "Display All Registered Guests":
+        //                DisplayAllRegisteredGuests();
+        //                break;
+        //            case "Remove Guest":
+        //                _guestRemovalService.Execute();
+
+        //                break;
+        //            case "Go Back":
+        //                return;
+        //            default:
+        //                AnsiConsole.Markup("[red]Invalid option. Try again.[/]\n");
+        //                break;
+        //        }
+        //    }
+        //}
 
 
     }

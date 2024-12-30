@@ -54,7 +54,7 @@ namespace HotelBookingApp.Services.BookingServices
         public void HandleUnpaidBookings()
         {
             Console.Clear();
-            AnsiConsole.MarkupLine("[bold yellow]Checking for unpaid bookings...[/]");
+            AnsiConsole.MarkupLine("[bold yellow]Checking for unpaid bookings.. that hasnt paid after 10 days after registration of booking[/]");
 
             var currentDate = DateTime.Now;
 
@@ -70,13 +70,13 @@ namespace HotelBookingApp.Services.BookingServices
                 DisplayUnpaidBookings(unpaidBookings);
                 CancelUnpaidBookings(unpaidBookings);
             }
-            else
-            {
-                AnsiConsole.MarkupLine("[green]No unpaid bookings older than 10 days found.[/]");
-            }
+            //else
+            //{
+            //    //AnsiConsole.MarkupLine("[green]No unpaid bookings older than 10 days found.[/]");
+            //}
 
-            DisplayCanceledBookingHistory();
-            Console.ReadKey();
+            //DisplayCanceledBookingHistory();
+            //Console.ReadKey();
         }
 
         private void DisplayUnpaidBookings(IEnumerable<Booking> bookings)
@@ -156,7 +156,7 @@ namespace HotelBookingApp.Services.BookingServices
 
             if (table.Rows.Count > 0)
             {
-                AnsiConsole.MarkupLine("[bold yellow]The following bookings have been canceled:[/]");
+                AnsiConsole.MarkupLine("[bold yellow]NOTIFICATION!:[/]");
                 AnsiConsole.Write(table);
             }
             else
@@ -166,23 +166,23 @@ namespace HotelBookingApp.Services.BookingServices
         }
 
 
-        private void DisplayCanceledBookingHistory()
+        public void DisplayCanceledBookingHistory()
         {
             var canceledBookings = _bookingRepository.GetCanceledBookingsHistory();
 
             if (!canceledBookings.Any())
             {
-                AnsiConsole.MarkupLine("[red]No canceled bookings found in the history.[/]");
+                AnsiConsole.Markup($"[bold gray]There's no existing 'Canceled Bookings' currently.[/]\n");
                 return;
             }
 
             var table = new Table()
                 .Border(TableBorder.Rounded)
-                .AddColumn("[blue]Booking ID[/]")
-                .AddColumn("[blue]Guest[/]")
-                .AddColumn("[blue]Room ID[/]")
-                .AddColumn("[blue]Canceled Date[/]")
-                .AddColumn("[blue]Reason[/]");
+                .AddColumn("[white]Booking ID[/]")
+                .AddColumn("[white]Guest[/]")
+                .AddColumn("[white]Room ID[/]")
+                .AddColumn("[white]Canceled Date[/]")
+                .AddColumn("[red]Reason[/]");
 
             foreach (var canceledBooking in canceledBookings)
             {
@@ -195,7 +195,7 @@ namespace HotelBookingApp.Services.BookingServices
                 );
             }
 
-            AnsiConsole.MarkupLine("[bold yellow]NULLIFIED Canceled Booking History:[/]");
+            AnsiConsole.MarkupLine("[bold yellow]Nullified Booking History (Automatic Removed):[/]");
             AnsiConsole.Write(table);
         }
     }

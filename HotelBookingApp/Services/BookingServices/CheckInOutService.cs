@@ -89,7 +89,7 @@ namespace HotelBookingApp.Services.BookingServices
                         continue;
                 }
 
-                Console.WriteLine("Press any key to return...");
+                AnsiConsole.MarkupLine("[green]Press any key to continue[/]");
                 Console.ReadKey();
             }
         }
@@ -107,7 +107,7 @@ namespace HotelBookingApp.Services.BookingServices
             if (invoice != null && !invoice.IsPaid)
             {
                 AnsiConsole.MarkupLine($"[yellow]Invoice Amount: {invoice.TotalAmount:C} is unpaid.[/]");
-                var confirmPayment = AnsiConsole.Confirm("[bold green]Do you want to pay now?[/]");
+                var confirmPayment = AnsiConsole.Confirm("[bold green]Does the guest want to pay now?[/]");
                 if (confirmPayment)
                 {
                     invoice.IsPaid = true;
@@ -132,7 +132,7 @@ namespace HotelBookingApp.Services.BookingServices
         {
             if (!booking.IsCheckedIn)
             {
-                AnsiConsole.MarkupLine("[yellow]Booking is not checked in yet.[/]");
+                AnsiConsole.MarkupLine("[Bold red]Cannot check out. Booking needs to check in first![/]");
                 return;
             }
 
@@ -140,7 +140,7 @@ namespace HotelBookingApp.Services.BookingServices
             if (invoice != null && !invoice.IsPaid)
             {
                 AnsiConsole.MarkupLine($"[bold]Invoice Amount: {invoice.TotalAmount:C} must be paid before checking out.[/]");
-                var confirmPayment = AnsiConsole.Confirm("[bold green]Do you want to pay now?[/]");
+                var confirmPayment = AnsiConsole.Confirm("[bold green]Does the guest want to pay now?[/]");
                 if (!confirmPayment)
                 {
                     AnsiConsole.MarkupLine("[red]Check-Out canceled due to unpaid invoice.[/]");
@@ -174,20 +174,27 @@ namespace HotelBookingApp.Services.BookingServices
 
             if (activeBookings.Any())
             {
+                Console.WriteLine(new string('-', 100));
                 _tableDisplayService.DisplayBookingTable(activeBookings, "Active Bookings", includePaymentAndStatus: true);
             }
             else
             {
-                AnsiConsole.MarkupLine("[yellow]No active bookings found.[/]");
+                AnsiConsole.MarkupLine("[bold gray]No active bookings found.[/]");
             }
 
             if (completedBookings.Any())
             {
                 _tableDisplayService.DisplayBookingTable(completedBookings, "Completed Bookings", includePaymentAndStatus: false);
+                Console.WriteLine(new string('-', 100));
+
             }
             else
             {
-                AnsiConsole.MarkupLine("[yellow]No completed bookings found.[/]");
+                Console.WriteLine(new string('-', 100));
+
+                AnsiConsole.MarkupLine("[bold gray]No completed bookings found[/]");
+                Console.WriteLine(new string('-', 100));
+
             }
         }
 
