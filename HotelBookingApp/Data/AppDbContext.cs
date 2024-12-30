@@ -23,7 +23,6 @@ namespace HotelBookingApp.Data
         {
             var today = DateTime.Now.Date;
 
-            // Generera gäster
             var guestFaker = new Faker<Guest>()
                 .RuleFor(g => g.GuestId, f => f.IndexFaker + 1)
                 .RuleFor(g => g.FirstName, f => f.Name.FirstName())
@@ -32,7 +31,6 @@ namespace HotelBookingApp.Data
                 .RuleFor(g => g.PhoneNumber, f => f.Phone.PhoneNumber());
             var guests = guestFaker.Generate(4);
 
-            // Generera rum
             var roomFaker = new Faker<Room>()
                 .RuleFor(r => r.RoomId, f => f.IndexFaker + 1)
                 .RuleFor(r => r.Type, f => f.PickRandom(new[] { "Single", "Double" }))
@@ -44,7 +42,6 @@ namespace HotelBookingApp.Data
 
             var rooms = roomFaker.Generate(4);
 
-            // Generera bokningar
             var bookingFaker = new Faker<Booking>()
                 .RuleFor(b => b.BookingId, f => f.IndexFaker + 1)
                 .RuleFor(b => b.GuestId, (f, b) => guests[b.BookingId - 1].GuestId)
@@ -60,22 +57,21 @@ namespace HotelBookingApp.Data
 
             var bookings = bookingFaker.Generate(4);
 
-            // Generera fakturor
             var invoices = bookings.Select((booking, index) => new Invoice
             {
                 InvoiceId = index + 1,
                 BookingId = booking.BookingId,
                 TotalAmount = new Random().Next(5000, 20000),
-                IsPaid = index == 0 || index == 1 ? false : index == 2, // Två obetalda (0 och 1), en betald (2)
-                PaymentDeadline = booking.CheckOutDate.HasValue
-                    ? booking.CheckOutDate.Value.AddDays(7)
-                    : today.AddDays(7),
-                CreatedDate = index == 3 ? today.AddDays(-11) : today // Endast den fjärde fakturan är äldre än 10 dagar
+                IsPaid = index == 0 || index == 1 ? false : index == 2, 
+                PaymentDeadline = index == 3
+                    ? today.AddDays(-11) 
+                    : today.AddDays(10), 
+                CreatedDate = today
             }).ToList();
 
-            // Generera betalningar för betalda fakturor
+
             var payments = invoices
-                .Where(i => i.IsPaid) // Generera endast betalningar för fakturor som är betalda
+                .Where(i => i.IsPaid) 
                 .Select((invoice, index) => new Payment
                 {
                     PaymentId = index + 1,
@@ -84,7 +80,6 @@ namespace HotelBookingApp.Data
                     AmountPaid = invoice.TotalAmount
                 }).ToList();
 
-            // Lagra data i modellen
             modelBuilder.Entity<Guest>().HasData(guests);
             modelBuilder.Entity<Room>().HasData(rooms);
             modelBuilder.Entity<Booking>().HasData(bookings);

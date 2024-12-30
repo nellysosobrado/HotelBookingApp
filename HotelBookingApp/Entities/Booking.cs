@@ -24,6 +24,7 @@ namespace HotelBookingApp.Entities
         public ICollection<Invoice> Invoices { get; set; }
         public int ExtraBeds { get; set; }
         public DateTime CreatedDate { get; set; } 
-        public DateTime? CanceledDate { get; set; } 
+        public DateTime? CanceledDate { get; set; }
+        public DateTime RegistrationDate { get; set; }
     }
 }

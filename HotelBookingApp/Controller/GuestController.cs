@@ -64,7 +64,7 @@ namespace HotelBookingApp.Controllers
                     BookingId = booking.BookingId,
                     TotalAmount = totalAmount,
                     IsPaid = false,
-                    PaymentDeadline = booking.CheckOutDate?.AddDays(10) ?? DateTime.Now.AddDays(10)
+                    PaymentDeadline = DateTime.Now.AddDays(10) 
                 };
 
                 _guestRepository.RegisterNewGuestWithBookingAndInvoice(guest, booking, invoice);
@@ -291,78 +291,7 @@ namespace HotelBookingApp.Controllers
             AnsiConsole.MarkupLine("[blue]Use arrow keys to navigate and Enter to select a date. Press Escape to cancel.[/]");
         }
 
-        private DateTime SelectDate(string prompt, string selectedRoomType)
-        {
-            DateTime currentDate = DateTime.Now.Date;
-            DateTime selectedDate = currentDate;
-
-            var bookedDates = _bookingRepository.GetAllBookings()
-                .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue) 
-                .Where(b => b.Room.Type.Equals(selectedRoomType, StringComparison.OrdinalIgnoreCase)) 
-                .SelectMany(b => Enumerable.Range(0, 1 + (b.CheckOutDate.Value - b.CheckInDate.Value).Days)
-                                            .Select(offset => b.CheckInDate.Value.AddDays(offset)))
-                .ToHashSet(); 
-
-            while (true)
-            {
-                Console.Clear();
-                Console.WriteLine(prompt);
-                RenderCalendar(selectedDate, selectedRoomType); 
-
-                var key = Console.ReadKey(true).Key;
-                switch (key)
-                {
-                    case ConsoleKey.RightArrow:
-                        selectedDate = selectedDate.AddDays(1);
-                        break;
-                    case ConsoleKey.LeftArrow:
-                        if (selectedDate > currentDate)
-                            selectedDate = selectedDate.AddDays(-1); 
-                        break;
-                    case ConsoleKey.UpArrow:
-                        if (selectedDate.AddDays(-7) >= currentDate)
-                            selectedDate = selectedDate.AddDays(-7); 
-                        break;
-                    case ConsoleKey.DownArrow:
-                        selectedDate = selectedDate.AddDays(7); 
-                        break;
-                    case ConsoleKey.Enter:
-                        if (bookedDates.Contains(selectedDate))
-                        {
-                            AnsiConsole.MarkupLine("[red]The selected date is already booked for this room type.[/]");
-                            Console.ReadKey(true);
-                            continue; 
-                        }
-
-                        if (selectedDate >= currentDate)
-                            return selectedDate;
-
-                        AnsiConsole.MarkupLine("[red]The date cannot be in the past.[/]");
-                        Console.ReadKey(true);
-                        break;
-                    case ConsoleKey.Escape:
-                        return DateTime.MinValue; 
-                }
-            }
-        }
-
-        private DateTime PromptForDate(string message)
-        {
-            while (true)
-            {
-                Console.Write(message);
-                if (DateTime.TryParse(Console.ReadLine(), out DateTime date))
-                {
-                    if (date.Date < DateTime.Now.Date)
-                    {
-                        Console.WriteLine("The date cannot be in the past. Please enter a valid future date.");
-                        continue;
-                    }
-                    return date;
-                }
-                Console.WriteLine("Invalid date format. Please use yyyy-MM-dd.");
-            }
-        }
+      
         public void UpdateGuestInformation()
         {
             Console.Clear();
@@ -491,62 +420,6 @@ namespace HotelBookingApp.Controllers
                 }
             }
         }
-        //public void ViewAllGuests()
-        //{
-        //    Console.Clear();
-        //    Console.WriteLine("ALL GUESTS");
-
-        //    var guests = _guestRepository.GetGuestsWithBookings();
-
-        //    if (!guests.Any())
-        //    {
-        //        Console.WriteLine("No guests found.");
-        //        Console.ReadKey(true);
-        //        return;
-        //    }
-
-        //    foreach (var entry in guests)
-        //    {
-        //        var guest = ((dynamic)entry).Guest;
-        //        var bookings = ((dynamic)entry).Bookings as IEnumerable<dynamic>;
-
-        //        foreach (var booking in bookings)
-        //        {
-        //            var invoice = booking.Invoice != null
-        //                ? $"Amount: {booking.Invoice.TotalAmount:C}, Status: {(booking.Invoice.IsPaid ? "Paid" : "Not Paid")}"
-        //                : "No Invoice"; 
-
-        //            Console.WriteLine($"Guest: {guest.FirstName} {guest.LastName} | Room: {booking.RoomId} | " +
-        //                              $"Check-In: {booking.CheckInDate:yyyy-MM-dd} | Check-Out: {booking.CheckOutDate:yyyy-MM-dd} | {invoice}");
-        //        }
-        //    }
-
-        //    Console.WriteLine("\nPress any key to return...");
-        //    Console.ReadKey(true);
-        //}
-
-
-
-        //private string PromptInput(string message, string defaultValue = null)
-        //{
-        //    Console.Write(message);
-        //    var input = Console.ReadLine();
-        //    return string.IsNullOrWhiteSpace(input) ? defaultValue : input;
-        //}
-
-        //private int PromptForInt(string message)
-        //{
-        //    int result;
-        //    while (true)
-        //    {
-        //        Console.Write(message);
-        //        if (int.TryParse(Console.ReadLine(), out result))
-        //        {
-        //            return result;
-        //        }
-        //        Console.WriteLine("Invalid input. Please enter a valid number.");
-        //    }
-        //}
-
+        
     }
 }
