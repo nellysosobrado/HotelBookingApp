@@ -64,7 +64,7 @@ namespace HotelBookingApp.Controllers
                     BookingId = booking.BookingId,
                     TotalAmount = totalAmount,
                     IsPaid = false,
-                    PaymentDeadline = booking.CheckOutDate?.AddDays(7) ?? DateTime.Now.AddDays(7)
+                    PaymentDeadline = booking.CheckOutDate?.AddDays(10) ?? DateTime.Now.AddDays(10)
                 };
 
                 _guestRepository.RegisterNewGuestWithBookingAndInvoice(guest, booking, invoice);
@@ -178,9 +178,6 @@ namespace HotelBookingApp.Controllers
                 BookingStatus = false
             };
         }
-
-
-
         private DateTime SelectDateWithCalendar(string prompt, string roomType)
         {
             DateTime currentDate = DateTime.Now.Date;
@@ -233,9 +230,6 @@ namespace HotelBookingApp.Controllers
                 }
             }
         }
-
-
-
         private void RenderCalendar(DateTime selectedDate, string roomType)
         {
             var calendarContent = new StringWriter();
@@ -497,62 +491,62 @@ namespace HotelBookingApp.Controllers
                 }
             }
         }
-        public void ViewAllGuests()
-        {
-            Console.Clear();
-            Console.WriteLine("ALL GUESTS");
+        //public void ViewAllGuests()
+        //{
+        //    Console.Clear();
+        //    Console.WriteLine("ALL GUESTS");
 
-            var guests = _guestRepository.GetGuestsWithBookings();
+        //    var guests = _guestRepository.GetGuestsWithBookings();
 
-            if (!guests.Any())
-            {
-                Console.WriteLine("No guests found.");
-                Console.ReadKey(true);
-                return;
-            }
+        //    if (!guests.Any())
+        //    {
+        //        Console.WriteLine("No guests found.");
+        //        Console.ReadKey(true);
+        //        return;
+        //    }
 
-            foreach (var entry in guests)
-            {
-                var guest = ((dynamic)entry).Guest;
-                var bookings = ((dynamic)entry).Bookings as IEnumerable<dynamic>;
+        //    foreach (var entry in guests)
+        //    {
+        //        var guest = ((dynamic)entry).Guest;
+        //        var bookings = ((dynamic)entry).Bookings as IEnumerable<dynamic>;
 
-                foreach (var booking in bookings)
-                {
-                    var invoice = booking.Invoice != null
-                        ? $"Amount: {booking.Invoice.TotalAmount:C}, Status: {(booking.Invoice.IsPaid ? "Paid" : "Not Paid")}"
-                        : "No Invoice"; 
+        //        foreach (var booking in bookings)
+        //        {
+        //            var invoice = booking.Invoice != null
+        //                ? $"Amount: {booking.Invoice.TotalAmount:C}, Status: {(booking.Invoice.IsPaid ? "Paid" : "Not Paid")}"
+        //                : "No Invoice"; 
 
-                    Console.WriteLine($"Guest: {guest.FirstName} {guest.LastName} | Room: {booking.RoomId} | " +
-                                      $"Check-In: {booking.CheckInDate:yyyy-MM-dd} | Check-Out: {booking.CheckOutDate:yyyy-MM-dd} | {invoice}");
-                }
-            }
+        //            Console.WriteLine($"Guest: {guest.FirstName} {guest.LastName} | Room: {booking.RoomId} | " +
+        //                              $"Check-In: {booking.CheckInDate:yyyy-MM-dd} | Check-Out: {booking.CheckOutDate:yyyy-MM-dd} | {invoice}");
+        //        }
+        //    }
 
-            Console.WriteLine("\nPress any key to return...");
-            Console.ReadKey(true);
-        }
+        //    Console.WriteLine("\nPress any key to return...");
+        //    Console.ReadKey(true);
+        //}
 
 
 
-        private string PromptInput(string message, string defaultValue = null)
-        {
-            Console.Write(message);
-            var input = Console.ReadLine();
-            return string.IsNullOrWhiteSpace(input) ? defaultValue : input;
-        }
+        //private string PromptInput(string message, string defaultValue = null)
+        //{
+        //    Console.Write(message);
+        //    var input = Console.ReadLine();
+        //    return string.IsNullOrWhiteSpace(input) ? defaultValue : input;
+        //}
 
-        private int PromptForInt(string message)
-        {
-            int result;
-            while (true)
-            {
-                Console.Write(message);
-                if (int.TryParse(Console.ReadLine(), out result))
-                {
-                    return result;
-                }
-                Console.WriteLine("Invalid input. Please enter a valid number.");
-            }
-        }
+        //private int PromptForInt(string message)
+        //{
+        //    int result;
+        //    while (true)
+        //    {
+        //        Console.Write(message);
+        //        if (int.TryParse(Console.ReadLine(), out result))
+        //        {
+        //            return result;
+        //        }
+        //        Console.WriteLine("Invalid input. Please enter a valid number.");
+        //    }
+        //}
 
     }
 }

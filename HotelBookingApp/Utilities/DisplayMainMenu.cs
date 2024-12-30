@@ -85,7 +85,7 @@ namespace HotelBookingApp.Utilities
                         _roomController.ViewAllRooms();
                         break;
                     case "Bookings":
-                        _bookingController.BookingManagement();
+                        _bookingController.BookingOptions();
                         break;
                     //case "Pay":
                     //    _paymentService.PayInvoiceBeforeCheckout();
