@@ -10,6 +10,7 @@ using HotelBookingApp.Services.RoomServices;
 using HotelBookingApp.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Spectre.Console;
 using System;
 
 namespace HotelBookingApp.DI
@@ -33,12 +34,12 @@ namespace HotelBookingApp.DI
                 {
                     if (dbContext.Database.EnsureCreated())
                     {
-                        Console.WriteLine("Database created successfully.");
+                        AnsiConsole.MarkupLine("[bold green]Database created successfully.![/]");
                     }
-                    else
-                    {
-                        Console.WriteLine("Database already exists.");
-                    }
+                    //else
+                    //{
+                    //    Console.WriteLine("Database already exists.");
+                    //}
                 }
                 catch (Exception ex)
                 {
@@ -51,29 +52,22 @@ namespace HotelBookingApp.DI
 
             builder.RegisterType<DisplayMainMenu>().AsSelf();
             builder.RegisterType<App>().AsSelf();
-            //builder.RegisterType<DisplayBookingMenu>().AsSelf();
             builder.RegisterType<BookingController>().AsSelf();
             builder.RegisterType<BookingRepository>().AsSelf();
-            //Guest
-            //builder.RegisterType<DisplayGuestMenu>().AsSelf();
+
             builder.RegisterType<GuestRepository>().AsSelf();
             builder.RegisterType<GuestController>().AsSelf();
-            //Room
             builder.RegisterType<RoomController>().AsSelf();
             builder.RegisterType<RoomRepository>().AsSelf();
 
-            //Services--
 
-              //RoomServices
             builder.RegisterType<FindRoomByDate>().AsSelf();
             builder.RegisterType<FindRoomByTotalPeople>().AsSelf();
             builder.RegisterType<DeleteRoomService>().AsSelf();
             builder.RegisterType<EditRoomService>().AsSelf();
             builder.RegisterType<RegisterRoomService>().AsSelf();
-              //RoomServices
             builder.RegisterType<TableDisplayService>().AsSelf();
 
-              //BookingServices
             builder.RegisterType<CheckInOutService>().AsSelf();
             builder.RegisterType<GuestRegistrationService>().AsSelf();
             builder.RegisterType<BookingEditService>().AsSelf();

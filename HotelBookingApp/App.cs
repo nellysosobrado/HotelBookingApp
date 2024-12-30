@@ -17,7 +17,6 @@ namespace HotelBookingApp
         }
         public void Run()
         {
-            Console.WriteLine("Starting hotel booking application..");
             _mainMenu.Run();
         }
     }

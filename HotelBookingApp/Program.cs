@@ -4,6 +4,7 @@ using HotelBookingApp.Data;
 using HotelBookingApp.DI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Spectre.Console;
 
 namespace HotelBookingApp
 {
@@ -22,8 +23,7 @@ namespace HotelBookingApp
                 {
                     if (dbContext.Database.CanConnect())
                     {
-                        Console.WriteLine("Connected to the database successfully.");
-                        // Tilldela rum till befintliga gäster
+                        AnsiConsole.MarkupLine("[bold green]Connected to the database successfully.![/]");
                         ExistingGuests.AssignRoomsToExistingGuests(dbContext);
                     }
                     else
@@ -35,9 +35,8 @@ namespace HotelBookingApp
                 {
                     Console.WriteLine($"An error occurred while connecting to the database: {ex.Message}");
                 }
-
-                Console.WriteLine("Press any key to continue...");
-                Console.ReadKey(); // Vänta på att användaren trycker på en tangent
+                AnsiConsole.MarkupLine("[italic purple]Setup complete, Press any key to continue...![/]");
+                Console.ReadKey(); 
 
                 var app = scope.ServiceProvider.GetService<App>();
                 app?.Run();

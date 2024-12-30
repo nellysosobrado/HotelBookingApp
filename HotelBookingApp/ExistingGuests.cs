@@ -18,20 +18,21 @@ namespace HotelBookingApp
 
             foreach (var guest in guests)
             {
-                // Kontrollera om gästen redan har en bokning
                 var existingBooking = context.Bookings.FirstOrDefault(b => b.GuestId == guest.GuestId);
                 if (existingBooking != null)
                 {
-                    Console.WriteLine($"Guest {guest.FirstName} {guest.LastName} already has a booking.");
+                    Console.WriteLine(new string('-', 100));
+                    Console.WriteLine($"Booking for {guest.FirstName} {guest.LastName} has been created");
+
+
                     continue;
                 }
 
-                // Hämta ett ledigt rum baserat på att det inte är bokat under den föreslagna perioden
                 var availableRoom = context.Rooms
                     .FirstOrDefault(r => r.IsAvailable && !context.Bookings
                         .Any(b => b.RoomId == r.RoomId &&
-                                  b.CheckInDate < DateTime.Now.AddDays(3) &&  // Exempel på check-in period för den nya gästen
-                                  b.CheckOutDate > DateTime.Now)); // Kontrollera om rummet är upptaget under de nya datumen
+                                  b.CheckInDate < DateTime.Now.AddDays(3) &&  
+                                  b.CheckOutDate > DateTime.Now)); 
 
                 if (availableRoom == null)
                 {
@@ -39,28 +40,27 @@ namespace HotelBookingApp
                     continue;
                 }
 
-                // Skapa en ny bokning
+              
                 var newBooking = new Booking
                 {
                     GuestId = guest.GuestId,
                     RoomId = availableRoom.RoomId,
-                    CheckInDate = DateTime.Now.AddDays(1), // Gäller från en dag framåt
-                    CheckOutDate = DateTime.Now.AddDays(4), // Gäller i tre dagar framåt
+                    CheckInDate = DateTime.Now.AddDays(1), 
+                    CheckOutDate = DateTime.Now.AddDays(4), 
                     IsCheckedIn = false,
                     IsCheckedOut = false,
                     BookingStatus = false
                 };
 
-                // Uppdatera rummets status till upptaget
+               
                 availableRoom.IsAvailable = false;
 
-                // Lägg till bokningen i databasen och uppdatera rummets status
                 context.Bookings.Add(newBooking);
-                context.SaveChanges(); // Spara ändringar omedelbart
-                Console.WriteLine($"Booking created for guest {guest.FirstName} {guest.LastName} in room {availableRoom.RoomId}.");
+                context.SaveChanges(); 
+               Console.WriteLine($"Booking created for guest {guest.FirstName} {guest.LastName} in room {availableRoom.RoomId}.");
             }
-
-            Console.WriteLine("All bookings for existing guests have been processed.");
+            Console.WriteLine(new string('-', 100));
+            Console.WriteLine("Notification: 4 Seeded guests, 4 Seeded rooms has been created as test subjects.");
         }
     }
 }
