@@ -75,8 +75,11 @@ namespace HotelBookingApp.Controllers
                 else
                 {
                     _tableDisplayService.DisplayRooms(activeRooms, "Overview of registered rooms", includeDeleted: false);
+                    Console.WriteLine(new string('-', 125));
                     _tableDisplayService.DisplayBookedRooms(bookedActiveRooms, "Booked Active Rooms");
+                    Console.WriteLine(new string('-', 125));
                     _tableDisplayService.DisplayRooms(removedRooms, "Removed Rooms", includeDeleted: true);
+                    Console.WriteLine(new string('-', 125));
                 }
 
                 var action = AnsiConsole.Prompt(

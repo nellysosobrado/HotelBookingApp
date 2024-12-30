@@ -136,8 +136,14 @@ namespace HotelBookingApp
                     .ToList();
 
                 _tableDisplayService.DisplayBookingTable(activeBookings, "Active Bookings:");
+                Console.WriteLine(new string('-', 125));
+
                 _tableDisplayService.DisplayBookingTable(completedBookings, "Completed Bookings:", includePaymentAndStatus: true);
+                Console.WriteLine(new string('-', 125));
+
                 _tableDisplayService.DisplayBookingTable(removedBookings, "Unbooked Bookings:", includePaymentAndStatus: false);
+                Console.WriteLine(new string('-', 125));
+
 
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
