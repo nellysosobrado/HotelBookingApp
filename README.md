@@ -6,12 +6,12 @@ This project is my **final project** for the course **"Database course"**, showc
 
 ## Features
 
-- **Guest Management: Add, update, remove, and view guest details.
-- **Room Booking: Manage room reservations and check availability.
-- **Invoices: Generate, view, and manage booking-related invoices.
-- **Payments: Track payment statuses and handle unpaid bookings.
-- **Database Design: Optimized structure in 3NF for minimal redundancy.
-- **Cancellation History: Log and view details of canceled bookings
+- **Guest Management:** Add, update, remove, and view guest details.
+- **Room Booking:** Manage room reservations and check availability.
+- **Invoices:** Generate, view, and manage booking-related invoices.
+- **Payments:** Track payment statuses and handle unpaid bookings.
+- **Database Design:** Optimized structure in 3NF for minimal redundancy.
+- **Cancellation History:** Log and view details of canceled bookings
 
 ## Technologies
 
@@ -39,9 +39,9 @@ The following NuGet packages are used in the project:
 
 ## Database Design
 
-- **Guests: Contains guest information, including name, email, and phone number.
-- **Rooms: Stores room details such as type, price per night, size, and availability.
-- **Bookings: Tracks reservations linked to guests and rooms, including check-in/out dates and booking status.
-- **Invoices: Records invoice details with total amounts, payment deadlines, and statuses (paid/unpaid).
-- **Payments: Logs payment transactions linked to invoices, including amounts and payment dates.
-- **CanceledBookingHistory: Maintains a log of canceled bookings, including cancellation reasons and dates.
+- **Guests:** Contains guest information, including name, email, and phone number.
+- **Rooms:** Stores room details such as type, price per night, size, and availability.
+- **Bookings:** Tracks reservations linked to guests and rooms, including check-in/out dates and booking status.
+- **Invoices:** Records invoice details with total amounts, payment deadlines, and statuses (paid/unpaid).
+- **Payments:** Logs payment transactions linked to invoices, including amounts and payment dates.
+- **CanceledBookingHistory:** Maintains a log of canceled bookings, including cancellation reasons and dates.
