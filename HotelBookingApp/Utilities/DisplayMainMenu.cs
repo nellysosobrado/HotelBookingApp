@@ -46,12 +46,12 @@ namespace HotelBookingApp.Utilities
                         .PageSize(10)
                         .HighlightStyle(new Style(Color.Green, decoration: Decoration.Bold))
                         .AddChoices(
-                            "HandleUnpaidBookings",
-                            "Pay",
-                            "Register New Guest",
-                            "Check in/Check out Guest",
-                            "Edit Guest information",
-                            "Display all registered guests",
+                            //"HandleUnpaidBookings",
+                            //"Pay",
+                            //"Register New Guest",
+                            //"Check in/Check out Guest",
+                            //"Edit Guest information",
+                            //"Display all registered guests",
                             "Rooms",
                             "Bookings",
                             "Exit")
@@ -59,27 +59,27 @@ namespace HotelBookingApp.Utilities
 
                 switch (choice)
                 {
-                    case "HandleUnpaidBookings":
-                        _unpaidBookingService.HandleUnpaidBookings();
-                        //_guestController.RegisterNewGuest();
-                        break;
+                //    case "HandleUnpaidBookings":
+                //        _unpaidBookingService.HandleUnpaidBookings();
+                //        //_guestController.RegisterNewGuest();
+                //        break;
 
-                    case "Register New Guest":
-                        _guestController.RegisterNewGuest();
-                        break;
+                //    case "Register New Guest":
+                //        _guestController.RegisterNewGuest();
+                //        break;
 
-                    case "Check in/Check out Guest":
-                        _checkInOutService.Execute();
-                        break;
+                //    case "Check in/Check out Guest":
+                //        _checkInOutService.Execute();
+                //        break;
 
-                    case "Edit Guest information":
-                        _bookingEditService.EditBooking();
-                        break;
+                //    case "Edit Guest information":
+                //        _bookingEditService.EditBooking();
+                //        break;
 
-                    case "Display all registered guests":
-                         _bookingController.DisplayAllRegisteredGuests();
+                //    case "Display all registered guests":
+                //         _bookingController.DisplayAllRegisteredGuests();
                        
-                        break;
+                //        break;
 
                     case "Rooms":
                         _roomController.ViewAllRooms();
@@ -87,9 +87,9 @@ namespace HotelBookingApp.Utilities
                     case "Bookings":
                         _bookingController.BookingManagement();
                         break;
-                    case "Pay":
-                        _paymentService.PayInvoiceBeforeCheckout();
-                        break;
+                    //case "Pay":
+                    //    _paymentService.PayInvoiceBeforeCheckout();
+                    //    break;
 
                     case "Exit":
                         AnsiConsole.MarkupLine("[bold green]Thank you for using the Hotel Booking App. Goodbye![/]");

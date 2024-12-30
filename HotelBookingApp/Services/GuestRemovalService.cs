@@ -9,79 +9,61 @@ namespace HotelBookingApp.Services
     {
         private readonly GuestRepository _guestRepository;
         private readonly BookingRepository _bookingRepository;
-        private readonly TableDisplayService _tableDisplayService;
 
-        public GuestRemovalService(
-            GuestRepository guestRepository,
-            BookingRepository bookingRepository,
-            TableDisplayService tableDisplayService)
+        public GuestRemovalService(GuestRepository guestRepository, BookingRepository bookingRepository)
         {
             _guestRepository = guestRepository;
             _bookingRepository = bookingRepository;
-            _tableDisplayService = tableDisplayService;
         }
 
         public void Execute()
         {
-            while (true)
+            Console.Clear();
+            Console.WriteLine("REMOVE GUEST");
+            Console.WriteLine(new string('-', 60));
+
+            var guests = _guestRepository.GetAllGuests();
+
+            if (!guests.Any())
             {
-                Console.Clear();
-                AnsiConsole.MarkupLine("[bold yellow]Remove a Guest[/]");
-
-                var allGuests = _guestRepository.GetAllGuests().Where(g => !g.IsDeleted).ToList();
-                if (!allGuests.Any())
-                {
-                    AnsiConsole.MarkupLine("[red]No registered guests found.[/]");
-                    Console.ReadKey();
-                    return;
-                }
-
-                _tableDisplayService.DisplayGuestTable(allGuests);
-
-                var guestOptions = allGuests.Select(g => g.GuestId.ToString()).ToList();
-                guestOptions.Add("Go Back");
-
-                var selectedOption = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("[yellow]Select a Guest ID to remove or choose Go Back:[/]")
-                        .AddChoices(guestOptions)
-                        .HighlightStyle(new Style(foreground: Color.Green))
-                );
-
-                if (selectedOption == "Go Back")
-                {
-                    return; 
-                }
-
-                int guestId = int.Parse(selectedOption);
-                RemoveGuestById(guestId);
+                AnsiConsole.MarkupLine("[red]No registered guests found to remove.[/]");
+                Console.ReadKey();
+                return;
             }
-        }
 
-        private void RemoveGuestById(int guestId)
-        {
-            var selectedGuest = _guestRepository.GetGuestById(guestId);
+            var guestId = AnsiConsole.Prompt(
+                new SelectionPrompt<int>()
+                    .Title("[green]Select a guest to remove (by Guest ID):[/]")
+                    .AddChoices(guests.Select(g => g.GuestId))
+            );
 
-            if (selectedGuest == null)
+            var guest = guests.FirstOrDefault(g => g.GuestId == guestId);
+
+            if (guest == null)
             {
                 AnsiConsole.MarkupLine("[red]Guest not found.[/]");
                 Console.ReadKey();
                 return;
             }
 
-            var guestBookings = _bookingRepository.GetBookingsByGuestId(guestId);
-            if (guestBookings.Any(b => !b.IsCanceled && !b.IsCheckedOut))
+            // Kontrollera om gästen har aktiva bokningar
+            var activeBookings = _bookingRepository.GetBookingsByGuestId(guestId)
+                .Where(b => !b.IsCanceled && !b.IsCheckedOut);
+
+            if (activeBookings.Any())
             {
-                AnsiConsole.MarkupLine("[red]This guest has active bookings and cannot be removed.[/]");
+                AnsiConsole.MarkupLine("[red]Cannot remove guest with active bookings.[/]");
                 Console.ReadKey();
                 return;
             }
 
-            selectedGuest.IsDeleted = true;
-            _guestRepository.UpdateGuest(selectedGuest);
+            // Ta bort gästen
+            _guestRepository.RemoveGuest(guest);
 
-            AnsiConsole.MarkupLine($"[green]Guest {selectedGuest.FirstName} (ID: {selectedGuest.GuestId}) has been successfully removed.[/]");
+            AnsiConsole.MarkupLine($"[green]Guest {guest.FirstName} {guest.LastName} has been removed successfully.[/]");
             Console.ReadKey();
         }
     }
+
 }
+

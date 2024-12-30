@@ -10,65 +10,73 @@ namespace HotelBookingApp.Services.BookingServices
     public class UnpaidBookingService
     {
         private readonly BookingRepository _bookingRepository;
-        private readonly List<Booking> _canceledBookingHistory = new(); // Håll historik för annullerade bokningar
 
         public UnpaidBookingService(BookingRepository bookingRepository)
         {
             _bookingRepository = bookingRepository;
         }
 
-        public void HandleUnpaidBookings()
+        public void Start()
         {
-            while (true)
+            bool exit = false;
+
+            while (!exit)
             {
                 Console.Clear();
-                AnsiConsole.MarkupLine("[bold yellow]Checking for unpaid bookings...[/]");
+                AnsiConsole.MarkupLine("[blue bold]Unpaid Booking Management[/]");
 
-                var currentDate = DateTime.Now;
-
-                // Hämta obetalda bokningar
-                var unpaidBookings = _bookingRepository.GetAllBookings()
-                    .Where(b => !b.IsCanceled && b.Invoices != null && b.Invoices.Any(i => !i.IsPaid && (currentDate - i.CreatedDate).Days > 10))
-                    .ToList();
-
-                if (unpaidBookings.Any())
-                {
-                    // Visa en tabell med detaljer om obetalda bokningar
-                    DisplayUnpaidBookings(unpaidBookings);
-
-                    // Automatisk annullering av obetalda bokningar
-                    CancelUnpaidBookings(unpaidBookings);
-                }
-                else
-                {
-                    AnsiConsole.MarkupLine("[green]No unpaid bookings older than 10 days found.[/]");
-                }
-
-                // Visa historik över alla annullerade bokningar
-                DisplayCanceledBookingHistory();
-
-                // Fråga användaren vad de vill göra härnäst
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
-                        .Title("[green]What would you like to do next?[/]")
-                        .AddChoices("Check Again", "View Canceled Booking History", "Return to Main Menu", "Exit")
-                        .HighlightStyle(new Style(foreground: Color.Green))
-                );
+                        .Title("[green]Select an option:[/]")
+                        .AddChoices("Handle Unpaid Bookings", "View Canceled Bookings History", "Return to Main Menu", "Exit"));
 
                 switch (action)
                 {
-                    case "Check Again":
-                        continue;
-                    case "View Canceled Booking History":
+                    case "Handle Unpaid Bookings":
+                        HandleUnpaidBookings();
+                        break;
+
+                    case "View Canceled Bookings History":
                         DisplayCanceledBookingHistory();
                         break;
+
                     case "Return to Main Menu":
-                        return;
+                        exit = true;
+                        break;
+
                     case "Exit":
                         Environment.Exit(0);
                         break;
                 }
             }
+        }
+
+        public void HandleUnpaidBookings()
+        {
+            Console.Clear();
+            AnsiConsole.MarkupLine("[bold yellow]Checking for unpaid bookings...[/]");
+
+            var currentDate = DateTime.Now;
+
+            var unpaidBookings = _bookingRepository.GetAllBookings()
+                .Where(b => !b.IsCanceled
+                && b.Invoices != null
+                && b.Invoices.Any(i => !i.IsPaid && (DateTime.Now - i.CreatedDate).Days > 10)) // Basera på fakturans datum
+                .ToList();
+
+
+            if (unpaidBookings.Any())
+            {
+                DisplayUnpaidBookings(unpaidBookings);
+                CancelUnpaidBookings(unpaidBookings);
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("[green]No unpaid bookings older than 10 days found.[/]");
+            }
+
+            DisplayCanceledBookingHistory();
+            Console.ReadKey();
         }
 
         private void DisplayUnpaidBookings(IEnumerable<Booking> bookings)
@@ -105,41 +113,68 @@ namespace HotelBookingApp.Services.BookingServices
                 .AddColumn("[blue]Booking ID[/]")
                 .AddColumn("[blue]Guest[/]")
                 .AddColumn("[blue]Room ID[/]")
+                .AddColumn("[blue]Canceled Date[/]")
                 .AddColumn("[blue]Reason[/]");
 
             foreach (var booking in bookings)
             {
-                booking.IsCanceled = true;
+                var unpaidInvoice = booking.Invoices.FirstOrDefault(i => !i.IsPaid);
 
-                // Annullera alla kopplade fakturor
-                foreach (var invoice in booking.Invoices)
+                if (unpaidInvoice != null && (DateTime.Now - unpaidInvoice.CreatedDate).Days > 10)
                 {
-                    invoice.IsPaid = false;
+                    Console.WriteLine($"Processing Booking ID: {booking.BookingId}");
+                    Console.WriteLine($"Invoice CreatedDate: {unpaidInvoice.CreatedDate}, Days Overdue: {(DateTime.Now - unpaidInvoice.CreatedDate).Days}");
+
+                    booking.IsCanceled = true;
+                    booking.CanceledDate = DateTime.Now;
+
+                    // Uppdatera bokningen och fakturan i databasen
+                    _bookingRepository.UpdateBooking(booking);
+
+                    // Lägg till i historik
+                    _bookingRepository.AddCanceledBooking(booking, "Canceled due to unpaid invoice over 10 days overdue.");
+
+                    // Lägg till i tabellen
+                    table.AddRow(
+                        booking.BookingId.ToString(),
+                        $"{booking.Guest.FirstName} {booking.Guest.LastName}",
+                        booking.RoomId.ToString(),
+                        booking.CanceledDate.Value.ToString("yyyy-MM-dd HH:mm:ss"),
+                        "[red]Canceled due to unpaid invoice over 10 days overdue.[/]"
+                    );
                 }
-
-                _bookingRepository.UpdateBooking(booking);
-
-                // Lägg till bokningen i historiken
-                _canceledBookingHistory.Add(booking);
-
-                // Lägg till information om den annullerade bokningen i tabellen
-                table.AddRow(
-                    booking.BookingId.ToString(),
-                    $"{booking.Guest.FirstName} {booking.Guest.LastName}",
-                    booking.RoomId.ToString(),
-                    "[red]Canceled due to unpaid invoice over 10 days overdue.[/]"
-                );
+                else
+                {
+                    // Logga varför bokningen inte annulleras
+                    Console.WriteLine($"Skipping Booking ID: {booking.BookingId}");
+                    if (unpaidInvoice == null)
+                    {
+                        Console.WriteLine("Reason: No unpaid invoice found.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Reason: Invoice is not overdue. Days Overdue: {(DateTime.Now - unpaidInvoice.CreatedDate).Days}");
+                    }
+                }
             }
 
-            Console.Clear();
-            AnsiConsole.MarkupLine("[bold yellow]The following bookings have been canceled:[/]");
-            AnsiConsole.Write(table);
+            if (table.Rows.Count > 0)
+            {
+                AnsiConsole.MarkupLine("[bold yellow]The following bookings have been canceled:[/]");
+                AnsiConsole.Write(table);
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("[green]No bookings were canceled.[/]");
+            }
         }
+
 
         private void DisplayCanceledBookingHistory()
         {
-            Console.Clear();
-            if (!_canceledBookingHistory.Any())
+            var canceledBookings = _bookingRepository.GetCanceledBookingsHistory();
+
+            if (!canceledBookings.Any())
             {
                 AnsiConsole.MarkupLine("[red]No canceled bookings found in the history.[/]");
                 return;
@@ -150,21 +185,22 @@ namespace HotelBookingApp.Services.BookingServices
                 .AddColumn("[blue]Booking ID[/]")
                 .AddColumn("[blue]Guest[/]")
                 .AddColumn("[blue]Room ID[/]")
+                .AddColumn("[blue]Canceled Date[/]")
                 .AddColumn("[blue]Reason[/]");
 
-            foreach (var booking in _canceledBookingHistory)
+            foreach (var canceledBooking in canceledBookings)
             {
                 table.AddRow(
-                    booking.BookingId.ToString(),
-                    $"{booking.Guest.FirstName} {booking.Guest.LastName}",
-                    booking.RoomId.ToString(),
-                    "[red]Booking was canceled manually or due to unpaid invoices.[/]"
+                    canceledBooking.BookingId.ToString(),
+                    canceledBooking.GuestName,
+                    canceledBooking.RoomId.ToString(),
+                    canceledBooking.CanceledDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                    canceledBooking.Reason
                 );
             }
 
-            AnsiConsole.MarkupLine("[bold yellow]Canceled Booking History:[/]");
+            AnsiConsole.MarkupLine("[bold yellow]NULLIFIED Canceled Booking History:[/]");
             AnsiConsole.Write(table);
-            Console.ReadKey();
         }
     }
 }

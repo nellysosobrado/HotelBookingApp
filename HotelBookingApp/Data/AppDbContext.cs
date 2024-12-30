@@ -14,6 +14,7 @@ namespace HotelBookingApp.Data
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<CanceledBookingHistory> CanceledBookingsHistory { get; set; }
 
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
@@ -65,14 +66,14 @@ namespace HotelBookingApp.Data
                 InvoiceId = index + 1,
                 BookingId = booking.BookingId,
                 TotalAmount = new Random().Next(5000, 20000),
-                IsPaid = index == 3 ? false : true, // Fjärde gästen har inte betalat
+                IsPaid = index == 0 || index == 1 ? false : index == 2, // Två obetalda (0 och 1), en betald (2)
                 PaymentDeadline = booking.CheckOutDate.HasValue
                     ? booking.CheckOutDate.Value.AddDays(7)
                     : today.AddDays(7),
-                CreatedDate = today.AddDays(-11) // Gör fakturan äldre än 10 dagar
+                CreatedDate = index == 3 ? today.AddDays(-11) : today // Endast den fjärde fakturan är äldre än 10 dagar
             }).ToList();
 
-            // Generera betalningar
+            // Generera betalningar för betalda fakturor
             var payments = invoices
                 .Where(i => i.IsPaid) // Generera endast betalningar för fakturor som är betalda
                 .Select((invoice, index) => new Payment
@@ -92,6 +93,7 @@ namespace HotelBookingApp.Data
 
             base.OnModelCreating(modelBuilder);
         }
+
 
 
 

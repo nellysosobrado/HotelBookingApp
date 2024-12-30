@@ -18,6 +18,17 @@ namespace HotelBookingApp.Repositories
             _roomRepository = roomRepository;
             _bookingRepository = bookingRepository;
         }
+
+        public List<Guest> GetAllGuests()
+        {
+            return _appDbContext.Guests.ToList();
+        }
+
+        public void RemoveGuest(Guest guest)
+        {
+            _appDbContext.Guests.Remove(guest);
+            _appDbContext.SaveChanges();
+        }
         public void RegisterNewGuestWithBookingAndInvoice(Guest guest, Booking booking, Invoice invoice)
         {
             _appDbContext.Guests.Add(guest);
@@ -81,12 +92,7 @@ namespace HotelBookingApp.Repositories
             _appDbContext.Bookings.Add(booking);
             _appDbContext.SaveChanges();
         }
-    
 
-        public List<Guest> GetAllGuests()
-        {
-            return _appDbContext.Guests.ToList();
-        }
 
         public Guest GetGuestById(int guestId)
         {

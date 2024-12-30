@@ -142,12 +142,13 @@ namespace HotelBookingApp
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("[bold green]What would you like to do?[/]")
-                        .AddChoices(new[] { "Check In/Check Out", "Register New Booking", "Edit Booking", "Unbook Booking", "Payment", "Remove Guest", "Go Back" })
+                        .AddChoices(new[] { "Check In/Check Out", "Register New Booking", "Edit Booking", "Unbook Booking", "Guest Payments", "Display All Registered Guests", "Remove Guest", "Go Back" })
                         .HighlightStyle(new Style(foreground: Color.Green))
                 );
 
                 switch (action)
                 {
+                    //HandleUnpaidBookings
                     case "Check In/Check Out":
                         _checkInOutService.Execute();
                         break;
@@ -160,8 +161,11 @@ namespace HotelBookingApp
                     case "Unbook Booking":
                         _unbookBooking.UnbookBookings();
                         break;
-                    case "Payment":
-                        _paymentService.PayInvoiceBeforeCheckout();
+                    case "Guest Payments":
+                        _paymentService.Start();
+                        break;
+                    case "Display All Registered Guests":
+                        DisplayAllRegisteredGuests();
                         break;
                     case "Remove Guest":
                         _guestRemovalService.Execute();

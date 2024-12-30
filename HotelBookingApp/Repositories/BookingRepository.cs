@@ -18,6 +18,27 @@ namespace HotelBookingApp.Repositories
             _appDbContext = context;
             _bookings = _appDbContext.Bookings.ToList();
         }
+
+        public void AddCanceledBooking(Booking booking, string reason)
+        {
+            var canceledBooking = new CanceledBookingHistory
+            {
+                BookingId = booking.BookingId,
+                GuestName = $"{booking.Guest.FirstName} {booking.Guest.LastName}",
+                RoomId = booking.RoomId,
+                CanceledDate = DateTime.Now,
+                Reason = reason
+            };
+
+            _appDbContext.CanceledBookingsHistory.Add(canceledBooking);
+            _appDbContext.SaveChanges();
+        }
+
+        public List<CanceledBookingHistory> GetCanceledBookingsHistory()
+        {
+            return _appDbContext.CanceledBookingsHistory.ToList();
+        }
+
         // Hämta bokningar baserat på GuestId
         public IEnumerable<Booking> GetBookingsByGuestId(int guestId)
         {
