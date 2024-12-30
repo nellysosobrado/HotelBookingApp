@@ -193,6 +193,7 @@ namespace HotelBookingApp.Services.DisplayServices
             {
                 table.AddColumn("[bold]Amount[/]");
                 table.AddColumn("[bold]Payment Status[/]");
+                table.AddColumn("[bold]Payment Deadline[/]"); 
                 table.AddColumn("[bold]Booking Status[/]");
             }
 
@@ -201,7 +202,10 @@ namespace HotelBookingApp.Services.DisplayServices
                 var invoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
                 string paymentStatus = includePaymentAndStatus && invoice != null && invoice.IsPaid
                     ? "[green]Paid[/]"
-                    : "[gray]not Paid[/]";
+                    : "[gray]Not Paid[/]";
+                string paymentDeadline = includePaymentAndStatus && invoice != null
+                    ? invoice.PaymentDeadline.ToString("yyyy-MM-dd")
+                    : "[gray]N/A[/]";
                 string bookingStatus = includePaymentAndStatus
                     ? (booking.IsCheckedIn ? "[green]Checked In[/]" : "[gray]Not Checked In[/]")
                     : string.Empty;
@@ -221,6 +225,7 @@ namespace HotelBookingApp.Services.DisplayServices
                         checkOutDate,
                         amount,
                         paymentStatus,
+                        paymentDeadline, 
                         bookingStatus
                     );
                 }
@@ -239,6 +244,7 @@ namespace HotelBookingApp.Services.DisplayServices
             AnsiConsole.Markup($"[bold yellow]{title}[/]\n");
             AnsiConsole.Write(table);
         }
+
 
 
         public void DisplayRooms(IEnumerable<Room> rooms, string title, bool includeDeleted)

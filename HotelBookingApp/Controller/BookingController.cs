@@ -83,8 +83,8 @@ namespace HotelBookingApp
         public void BookingOptions()
         {
             Console.Clear();
-            AnsiConsole.MarkupLine("[bold yellow]Processing unpaid bookings...[/]");
-            _unpaidBookingService.HandleUnpaidBookings();
+            //AnsiConsole.MarkupLine("[bold yellow]Processing unpaid bookings...[/]");
+            //_unpaidBookingService.HandleUnpaidBookings();
 
             while (true)
             {

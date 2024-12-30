@@ -67,16 +67,9 @@ namespace HotelBookingApp.Services.BookingServices
 
             if (unpaidBookings.Any())
             {
-                DisplayUnpaidBookings(unpaidBookings);
                 CancelUnpaidBookings(unpaidBookings);
             }
-            //else
-            //{
-            //    //AnsiConsole.MarkupLine("[green]No unpaid bookings older than 10 days found.[/]");
-            //}
 
-            //DisplayCanceledBookingHistory();
-            //Console.ReadKey();
         }
 
         private void DisplayUnpaidBookings(IEnumerable<Booking> bookings)
@@ -108,13 +101,6 @@ namespace HotelBookingApp.Services.BookingServices
 
         private void CancelUnpaidBookings(IEnumerable<Booking> bookings)
         {
-            var table = new Table()
-                .Border(TableBorder.Rounded)
-                .AddColumn("[blue]Booking ID[/]")
-                .AddColumn("[blue]Guest[/]")
-                .AddColumn("[blue]Room ID[/]")
-                .AddColumn("[blue]Canceled Date[/]")
-                .AddColumn("[blue]Reason[/]");
 
             foreach (var booking in bookings)
             {
@@ -122,8 +108,6 @@ namespace HotelBookingApp.Services.BookingServices
 
                 if (unpaidInvoice != null && (DateTime.Now - unpaidInvoice.CreatedDate).Days > 10)
                 {
-                    Console.WriteLine($"Processing Booking ID: {booking.BookingId}");
-                    Console.WriteLine($"Invoice CreatedDate: {unpaidInvoice.CreatedDate}, Days Overdue: {(DateTime.Now - unpaidInvoice.CreatedDate).Days}");
 
                     booking.IsCanceled = true;
                     booking.CanceledDate = DateTime.Now;
@@ -131,43 +115,30 @@ namespace HotelBookingApp.Services.BookingServices
                     _bookingRepository.UpdateBooking(booking);
 
                     _bookingRepository.AddCanceledBooking(booking, "Canceled due to unpaid invoice over 10 days overdue.");
-
-                    table.AddRow(
-                        booking.BookingId.ToString(),
-                        $"{booking.Guest.FirstName} {booking.Guest.LastName}",
-                        booking.RoomId.ToString(),
-                        booking.CanceledDate.Value.ToString("yyyy-MM-dd HH:mm:ss"),
-                        "[red]Canceled due to unpaid invoice over 10 days overdue.[/]"
-                    );
                 }
-                else
-                {
-                    Console.WriteLine($"Skipping Booking ID: {booking.BookingId}");
-                    if (unpaidInvoice == null)
-                    {
-                        Console.WriteLine("Reason: No unpaid invoice found.");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Reason: Invoice is not overdue. Days Overdue: {(DateTime.Now - unpaidInvoice.CreatedDate).Days}");
-                    }
-                }
-            }
-
-            if (table.Rows.Count > 0)
-            {
-                AnsiConsole.MarkupLine("[bold yellow]NOTIFICATION!:[/]");
-                AnsiConsole.Write(table);
-            }
-            else
-            {
-                AnsiConsole.MarkupLine("[green]No bookings were canceled.[/]");
+              
             }
         }
 
 
         public void DisplayCanceledBookingHistory()
         {
+
+            var currentDate = DateTime.Now;
+
+            var unpaidBookings = _bookingRepository.GetAllBookings()
+                .Where(b => !b.IsCanceled
+                && b.Invoices != null
+                && b.Invoices.Any(i => !i.IsPaid && (DateTime.Now - i.CreatedDate).Days > 10))
+                .ToList();
+
+
+            if (unpaidBookings.Any())
+            {
+                DisplayUnpaidBookings(unpaidBookings);
+                CancelUnpaidBookings(unpaidBookings);
+            }
+
             var canceledBookings = _bookingRepository.GetCanceledBookingsHistory();
 
             if (!canceledBookings.Any())
@@ -195,7 +166,7 @@ namespace HotelBookingApp.Services.BookingServices
                 );
             }
 
-            AnsiConsole.MarkupLine("[bold yellow]Nullified Booking History (Automatic Removed):[/]");
+            AnsiConsole.MarkupLine("[bold yellow]Nullified Booking History (Automatic Removed booking from guest):[/]");
             AnsiConsole.Write(table);
         }
     }
