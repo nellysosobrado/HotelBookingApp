@@ -6,27 +6,26 @@ This project is my **final project** for the course **"Database course"**, showc
 
 ## Features
 
-- **Guest Management:** Add, update, and view guest information.
-- **Room Booking:** Book rooms, check availability, and manage reservations.
-- **Invoices:** Generate and view invoices linked to bookings.
-- **Payments:** Track payments and their statuses.
-- **Database Structure:** Tables normalized to 3NF for better data quality and reduced redundancy.
+- **Guest Management: Add, update, remove, and view guest details.
+- **Room Booking: Manage room reservations and check availability.
+- **Invoices: Generate, view, and manage booking-related invoices.
+- **Payments: Track payment statuses and handle unpaid bookings.
+- **Database Design: Optimized structure in 3NF for minimal redundancy.
+- **Cancellation History: Log and view details of canceled bookings
 
 ## Technologies
 
 - **Language:** C#
-- **Database:** SQL (with normalization principles)
+- **Database:** SQL 
 - **IDE:** Visual Studio
 
 ## NuGet Packages Used
 
 The following NuGet packages are used in the project:
-- **Entity Framework Core** – For database interaction and ORM capabilities.
-- **Microsoft.Extensions.DependencyInjection** – For managing dependency injection.
-- **Newtonsoft.Json** – For handling JSON serialization and deserialization.
-- **FluentValidation** – For validating input data.
-- **Dapper** (optional) – For lightweight database queries.
-- **NUnit** – For unit testing.
+- **Entity Framework Core**
+- **Microsoft.Extensions.DependencyInjection** 
+- **Newtonsoft.Json** 
+- **FluentValidation** 
 
 ## Installation
 
@@ -40,9 +39,9 @@ The following NuGet packages are used in the project:
 
 ## Database Design
 
-The application uses the following tables:
-- **Guests:** Stores guest details (name, email, phone number).
-- **Rooms:** Stores room details (type, price, size).
-- **Bookings:** Stores reservations linked to guests and rooms.
-- **Invoices:** Stores invoice details with payment statuses.
-- **Payments:** Tracks payments linked to invoices.
+- **Guests: Contains guest information, including name, email, and phone number.
+- **Rooms: Stores room details such as type, price per night, size, and availability.
+- **Bookings: Tracks reservations linked to guests and rooms, including check-in/out dates and booking status.
+- **Invoices: Records invoice details with total amounts, payment deadlines, and statuses (paid/unpaid).
+- **Payments: Logs payment transactions linked to invoices, including amounts and payment dates.
+- **CanceledBookingHistory: Maintains a log of canceled bookings, including cancellation reasons and dates.
