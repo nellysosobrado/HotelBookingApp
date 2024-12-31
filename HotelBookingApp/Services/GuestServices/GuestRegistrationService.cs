@@ -148,7 +148,7 @@ namespace HotelBookingApp.Services.GuestServices
                 RoomId = selectedRoomId,
                 CheckInDate = checkInDate,
                 CheckOutDate = checkOutDate,
-                BookingStatus = false 
+                BookingCompleted = false 
             };
 
             return booking;

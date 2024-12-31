@@ -50,6 +50,12 @@ namespace HotelBookingApp.Services.RoomServices
 
         private void DisplayAllRooms(IEnumerable<Room> rooms)
         {
+            if (rooms == null || !rooms.Any())
+            {
+                AnsiConsole.Markup("[red]No rooms found.[/]\n");
+                return;
+            }
+
             var table = new Table()
                 .Border(TableBorder.Rounded)
                 .AddColumn("[bold]Room ID[/]")
@@ -58,10 +64,9 @@ namespace HotelBookingApp.Services.RoomServices
                 .AddColumn("[bold]Size (sqm)[/]")
                 .AddColumn("[bold]Status[/]");
 
-          
             foreach (var room in rooms)
             {
-                bool hasActiveBooking = room.Bookings?.Any(b => !b.IsCanceled) ?? false;
+                bool hasActiveBooking = room.Bookings != null && room.Bookings.Any();
                 string status = hasActiveBooking
                     ? "[green]Active, has booking attached[/]"
                     : "[red]Does not have a booking attached[/]";
@@ -78,16 +83,17 @@ namespace HotelBookingApp.Services.RoomServices
             AnsiConsole.Write(table);
         }
 
+
+
         private int GetRoomId()
         {
             return AnsiConsole.Ask<int>("Enter [green]Room ID to delete[/]:");
         }
-
         private bool ValidateRoomDeletion(Room room)
         {
-            var activeBookings = room.Bookings?.Where(b => !b.IsCanceled).ToList();
+            var activeBookings = _roomRepository.GetActiveBookingsForRoom(room.RoomId);
 
-            if (activeBookings != null && activeBookings.Any())
+            if (activeBookings.Any())
             {
                 AnsiConsole.Markup("[red]The room cannot be deleted because it is associated with active bookings. Please go to bookings and unbook the room[/]\n");
                 foreach (var booking in activeBookings)
@@ -112,9 +118,9 @@ namespace HotelBookingApp.Services.RoomServices
                 return;
             }
 
-            var activeBookings = room.Bookings?.Where(b => !b.IsCanceled).ToList();
+            var activeBookings = _roomRepository.GetActiveBookingsForRoom(room.RoomId);
 
-            if (activeBookings != null && activeBookings.Any())
+            if (activeBookings.Any())
             {
                 AnsiConsole.Markup("[red]The room cannot be deleted because it is associated with active bookings. Please unbook all bookings first.[/]\n");
                 foreach (var booking in activeBookings)

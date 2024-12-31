@@ -13,7 +13,6 @@ namespace HotelBookingApp.Services.BookingServices
         {
             _bookingRepository = bookingRepository;
         }
-
         public void UnbookBookings()
         {
             while (true)
@@ -21,7 +20,8 @@ namespace HotelBookingApp.Services.BookingServices
                 Console.Clear();
 
                 var notCheckedInBookings = _bookingRepository.GetAllBookings()
-                    .Where(b => !b.IsCanceled && !b.IsCheckedIn && !b.IsCheckedOut)
+                    .Where(b => !_bookingRepository.GetCanceledBookingsHistory().Any(cb => cb.BookingId == b.BookingId)
+                        && !b.IsCheckedIn && !b.IsCheckedOut)
                     .ToList();
 
                 if (!notCheckedInBookings.Any())
@@ -62,14 +62,11 @@ namespace HotelBookingApp.Services.BookingServices
                     continue;
                 }
 
-                // Bekräfta avbokningen
                 var confirm = AnsiConsole.Confirm($"Are you sure you want to cancel booking [yellow]{bookingId}[/] for [green]{booking.Guest.FirstName} {booking.Guest.LastName}[/]?");
                 if (!confirm)
                     continue;
 
-                // Markera bokningen som avbokad
-                booking.IsCanceled = true;
-                _bookingRepository.UpdateBooking(booking);
+                _bookingRepository.CancelBooking(booking, "Canceled by user");
 
                 AnsiConsole.MarkupLine($"[green]Booking {bookingId} has been successfully canceled.[/]");
 
@@ -78,5 +75,7 @@ namespace HotelBookingApp.Services.BookingServices
                 break;
             }
         }
+
     }
+
 }

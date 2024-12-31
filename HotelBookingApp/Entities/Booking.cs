@@ -19,12 +19,12 @@ namespace HotelBookingApp.Entities
         public bool IsCheckedIn { get; set; }
         public bool IsCheckedOut { get; set; }
 
-        public bool BookingStatus { get; set; }
-        public bool IsCanceled { get; set; }
+        public bool BookingCompleted { get; set; }
         public ICollection<Invoice> Invoices { get; set; }
         public int ExtraBeds { get; set; }
         public DateTime CreatedDate { get; set; } 
         public DateTime? CanceledDate { get; set; }
         public DateTime RegistrationDate { get; set; }
+        public bool IsCanceled { get; set; } 
     }
 }

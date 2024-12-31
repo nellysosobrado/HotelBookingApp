@@ -12,10 +12,12 @@ namespace HotelBookingApp.Services.RoomServices
     public class FindRoomByDate
     {
         private readonly RoomRepository _roomRepository;
+        private readonly BookingRepository _bookingRepository;
 
-        public FindRoomByDate(RoomRepository roomRepository)
+        public FindRoomByDate(RoomRepository roomRepository, BookingRepository bookingRepository)
         {
             _roomRepository = roomRepository;
+            _bookingRepository = bookingRepository;
         }
 
         public void Execute()
@@ -59,15 +61,19 @@ namespace HotelBookingApp.Services.RoomServices
         {
             var rooms = _roomRepository.GetRoomsWithBookings();
 
+            var canceledBookingIds = _bookingRepository.GetCanceledBookingsHistory()
+                .Select(cb => cb.BookingId)
+                .ToHashSet(); 
+
             return rooms
-        .Where(room =>
-            !room.IsDeleted &&
-            !room.Bookings.Any(booking =>
-                !booking.IsCanceled &&
-                booking.CheckInDate.HasValue &&
-                booking.CheckOutDate.HasValue &&
-                !(booking.CheckOutDate.Value < startDate || booking.CheckInDate.Value > endDate)))
-        .ToList();
+                .Where(room =>
+                    !room.IsDeleted && 
+                    !room.Bookings.Any(booking =>
+                        !canceledBookingIds.Contains(booking.BookingId) && 
+                        booking.CheckInDate.HasValue &&
+                        booking.CheckOutDate.HasValue &&
+                        !(booking.CheckOutDate.Value < startDate || booking.CheckInDate.Value > endDate))) 
+                .ToList();
         }
 
         private void DisplayAvailableRooms(List<Room> availableRooms, DateTime startDate, DateTime endDate)

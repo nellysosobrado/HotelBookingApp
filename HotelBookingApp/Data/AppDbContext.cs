@@ -39,7 +39,6 @@ namespace HotelBookingApp.Data
                 .RuleFor(r => r.PricePerNight, f => f.Random.Int(1000, 5000))
                 .RuleFor(r => r.SizeInSquareMeters, f => f.Random.Int(20, 100))
                 .RuleFor(r => r.TotalPeople, (f, r) => r.Type == "Single" ? 1 : 2 + r.ExtraBeds);
-
             var rooms = roomFaker.Generate(4);
 
             var bookingFaker = new Faker<Booking>()
@@ -52,9 +51,7 @@ namespace HotelBookingApp.Data
                     : today.AddDays(f.Random.Int(1, 5)))
                 .RuleFor(b => b.IsCheckedIn, f => false)
                 .RuleFor(b => b.IsCheckedOut, f => false)
-                .RuleFor(b => b.BookingStatus, f => false)
-                .RuleFor(b => b.IsCanceled, f => false);
-
+                .RuleFor(b => b.BookingCompleted, f => false);
             var bookings = bookingFaker.Generate(4);
 
             var invoices = bookings.Select((booking, index) => new Invoice
@@ -62,16 +59,15 @@ namespace HotelBookingApp.Data
                 InvoiceId = index + 1,
                 BookingId = booking.BookingId,
                 TotalAmount = new Random().Next(5000, 20000),
-                IsPaid = index == 0 || index == 1 ? false : index == 2, 
+                IsPaid = index == 0 || index == 1 ? false : index == 2,
                 PaymentDeadline = index == 3
                     ? today.AddDays(-11) 
                     : today.AddDays(10), 
                 CreatedDate = today
             }).ToList();
 
-
             var payments = invoices
-                .Where(i => i.IsPaid) 
+                .Where(i => i.IsPaid)
                 .Select((invoice, index) => new Payment
                 {
                     PaymentId = index + 1,
@@ -81,19 +77,16 @@ namespace HotelBookingApp.Data
                 }).ToList();
 
             modelBuilder.Entity<CanceledBookingHistory>()
-       .HasOne(c => c.Booking)
-       .WithMany()
-       .HasForeignKey(c => c.BookingId)
-       .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(c => c.Booking)
+                .WithMany()
+                .HasForeignKey(c => c.BookingId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<CanceledBookingHistory>()
                 .HasOne(c => c.Room)
                 .WithMany()
                 .HasForeignKey(c => c.RoomId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-
-            base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Guest>().HasData(guests);
             modelBuilder.Entity<Room>().HasData(rooms);
@@ -103,9 +96,5 @@ namespace HotelBookingApp.Data
 
             base.OnModelCreating(modelBuilder);
         }
-
-
-
-
     }
 }

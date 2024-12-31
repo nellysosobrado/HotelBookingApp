@@ -49,7 +49,7 @@ namespace HotelBookingApp
                     CheckOutDate = DateTime.Now.AddDays(4), 
                     IsCheckedIn = false,
                     IsCheckedOut = false,
-                    BookingStatus = false
+                    BookingCompleted = false
                 };
 
                

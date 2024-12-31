@@ -55,6 +55,7 @@ namespace HotelBookingApp.Controllers
         {
             _deleteRoomService.Execute();
         }
+
         public void ViewAllRooms()
         {
             while (true)
@@ -63,9 +64,7 @@ namespace HotelBookingApp.Controllers
 
                 var allRooms = _roomRepository.GetAllRooms(includeDeleted: true);
                 var activeRooms = allRooms.Where(r => !r.IsDeleted).ToList();
-                var bookedActiveRooms = activeRooms
-                    .Where(r => r.Bookings != null && r.Bookings.Any(b => !b.IsCanceled))
-                    .ToList();
+                var bookedActiveRooms = _roomRepository.GetRoomsWithActiveBookings(); 
                 var removedRooms = allRooms.Where(r => r.IsDeleted).ToList();
 
                 if (!allRooms.Any())
@@ -76,15 +75,25 @@ namespace HotelBookingApp.Controllers
                 {
                     _tableDisplayService.DisplayRooms(activeRooms, "Overview of registered rooms", includeDeleted: false);
                     Console.WriteLine(new string('-', 125));
+
                     _tableDisplayService.DisplayBookedRooms(bookedActiveRooms, "Booked Active Rooms");
                     Console.WriteLine(new string('-', 125));
+
                     _tableDisplayService.DisplayRooms(removedRooms, "Removed Rooms", includeDeleted: true);
                     Console.WriteLine(new string('-', 125));
                 }
 
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
-                        .AddChoices(new[] { "Register a new room", "Edit a Room", "Delete a Room", "Find Available Room By Date", "Find Available Room By Total People", "Go Back" })
+                        .AddChoices(new[]
+                        {
+                    "Register a new room",
+                    "Edit a Room",
+                    "Delete a Room",
+                    "Find Available Room By Date",
+                    "Find Available Room By Total People",
+                    "Go Back"
+                        })
                         .HighlightStyle(new Style(foreground: Color.Green)));
 
                 switch (action)
@@ -117,7 +126,6 @@ namespace HotelBookingApp.Controllers
                         break;
                 }
             }
-
         }
     }
 }

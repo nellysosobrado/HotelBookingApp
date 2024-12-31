@@ -19,6 +19,18 @@ namespace HotelBookingApp.Repositories
             _bookingRepository = bookingRepository;
         }
 
+        public Dictionary<int, bool> GetGuestBookingStatus()
+        {
+            var activeBookingGuestIds = _bookingRepository.GetActiveBookings()
+                .Select(b => b.GuestId)
+                .ToHashSet();
+
+            return _appDbContext.Guests.ToDictionary(
+                guest => guest.GuestId,
+                guest => activeBookingGuestIds.Contains(guest.GuestId)
+            );
+        }
+
         public List<Guest> GetAllGuests()
         {
             return _appDbContext.Guests.ToList();
@@ -29,6 +41,8 @@ namespace HotelBookingApp.Repositories
             _appDbContext.Guests.Remove(guest);
             _appDbContext.SaveChanges();
         }
+
+
         public void RegisterNewGuestWithBookingAndInvoice(Guest guest, Booking booking, Invoice invoice)
         {
             _appDbContext.Guests.Add(guest);
@@ -105,7 +119,7 @@ namespace HotelBookingApp.Repositories
                             b.RoomId,
                             b.IsCheckedIn,
                             b.IsCheckedOut,
-                            b.BookingStatus
+                            b.BookingCompleted
                         }).ToList()
                     }
                 )

@@ -30,7 +30,7 @@ namespace HotelBookingApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingId"));
 
-                    b.Property<bool>("BookingStatus")
+                    b.Property<bool>("BookingCompleted")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("CheckInDate")

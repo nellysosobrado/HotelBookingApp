@@ -26,9 +26,7 @@ namespace HotelBookingApp.Services.BookingServices
 
                 UpdateAndDisplayBookings();
 
-                var activeBookings = _bookingRepository.GetAllBookings()
-                    .Where(b => !b.IsCanceled && !b.IsCheckedOut)
-                    .ToList();
+                var activeBookings = _bookingRepository.GetActiveBookings().ToList();
 
                 if (!activeBookings.Any())
                 {
@@ -53,7 +51,12 @@ namespace HotelBookingApp.Services.BookingServices
                 if (selectedBooking == "Back")
                     break;
 
-                var bookingId = int.Parse(selectedBooking.Split(':')[0]);
+                if (!int.TryParse(selectedBooking.Split(':')[0], out var bookingId))
+                {
+                    AnsiConsole.MarkupLine("[red]Invalid booking selection. Try again.[/]");
+                    Console.ReadKey();
+                    continue;
+                }
 
                 var booking = _bookingRepository.GetBookingById(bookingId);
                 if (booking == null)
@@ -78,11 +81,7 @@ namespace HotelBookingApp.Services.BookingServices
 
                     case "Check Out":
                         HandleCheckOut(booking);
-
-                        activeBookings = _bookingRepository.GetAllBookings()
-                            .Where(b => !b.IsCanceled && !b.IsCheckedOut)
-                            .ToList();
-
+                        activeBookings = _bookingRepository.GetActiveBookings().ToList();
                         break;
 
                     case "Go Back":
@@ -93,8 +92,6 @@ namespace HotelBookingApp.Services.BookingServices
                 Console.ReadKey();
             }
         }
-
-
         private void HandleCheckIn(Booking booking)
         {
             if (booking.IsCheckedIn)
@@ -164,13 +161,9 @@ namespace HotelBookingApp.Services.BookingServices
         {
             Console.Clear();
 
-            var activeBookings = _bookingRepository.GetAllBookings()
-                .Where(b => !b.IsCanceled && !b.IsCheckedOut)
-                .ToList();
+            var activeBookings = _bookingRepository.GetActiveBookings().ToList();
 
-            var completedBookings = _bookingRepository.GetAllBookings()
-                .Where(b => b.IsCheckedOut)
-                .ToList();
+            var completedBookings = _bookingRepository.GetCompletedBookings().ToList();
 
             if (activeBookings.Any())
             {
@@ -186,15 +179,12 @@ namespace HotelBookingApp.Services.BookingServices
             {
                 _tableDisplayService.DisplayBookingTable(completedBookings, "Completed Bookings", includePaymentAndStatus: false);
                 Console.WriteLine(new string('-', 100));
-
             }
             else
             {
                 Console.WriteLine(new string('-', 100));
-
-                AnsiConsole.MarkupLine("[bold gray]No completed bookings found[/]");
+                AnsiConsole.MarkupLine("[bold gray]No completed bookings found.[/]");
                 Console.WriteLine(new string('-', 100));
-
             }
         }
 

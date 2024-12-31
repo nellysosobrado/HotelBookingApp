@@ -7,7 +7,7 @@ SELECT * FROM Guests
 SELECT * FROm Bookings
 SELECT * FROM Invoices;
 SELECT * FROM Payments;
-
+SELECT * FROM CanceledBookingsHistory
 SELECT 
     g.GuestId,
     g.FirstName + ' ' + g.LastName AS GuestName,

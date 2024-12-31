@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotelBookingApp.Data;
 using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
 using Spectre.Console;
@@ -16,65 +17,35 @@ namespace HotelBookingApp.Services.BookingServices
             _bookingRepository = bookingRepository;
         }
 
-        private void DisplayUnpaidBookings(IEnumerable<Booking> bookings)
+        public void DisplayUnpaidBookings(IEnumerable<Booking> bookings)
         {
             var table = new Table()
                 .Border(TableBorder.Rounded)
-                .AddColumn("[blue]Booking ID[/]")
-                .AddColumn("[blue]Guest[/]")
-                .AddColumn("[blue]Room ID[/]")
-                .AddColumn("[blue]Invoice Amount[/]")
-                .AddColumn("[blue]Payment Deadline[/]")
-                .AddColumn("[blue]Days Overdue[/]");
+                .AddColumn("[white]Booking ID[/]")
+                .AddColumn("[white]Guest[/]")
+                .AddColumn("[white]Invoice Amount[/]")
+                .AddColumn("[red]Payment Deadline[/]");
 
             foreach (var booking in bookings)
             {
-                var unpaidInvoice = booking.Invoices.FirstOrDefault(i => !i.IsPaid);
-
-                if (unpaidInvoice != null)
-                {
-                    int daysOverdue = (DateTime.Now - unpaidInvoice.PaymentDeadline).Days;
-
-                    table.AddRow(
-                        booking.BookingId.ToString(),
-                        $"{booking.Guest.FirstName} {booking.Guest.LastName}",
-                        booking.RoomId.ToString(),
-                        unpaidInvoice.TotalAmount.ToString("C"),
-                        unpaidInvoice.PaymentDeadline.ToString("yyyy-MM-dd"),
-                        daysOverdue > 0 ? $"{daysOverdue} days overdue" : "[green]Not overdue[/]"
-                    );
-                }
+                var unpaidInvoice = booking.Invoices.First(i => !i.IsPaid);
+                table.AddRow(
+                    booking.BookingId.ToString(),
+                    $"{booking.Guest.FirstName} {booking.Guest.LastName}",
+                    unpaidInvoice.TotalAmount.ToString("C"),
+                    unpaidInvoice.PaymentDeadline.ToString("yyyy-MM-dd")
+                );
             }
 
-            AnsiConsole.MarkupLine("[bold yellow]Unpaid Bookings:[/]");
+            AnsiConsole.MarkupLine("[bold red]Unpaid Bookings:[/]");
             AnsiConsole.Write(table);
-        }
-
-
-        private void CancelUnpaidBookings(IEnumerable<Booking> bookings)
-        {
-            foreach (var booking in bookings)
-            {
-                var unpaidInvoice = booking.Invoices.FirstOrDefault(i => !i.IsPaid);
-
-                if (unpaidInvoice != null && DateTime.Now > unpaidInvoice.PaymentDeadline)
-                {
-                    booking.IsCanceled = true;
-                    booking.CanceledDate = DateTime.Now;
-
-                    _bookingRepository.UpdateBooking(booking);
-
-                    _bookingRepository.AddCanceledBooking(booking, "Canceled due to unpaid invoice after payment deadline.");
-                }
-            }
         }
 
 
         public void DisplayCanceledBookingHistory()
         {
-
             var unpaidBookings = _bookingRepository.GetAllBookings()
-                .Where(b => !b.IsCanceled
+                .Where(b => !_bookingRepository.GetCanceledBookingsHistory().Any(cb => cb.BookingId == b.BookingId)
                     && b.Invoices != null
                     && b.Invoices.Any(i => !i.IsPaid && DateTime.Now > i.PaymentDeadline))
                 .ToList();
@@ -82,7 +53,7 @@ namespace HotelBookingApp.Services.BookingServices
             if (unpaidBookings.Any())
             {
                 DisplayUnpaidBookings(unpaidBookings);
-                CancelUnpaidBookings(unpaidBookings);
+                _bookingRepository.CancelUnpaidBookings(unpaidBookings);
             }
 
             var canceledBookings = _bookingRepository.GetCanceledBookingsHistory();
@@ -105,16 +76,17 @@ namespace HotelBookingApp.Services.BookingServices
             {
                 table.AddRow(
                     canceledBooking.BookingId.ToString(),
-                    canceledBooking.GuestName,
+                    canceledBooking.GuestName ?? "[grey]Unknown Guest[/]",
                     canceledBooking.RoomId.ToString(),
                     canceledBooking.CanceledDate.ToString("yyyy-MM-dd HH:mm:ss"),
-                    canceledBooking.Reason
+                    canceledBooking.Reason ?? "[grey]No reason provided[/]"
                 );
             }
 
-            AnsiConsole.MarkupLine("[bold yellow]Nullified Booking History (Automatic Removed booking from guest):[/]");
+            AnsiConsole.MarkupLine("[bold yellow]Nullified Booking History (Automatically removed bookings from guest):[/]");
             AnsiConsole.Write(table);
         }
+
 
     }
 }

@@ -80,42 +80,69 @@ namespace HotelBookingApp
             }
             Console.ReadKey();
         }
+
         public void BookingOptions()
         {
             Console.Clear();
-            //AnsiConsole.MarkupLine("[bold yellow]Processing unpaid bookings...[/]");
-            //_unpaidBookingService.HandleUnpaidBookings();
 
             while (true)
             {
                 Console.Clear();
 
-                var activeBookings = _bookingRepository.GetAllBookings()
-                    .Where(b => !b.IsCanceled && !b.IsCheckedOut)
-                    .ToList();
-                var completedBookings = _bookingRepository.GetAllBookings()
-                    .Where(b => b.IsCheckedOut)
-                    .ToList();
-                var removedBookings = _bookingRepository.GetAllBookings()
-                    .Where(b => b.IsCanceled)
-                    .ToList();
+                var activeBookings = _bookingRepository.GetActiveBookings().ToList();
+                var completedBookings = _bookingRepository.GetCompletedBookings().ToList();
+                var removedBookings = _bookingRepository.GetRemovedBookings().ToList();
 
-                _tableDisplayService.DisplayBookingTable(activeBookings, "Active Bookings:");
-                Console.WriteLine(new string('-', 100));
+                if (activeBookings.Any())
+                {
+                    _tableDisplayService.DisplayBookingTable(activeBookings, "Active Bookings:");
+                    Console.WriteLine(new string('-', 100));
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine("[gray]No active bookings found.[/]");
+                    Console.WriteLine(new string('-', 100));
+                }
 
-                _tableDisplayService.DisplayBookingTable(completedBookings, "Completed Bookings:", includePaymentAndStatus: true);
-                Console.WriteLine(new string('-', 100));
+                if (completedBookings.Any())
+                {
+                    _tableDisplayService.DisplayBookingTable(completedBookings, "Completed Bookings:", includePaymentAndStatus: true);
+                    Console.WriteLine(new string('-', 100));
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine("[gray]No completed bookings found.[/]");
+                    Console.WriteLine(new string('-', 100));
+                }
 
-                _tableDisplayService.DisplayBookingTable(removedBookings, "Unbooked Bookings:", includePaymentAndStatus: false);
-                Console.WriteLine(new string('-', 100));
+                if (removedBookings.Any())
+                {
+                    _tableDisplayService.DisplayBookingTable(removedBookings, "Unbooked Bookings:", includePaymentAndStatus: false);
+                    Console.WriteLine(new string('-', 100));
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine("[gray]No unbooked bookings found.[/]");
+                    Console.WriteLine(new string('-', 100));
+                }
 
                 _unpaidBookingService.DisplayCanceledBookingHistory();
-               Console.WriteLine(new string('-', 100));
+                Console.WriteLine(new string('-', 100));
 
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("[bold green]What would you like to do?[/]")
-                        .AddChoices(new[] { "Check In/Check Out", "Register New Booking", "Edit Booking", "Unbook Booking", "Guest Payments", "Display All Registered Guests", "Remove Guest", "Back" })
+                        .AddChoices(new[]
+                        {
+                    "Check In/Check Out",
+                    "Register New Booking",
+                    "Edit Booking",
+                    "Unbook Booking",
+                    "Guest Payments",
+                    "Display All Registered Guests",
+                    "Remove Guest",
+                    "Back"
+                        })
                         .HighlightStyle(new Style(foreground: Color.Green))
                 );
 
@@ -150,5 +177,6 @@ namespace HotelBookingApp
                 }
             }
         }
+
     }
 }

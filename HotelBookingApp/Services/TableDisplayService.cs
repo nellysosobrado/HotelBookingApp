@@ -1,4 +1,5 @@
-﻿using HotelBookingApp.Entities;
+﻿using HotelBookingApp.Data;
+using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
 using Spectre.Console;
 using System.Collections.Generic;
@@ -10,14 +11,18 @@ namespace HotelBookingApp.Services.DisplayServices
     {
         private readonly BookingRepository _bookingRepository;
         private readonly GuestRepository _guestRepository;
+        private readonly RoomRepository _roomRepository;
 
-        public TableDisplayService(BookingRepository bookingRepository, GuestRepository guestRepository)
+        public TableDisplayService(BookingRepository bookingRepository, GuestRepository guestRepository, RoomRepository roomRepository)
         {
             _bookingRepository = bookingRepository;
             _guestRepository = guestRepository;
+            _roomRepository = roomRepository;
         }
         public void DisplayGuestTable(IEnumerable<Guest> guests)
         {
+            var guestBookingStatus = _guestRepository.GetGuestBookingStatus();
+
             var guestTable = new Table()
                 .Border(TableBorder.Rounded)
                 .AddColumn("[blue]Guest ID[/]")
@@ -29,7 +34,8 @@ namespace HotelBookingApp.Services.DisplayServices
 
             foreach (var guest in guests)
             {
-                bool hasActiveBooking = guest.Bookings?.Any(b => !b.IsCanceled && !b.IsCheckedOut) ?? false;
+                bool hasActiveBooking = guestBookingStatus.ContainsKey(guest.GuestId) && guestBookingStatus[guest.GuestId];
+
                 guestTable.AddRow(
                     guest.GuestId.ToString(),
                     guest.FirstName,
@@ -44,16 +50,12 @@ namespace HotelBookingApp.Services.DisplayServices
 
             AnsiConsole.Write(guestTable);
         }
-
-
         public void DisplayActiveBookings()
         {
-            var bookings = _bookingRepository.GetAllBookings()
-                .Where(b => !b.IsCanceled && !b.IsCheckedOut)
-                .ToList();
-            DisplayTable(bookings, "Active Bookings:", includePaymentAndStatus: true);
-        }
+            var activeBookings = _bookingRepository.GetActiveBookings();
 
+            DisplayTable(activeBookings, "Active Bookings:", includePaymentAndStatus: true);
+        }
         public void DisplayCompletedBookings()
         {
             var bookings = _bookingRepository.GetAllBookings()
@@ -136,9 +138,7 @@ namespace HotelBookingApp.Services.DisplayServices
             Console.WriteLine("CANCELED BOOKINGS HISTORY");
             Console.WriteLine(new string('-', 80));
 
-            var canceledBookings = _bookingRepository.GetAllBookings()
-                .Where(b => b.IsCanceled)
-                .ToList();
+            var canceledBookings = _bookingRepository.GetCanceledBookingsHistory();
 
             if (!canceledBookings.Any())
             {
@@ -150,19 +150,19 @@ namespace HotelBookingApp.Services.DisplayServices
                 table.Border(TableBorder.Rounded);
 
                 table.AddColumn("[bold yellow]Booking ID[/]");
-                table.AddColumn("[bold yellow]Guest ID[/]");
+                table.AddColumn("[bold yellow]Guest Name[/]");
                 table.AddColumn("[bold yellow]Room ID[/]");
-                table.AddColumn("[bold yellow]Check-In Date[/]");
-                table.AddColumn("[bold yellow]Check-Out Date[/]");
+                table.AddColumn("[bold yellow]Canceled Date[/]");
+                table.AddColumn("[bold yellow]Reason[/]");
 
-                foreach (var booking in canceledBookings)
+                foreach (var canceledBooking in canceledBookings)
                 {
                     table.AddRow(
-                        booking.BookingId.ToString(),
-                        booking.GuestId.ToString(),
-                        booking.RoomId.ToString(),
-                        booking.CheckInDate.HasValue ? booking.CheckInDate.Value.ToString("yyyy-MM-dd") : "[grey]N/A[/]",
-                        booking.CheckOutDate.HasValue ? booking.CheckOutDate.Value.ToString("yyyy-MM-dd") : "[grey]N/A[/]"
+                        canceledBooking.BookingId.ToString(),
+                        canceledBooking.GuestName ?? "[grey]Unknown[/]",
+                        canceledBooking.RoomId.ToString(),
+                        canceledBooking.CanceledDate.ToString("yyyy-MM-dd"),
+                        canceledBooking.Reason ?? "[grey]No reason provided[/]"
                     );
                 }
 
@@ -172,7 +172,6 @@ namespace HotelBookingApp.Services.DisplayServices
             Console.WriteLine("Press any key to return...");
             Console.ReadKey();
         }
-
         public void DisplayBookingTable(IEnumerable<Booking> bookings, string title, bool includePaymentAndStatus = true)
         {
             if (bookings == null || !bookings.Any())
@@ -293,7 +292,6 @@ namespace HotelBookingApp.Services.DisplayServices
             AnsiConsole.Markup($"[bold green]{title}[/]\n");
             AnsiConsole.Write(table);
         }
-
         public void DisplayBookedRooms(IEnumerable<Room> bookedRooms, string title)
         {
             if (bookedRooms == null || !bookedRooms.Any())
@@ -311,7 +309,7 @@ namespace HotelBookingApp.Services.DisplayServices
 
             foreach (var room in bookedRooms)
             {
-                foreach (var booking in room.Bookings.Where(b => !b.IsCanceled))
+                foreach (var booking in room.Bookings)
                 {
                     table.AddRow(
                         room.RoomId.ToString(),
@@ -325,5 +323,8 @@ namespace HotelBookingApp.Services.DisplayServices
             AnsiConsole.Markup($"[bold green]{title}[/]\n");
             AnsiConsole.Write(table);
         }
+
+
+
     }
 }

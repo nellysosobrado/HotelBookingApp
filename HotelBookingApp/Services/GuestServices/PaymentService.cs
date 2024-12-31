@@ -20,18 +20,17 @@ namespace HotelBookingApp.Services.GuestServices
             _tableDisplayService = tableDisplayService;
             _unpaidBookingService = unpaidBookingService;
         }
+
         public void PayInvoiceBeforeCheckout()
         {
             while (true)
             {
                 Console.Clear();
-                var activeBookings = _bookingRepository.GetAllBookings()
-                  .Where(b => !b.IsCanceled && !b.IsCheckedOut)
-                  .ToList();
+                var activeBookings = _bookingRepository.GetActiveBookings().ToList();
 
                 _tableDisplayService.DisplayBookingTable(activeBookings, "Active Bookings:");
                 Console.WriteLine(new string('-', 100));
-                Console.Write("Enter Booking ID, to pay the guest invoice (type 'back' to go back): ");
+                Console.Write("Enter Booking ID to pay the guest invoice (type 'back' to go back): ");
                 var input = Console.ReadLine();
 
                 if (input?.ToLower() == "back")
@@ -51,31 +50,29 @@ namespace HotelBookingApp.Services.GuestServices
                     Console.ReadKey();
                     continue;
                 }
-                AnsiConsole.MarkupLine($"[green]Invoice Total: {invoice.TotalAmount:C}[/]");
 
+                AnsiConsole.MarkupLine($"[green]Invoice Total: {invoice.TotalAmount:C}[/]");
                 var confirmPayment = AnsiConsole.Confirm($"Do you want to pay this invoice of {invoice.TotalAmount:C}?");
                 if (!confirmPayment)
                 {
-                    AnsiConsole.MarkupLine($"[red]Payment cancelled. Enter any key to continue[/]");
+                    AnsiConsole.MarkupLine("[red]Payment cancelled. Enter any key to continue[/]");
                     Console.ReadKey();
                     continue;
                 }
 
                 _bookingRepository.ProcessPayment(invoice, invoice.TotalAmount);
-                AnsiConsole.MarkupLine($"[green]Invoice paid successfully.[/]");
+                AnsiConsole.MarkupLine("[green]Invoice paid successfully.[/]");
 
-                AnsiConsole.MarkupLine($"[white]Do you want to pay another invoice? (yes/no).[/]");
+                AnsiConsole.MarkupLine("[white]Do you want to pay another invoice? (yes/no).[/]");
                 var choice = Console.ReadLine()?.ToLower();
 
                 if (choice == "no")
                 {
                     Console.WriteLine("Enter any key to continue.");
                     Console.ReadKey();
-                    continue;
+                    return; 
                 }
             }
         }
-
-
     }
 }

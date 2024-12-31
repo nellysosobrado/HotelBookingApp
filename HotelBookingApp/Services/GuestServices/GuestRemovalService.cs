@@ -15,13 +15,11 @@ namespace HotelBookingApp.Services.GuestServices
             _guestRepository = guestRepository;
             _bookingRepository = bookingRepository;
         }
-
         public void Execute()
         {
             Console.Clear();
             Console.WriteLine("REMOVE GUEST");
             Console.WriteLine(new string('-', 60));
-
 
             var guests = _guestRepository.GetAllGuests();
 
@@ -55,11 +53,11 @@ namespace HotelBookingApp.Services.GuestServices
             var guest = guests.FirstOrDefault(g => g.GuestId == selectedGuest.GuestId);
 
             var activeBookings = _bookingRepository.GetBookingsByGuestId(guest.GuestId)
-                .Where(b => !b.IsCanceled && !b.IsCheckedOut);
+                .Where(b => !_bookingRepository.GetCanceledBookingsHistory().Any(cb => cb.BookingId == b.BookingId) && !b.IsCheckedOut);
 
             if (activeBookings.Any())
             {
-                AnsiConsole.MarkupLine("[red]Cannot remove guest with active bookings. Unbook the booking of the guest first! Then Remove guest![/]");
+                AnsiConsole.MarkupLine("[red]Cannot remove guest with active bookings. Unbook the booking of the guest first! Then remove guest![/]");
                 Console.ReadKey();
                 return;
             }
@@ -69,7 +67,6 @@ namespace HotelBookingApp.Services.GuestServices
             AnsiConsole.MarkupLine($"[green]Guest {guest.FirstName} {guest.LastName} has been removed successfully.[/]");
             Console.ReadKey();
         }
-
     }
 
 }

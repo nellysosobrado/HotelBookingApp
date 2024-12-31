@@ -20,9 +20,8 @@ namespace HotelBookingApp.Services.BookingServices
         public void EditBooking()
         {
             Console.Clear();
-            var editableBookings = _bookingRepository.GetAllBookings()
-                .Where(b => !b.IsCanceled && !b.BookingStatus && b.CheckInDate.HasValue && !b.IsCheckedOut)
-                .ToList();
+
+            var editableBookings = _bookingRepository.GetEditableBookings().ToList();
 
             if (!editableBookings.Any())
             {
@@ -51,6 +50,7 @@ namespace HotelBookingApp.Services.BookingServices
 
             EditBookingDetails(booking);
         }
+
         private void DisplayBookings(IEnumerable<Booking> bookings)
         {
             var table = new Table()

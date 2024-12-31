@@ -175,7 +175,7 @@ namespace HotelBookingApp.Controllers
                 GuestId = guest.GuestId,
                 IsCheckedIn = false,
                 IsCheckedOut = false,
-                BookingStatus = false
+                BookingCompleted = false
             };
         }
         private DateTime SelectDateWithCalendar(string prompt, string roomType)
