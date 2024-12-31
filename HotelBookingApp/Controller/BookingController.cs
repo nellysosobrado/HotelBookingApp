@@ -145,7 +145,6 @@ namespace HotelBookingApp
                     "Edit Booking",
                     "Unbook Booking",
                     "Guest Payments",
-                    "Display All Registered Guests",
                     "Remove Guest",
                     "Back"
                         })
@@ -168,9 +167,6 @@ namespace HotelBookingApp
                         break;
                     case "Guest Payments":
                         _paymentService.PayInvoiceBeforeCheckout();
-                        break;
-                    case "Display All Registered Guests":
-                        DisplayAllRegisteredGuests();
                         break;
                     case "Remove Guest":
                         _guestRemovalService.Execute();
