@@ -22,14 +22,14 @@ namespace HotelBookingApp.Controllers
         {
             Console.Clear();
 
-            bool proceed = AnsiConsole.Confirm("[bold yellow]Do you want to register a new guest?[/]");
+            bool proceed = AnsiConsole.Confirm("[italic white]Do you want to register a new guest?[/]");
             if (!proceed)
             {
                 AnsiConsole.MarkupLine("[red]Guest registration canceled. Returning to the main menu.[/]");
                 return;
             }
 
-            AnsiConsole.MarkupLine("[bold green]Register New Guest[/]\n");
+            AnsiConsole.MarkupLine("[italic white]Register New Guest[/]\n");
 
             var guest = CollectGuestInformation();
             if (guest == null)
@@ -38,7 +38,7 @@ namespace HotelBookingApp.Controllers
                 return;
             }
 
-            bool createBooking = AnsiConsole.Confirm("Would you like to continue to create a booking for this guest or cancel registration?");
+            bool createBooking = AnsiConsole.Confirm("[italic yellow]Would you like to continue to create a booking for this guest or cancel registration?[/]");
             if (createBooking)
             {
                 Booking booking = null;
