@@ -82,9 +82,12 @@ namespace HotelBookingApp.Repositories
             };
 
             _appDbContext.CanceledBookingsHistory.Add(canceledBooking);
-            _appDbContext.Bookings.Remove(booking); 
+
+            booking.IsCanceled = true; 
+            _appDbContext.Bookings.Update(booking);
             _appDbContext.SaveChanges();
         }
+
 
         public void CancelUnpaidBookings(IEnumerable<Booking> bookings)
         {
