@@ -192,39 +192,56 @@ namespace HotelBookingApp.Services.DisplayServices
             {
                 table.AddColumn("[bold]Amount[/]");
                 table.AddColumn("[bold]Payment Status[/]");
-                table.AddColumn("[bold]Payment Deadline[/]"); 
+                table.AddColumn("[bold]Payment Deadline[/]");
                 table.AddColumn("[bold]Booking Status[/]");
             }
 
             foreach (var booking in bookings)
             {
-                var invoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
-                string paymentStatus = includePaymentAndStatus && invoice != null && invoice.IsPaid
-                    ? "[green]Paid[/]"
-                    : "[gray]Not Paid[/]";
-                string paymentDeadline = includePaymentAndStatus && invoice != null
-                    ? invoice.PaymentDeadline.ToString("yyyy-MM-dd")
-                    : "[gray]N/A[/]";
-                string bookingStatus = includePaymentAndStatus
-                    ? (booking.IsCheckedIn ? "[green]Checked In[/]" : "[gray]Not Checked In[/]")
-                    : string.Empty;
-                string amount = includePaymentAndStatus && invoice != null
-                    ? $"{invoice.TotalAmount:C}"
-                    : "[red]No Invoice[/]";
-                string checkInDate = booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]";
-                string checkOutDate = booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]";
+                // Exkludera raderade gäster
+                if (booking.Guest == null || booking.Guest.IsDeleted)
+                {
+                    continue;
+                }
+
+                var guestName = $"{booking.Guest.FirstName ?? "Unknown"} {booking.Guest.LastName ?? "Unknown"}";
+                var roomId = booking.RoomId.ToString();
+                var checkInDate = booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]";
+                var checkOutDate = booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]";
+
+                string amount = "[red]No Invoice[/]";
+                string paymentStatus = "[grey]N/A[/]";
+                string paymentDeadline = "[grey]N/A[/]";
+                string bookingStatus = "[grey]N/A[/]";
+
+                if (includePaymentAndStatus)
+                {
+                    var invoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
+                    if (invoice != null)
+                    {
+                        amount = $"{invoice.TotalAmount:C}";
+                        paymentStatus = invoice.IsPaid ? "[green]Paid[/]" : "[red]Not Paid[/]";
+                        paymentDeadline = invoice.PaymentDeadline.ToString("yyyy-MM-dd");
+                    }
+
+                    bookingStatus = booking.IsCheckedIn
+                        ? "[green]Checked In[/]"
+                        : booking.IsCheckedOut
+                            ? "[red]Checked Out[/]"
+                            : "[yellow]Pending[/]";
+                }
 
                 if (includePaymentAndStatus)
                 {
                     table.AddRow(
                         booking.BookingId.ToString(),
-                        $"{booking.Guest.FirstName} {booking.Guest.LastName}",
-                        booking.RoomId.ToString(),
+                        guestName,
+                        roomId,
                         checkInDate,
                         checkOutDate,
                         amount,
                         paymentStatus,
-                        paymentDeadline, 
+                        paymentDeadline,
                         bookingStatus
                     );
                 }
@@ -232,8 +249,8 @@ namespace HotelBookingApp.Services.DisplayServices
                 {
                     table.AddRow(
                         booking.BookingId.ToString(),
-                        $"{booking.Guest.FirstName} {booking.Guest.LastName}",
-                        booking.RoomId.ToString(),
+                        guestName,
+                        roomId,
                         checkInDate,
                         checkOutDate
                     );

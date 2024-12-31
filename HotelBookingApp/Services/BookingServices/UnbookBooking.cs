@@ -19,12 +19,11 @@ namespace HotelBookingApp.Services.BookingServices
             {
                 Console.Clear();
 
-                var notCheckedInBookings = _bookingRepository.GetAllBookings()
-                    .Where(b => !_bookingRepository.GetCanceledBookingsHistory().Any(cb => cb.BookingId == b.BookingId)
-                        && !b.IsCheckedIn && !b.IsCheckedOut)
+                var bookings = _bookingRepository.GetAllBookings()
+                    .Where(b => !_bookingRepository.GetCanceledBookingsHistory().Any(cb => cb.BookingId == b.BookingId))
                     .ToList();
 
-                if (!notCheckedInBookings.Any())
+                if (!bookings.Any())
                 {
                     AnsiConsole.Markup("[red]No bookings available to cancel.[/]\n");
                     Console.WriteLine("\nPress any key to return...");
@@ -32,7 +31,7 @@ namespace HotelBookingApp.Services.BookingServices
                     return;
                 }
 
-                var bookingChoices = notCheckedInBookings
+                var bookingChoices = bookings
                     .Select(b => $"{b.BookingId}: {b.Guest.FirstName} {b.Guest.LastName} (Room ID: {b.RoomId}, Check-In: {b.CheckInDate:yyyy-MM-dd})")
                     .ToList();
                 bookingChoices.Add("Back");
@@ -54,7 +53,7 @@ namespace HotelBookingApp.Services.BookingServices
                     continue;
                 }
 
-                var booking = notCheckedInBookings.FirstOrDefault(b => b.BookingId == bookingId);
+                var booking = bookings.FirstOrDefault(b => b.BookingId == bookingId);
                 if (booking == null)
                 {
                     AnsiConsole.MarkupLine("[red]Booking not found. Please try again.[/]");
@@ -66,15 +65,17 @@ namespace HotelBookingApp.Services.BookingServices
                 if (!confirm)
                     continue;
 
-                _bookingRepository.CancelBooking(booking, "Canceled by user");
+                _bookingRepository.CancelBooking(booking, "Unbooked booking by guest");
 
-                AnsiConsole.MarkupLine($"[green]Booking {bookingId} has been successfully canceled.[/]");
+                AnsiConsole.MarkupLine("[green]Booking has been canceled successfully.[/]");
+                AnsiConsole.MarkupLine("[bold yellow]Payment will be on their way to your bank account within 12 days.[/]");
 
                 Console.WriteLine("\nPress any key to return...");
                 Console.ReadKey();
                 break;
             }
         }
+
 
     }
 

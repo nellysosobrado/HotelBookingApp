@@ -21,7 +21,9 @@ namespace HotelBookingApp.Services.GuestServices
             Console.WriteLine("REMOVE GUEST");
             Console.WriteLine(new string('-', 60));
 
-            var guests = _guestRepository.GetAllGuests();
+            var guests = _guestRepository.GetAllGuests()
+                .Where(g => !g.IsDeleted)
+                .ToList();
 
             if (!guests.Any())
             {
@@ -53,7 +55,8 @@ namespace HotelBookingApp.Services.GuestServices
             var guest = guests.FirstOrDefault(g => g.GuestId == selectedGuest.GuestId);
 
             var activeBookings = _bookingRepository.GetBookingsByGuestId(guest.GuestId)
-                .Where(b => !_bookingRepository.GetCanceledBookingsHistory().Any(cb => cb.BookingId == b.BookingId) && !b.IsCheckedOut);
+                .Where(b => !b.IsCheckedOut && !_bookingRepository.GetCanceledBookingsHistory().Any(cb => cb.BookingId == b.BookingId))
+                .ToList();
 
             if (activeBookings.Any())
             {
@@ -61,12 +64,17 @@ namespace HotelBookingApp.Services.GuestServices
                 Console.ReadKey();
                 return;
             }
+            guest.IsDeleted = true;
+            guest.DeletedDate = DateTime.Now;
+            guest.RemovalReason = "Removed by receptionist"; 
 
-            _guestRepository.RemoveGuest(guest);
+            _guestRepository.UpdateGuest(guest);
 
             AnsiConsole.MarkupLine($"[green]Guest {guest.FirstName} {guest.LastName} has been removed successfully.[/]");
             Console.ReadKey();
         }
+
+
     }
 
 }

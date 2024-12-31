@@ -18,6 +18,14 @@ namespace HotelBookingApp.Repositories
             _roomRepository = roomRepository;
             _bookingRepository = bookingRepository;
         }
+        public IEnumerable<Booking> GetBookingsByGuestId(int guestId)
+        {
+            return _appDbContext.Bookings
+                .Where(b => b.GuestId == guestId && !b.Guest.IsDeleted)
+                .Include(b => b.Room)
+                .ToList();
+        }
+
 
         public Dictionary<int, bool> GetGuestBookingStatus()
         {
@@ -31,16 +39,32 @@ namespace HotelBookingApp.Repositories
             );
         }
 
-        public List<Guest> GetAllGuests()
+
+
+        public IEnumerable<Guest> GetAllGuests(bool includeDeleted = false)
         {
-            return _appDbContext.Guests.ToList();
+            if (includeDeleted)
+            {
+                return _appDbContext.Guests.ToList();
+            }
+
+            return _appDbContext.Guests
+                .Where(g => !g.IsDeleted)
+                .ToList();
         }
 
-        public void RemoveGuest(Guest guest)
+
+        public void RemoveGuest(Guest guest, string reason)
         {
-            _appDbContext.Guests.Remove(guest);
+            guest.IsDeleted = true;
+            guest.DeletedDate = DateTime.Now;
+            guest.RemovalReason = reason;
+
+            _appDbContext.Guests.Update(guest);
             _appDbContext.SaveChanges();
         }
+
+
 
 
         public void RegisterNewGuestWithBookingAndInvoice(Guest guest, Booking booking, Invoice invoice)
@@ -101,8 +125,10 @@ namespace HotelBookingApp.Repositories
 
         public void UpdateGuest(Guest guest)
         {
+            _appDbContext.Guests.Update(guest);
             _appDbContext.SaveChanges();
         }
+
 
         public List<object> GetGuestsWithBookings()
         {

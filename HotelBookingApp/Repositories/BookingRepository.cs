@@ -68,13 +68,12 @@ namespace HotelBookingApp.Repositories
                 .ToList();
         }
 
-
-
         public void CancelBooking(Booking booking, string reason)
         {
             var canceledBooking = new CanceledBookingHistory
             {
                 BookingId = booking.BookingId,
+                GuestId = booking.GuestId, 
                 GuestName = $"{booking.Guest.FirstName} {booking.Guest.LastName}",
                 RoomId = booking.RoomId,
                 CanceledDate = DateTime.Now,
@@ -83,12 +82,11 @@ namespace HotelBookingApp.Repositories
 
             _appDbContext.CanceledBookingsHistory.Add(canceledBooking);
 
-            booking.IsCanceled = true; 
+            booking.IsCanceled = true;
             _appDbContext.Bookings.Update(booking);
+
             _appDbContext.SaveChanges();
         }
-
-
         public void CancelUnpaidBookings(IEnumerable<Booking> bookings)
         {
             foreach (var booking in bookings)

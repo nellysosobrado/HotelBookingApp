@@ -21,6 +21,9 @@ namespace HotelBookingApp
         [Required] 
         public string PhoneNumber { get; set; }
         public bool IsDeleted { get; set; }
+        public DateTime? DeletedDate { get; set; }
+        public string RemovalReason { get; set; } 
+
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     }

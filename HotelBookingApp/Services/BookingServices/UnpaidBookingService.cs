@@ -83,7 +83,7 @@ namespace HotelBookingApp.Services.BookingServices
                 );
             }
 
-            AnsiConsole.MarkupLine("[bold yellow]Nullified Booking History (Automatically removed bookings from guest):[/]");
+            AnsiConsole.MarkupLine("[bold yellow]HISTORY Of Cancel/Unbook Bookings:[/]");
             AnsiConsole.Write(table);
         }
 
