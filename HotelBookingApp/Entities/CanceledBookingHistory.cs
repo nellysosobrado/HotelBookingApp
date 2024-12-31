@@ -19,9 +19,5 @@ namespace HotelBookingApp.Entities
         public string Reason { get; set; }
         public bool IsCanceled { get; set; }
 
-
-
-
-
     }
 }

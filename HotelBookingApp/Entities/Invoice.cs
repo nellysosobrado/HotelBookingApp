@@ -22,6 +22,6 @@ namespace HotelBookingApp
 
         public Booking Booking { get; set; }
         public ICollection<Payment> Payments { get; set; }
-        public DateTime CreatedDate { get; set; } // Lägg till denna
+        public DateTime CreatedDate { get; set; } 
     }
 }
