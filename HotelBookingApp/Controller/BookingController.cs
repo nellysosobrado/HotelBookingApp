@@ -4,10 +4,11 @@ using HotelBookingApp.Controllers;
 using HotelBookingApp.Services.DisplayServices;
 using HotelBookingApp.Services.BookingServices;
 using HotelBookingApp.Services.GuestServices;
+using HotelBookingApp.Interfaces;
 
 namespace HotelBookingApp
 {
-    public class BookingController
+    public class BookingController : IMenuDisplay
     {
         private readonly BookingRepository _bookingRepository;
         private readonly GuestController _guestController;
@@ -84,7 +85,7 @@ namespace HotelBookingApp
         }
 
 
-        public void BookingOptions()
+        public void Run()
         {
             Console.Clear();
 

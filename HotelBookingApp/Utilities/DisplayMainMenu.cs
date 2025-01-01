@@ -1,4 +1,5 @@
 ﻿using HotelBookingApp.Controllers;
+using HotelBookingApp.Interfaces;
 using HotelBookingApp.Services.BookingServices;
 using HotelBookingApp.Services.GuestServices;
 using Spectre.Console;
@@ -6,7 +7,7 @@ using System;
 
 namespace HotelBookingApp.Utilities
 {
-    public class DisplayMainMenu
+    public class DisplayMainMenu : IMenuDisplay
     {
         private readonly BookingController _bookingController;
         private readonly RoomController _roomController;
@@ -43,7 +44,7 @@ namespace HotelBookingApp.Utilities
                 switch (choice)
                 {
                     case "Rooms":
-                        _roomController.ViewAllRooms();
+                        _roomController.Run();
                         break;
                     case "Bookings":
                         _bookingController.BookingOptions();

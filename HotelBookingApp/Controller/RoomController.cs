@@ -1,4 +1,5 @@
 ﻿using HotelBookingApp.Entities;
+using HotelBookingApp.Interfaces;
 using HotelBookingApp.Repositories;
 using HotelBookingApp.Services.DisplayServices;
 using HotelBookingApp.Services.RoomServices;
@@ -8,7 +9,7 @@ using System.Linq;
 
 namespace HotelBookingApp.Controllers
 {
-    public class RoomController
+    public class RoomController : IMenuDisplay
     {
         private readonly RoomRepository _roomRepository;
         private readonly FindRoomByDate _findRoomByDate;
@@ -34,29 +35,7 @@ namespace HotelBookingApp.Controllers
             _registerRoomService = registerRoomService;
             _tableDisplayService = tableDisplayService;
         }
-        public void RegisterANewRoom()
-        {
-            _registerRoomService.Execute();
-
-        }
-        public void EditRoom()
-        {
-            _editRoomService.Execute();
-        }
-        public void FindRoomByAvailableDate()
-        {
-            _findRoomByDate.Execute();
-        }
-        public void FindRoomByTotalPeople()
-        {
-            _findRoomByTotalPeople.Execute();
-        }
-        public void DeleteRoom()
-        {
-            _deleteRoomService.Execute();
-        }
-
-        public void ViewAllRooms()
+        public void Run()
         {
             while (true)
             {
@@ -99,23 +78,23 @@ namespace HotelBookingApp.Controllers
                 switch (action)
                 {
                     case "Register a new room":
-                        RegisterANewRoom();
+                        _registerRoomService.Execute();
                         break;
 
                     case "Edit a Room":
-                        EditRoom();
+                        _editRoomService.Execute();
                         break;
 
                     case "Delete a Room":
-                        DeleteRoom();
+                        _deleteRoomService.Execute();
                         break;
 
                     case "Find Available Room By Date":
-                        FindRoomByAvailableDate();
+                        _findRoomByDate.Execute();
                         break;
 
                     case "Find Available Room By Total People":
-                        FindRoomByTotalPeople();
+                        _findRoomByTotalPeople.Execute();
                         break;
 
                     case "Go Back":
