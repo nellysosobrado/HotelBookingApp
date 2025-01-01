@@ -47,7 +47,7 @@ namespace HotelBookingApp.Utilities
                         _roomController.Run();
                         break;
                     case "Bookings":
-                        _bookingController.BookingOptions();
+                        _bookingController.Run();
                         break;
                     case "Exit":
                         AnsiConsole.MarkupLine("[bold green]Thank you for using the Hotel Booking App. Goodbye![/]");

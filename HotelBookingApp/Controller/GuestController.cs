@@ -186,7 +186,7 @@ namespace HotelBookingApp.Controllers
             var bookedDates = _bookingRepository.GetAllBookings()
                 .Where(b => b.Room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase))
                 .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue)
-                .Where(b => b.CheckOutDate.Value >= b.CheckInDate.Value) // Validera datum
+                .Where(b => b.CheckOutDate.Value >= b.CheckInDate.Value) 
                 .SelectMany(b => Enumerable.Range(0, 1 + (b.CheckOutDate.Value - b.CheckInDate.Value).Days)
                                             .Select(offset => b.CheckInDate.Value.AddDays(offset)))
                 .ToHashSet();

@@ -126,7 +126,6 @@ namespace HotelBookingApp.Services.BookingServices
                 Console.Clear();
                 AnsiConsole.MarkupLine("[bold yellow]Editing Guest Information[/]\n");
 
-                // Display guest details
                 var guestInfoTable = new Table()
                     .Border(TableBorder.Rounded)
                     .AddColumn("[bold yellow]Field[/]")
@@ -138,7 +137,6 @@ namespace HotelBookingApp.Services.BookingServices
 
                 AnsiConsole.Write(guestInfoTable);
 
-                // Ask user what to edit
                 var fieldToEdit = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("[bold green]Select a field to edit or confirm changes:[/]")
@@ -190,22 +188,16 @@ namespace HotelBookingApp.Services.BookingServices
                 Console.Clear();
                 AnsiConsole.Markup($"[bold yellow]Editing Room ID {room.RoomId}[/]\n");
 
-                var roomDetailsTable = new Table()
-                    .Border(TableBorder.Rounded)
-                    .AddColumn("[bold]Property[/]")
-                    .AddColumn("[bold]Value[/]")
-                    .AddRow("Type", room.Type)
-                    .AddRow("Price Per Night", room.PricePerNight.ToString("C"))
-                    .AddRow("Size (sqm)", room.SizeInSquareMeters.ToString())
-                    .AddRow("Extra Beds", room.ExtraBeds.ToString())
-                    .AddRow("Total People Capacity", room.TotalPeople.ToString());
-                AnsiConsole.Write(roomDetailsTable);
+                // Hämta det uppdaterade rummet från databasen
+                room = _roomRepository.GetRoomById(room.RoomId);
+
+                // Visa den senaste informationen i tabellen
+                DisplayRoomDetailsTable(room);
 
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("[bold green]What would you like to do?[/]")
-                        .AddChoices(new[]
-                        {
+                        .AddChoices(new[] {
                     "Unbook room, and select new room by date",
                     "Unbook room, and select new room by searching total people",
                     "Finish Editing"
@@ -236,6 +228,23 @@ namespace HotelBookingApp.Services.BookingServices
                 Console.ReadKey();
             }
         }
+
+
+        // Ny metod för att visa tabellen
+        private void DisplayRoomDetailsTable(Room room)
+        {
+            var roomDetailsTable = new Table()
+                .Border(TableBorder.Rounded)
+                .AddColumn("[bold]Property[/]")
+                .AddColumn("[bold]Value[/]")
+                .AddRow("Type", room.Type)
+                .AddRow("Price Per Night", room.PricePerNight.ToString("C"))
+                .AddRow("Size (sqm)", room.SizeInSquareMeters.ToString())
+                .AddRow("Extra Beds", room.ExtraBeds.ToString())
+                .AddRow("Total People Capacity", room.TotalPeople.ToString());
+            AnsiConsole.Write(roomDetailsTable);
+        }
+
 
         private void HandleRoomSelectionByDate(Room room, Booking booking)
         {
@@ -275,61 +284,90 @@ namespace HotelBookingApp.Services.BookingServices
             );
 
             UpdateRoomAndBooking(room, booking, newRoomIdByDate, availableRoomsByDate);
+
+            booking.CheckInDate = startDateByDate;
+            booking.CheckOutDate = endDateByDate;
+
+            _bookingRepository.UpdateBooking(booking);
         }
+
 
         private void HandleRoomSelectionByCapacity(Room room, Booking booking)
         {
-            int totalPeople = AnsiConsole.Ask<int>("[yellow]Enter the total number of people:[/]");
-
-            var roomsByCapacity = _roomRepository.GetRoomsByCapacity(totalPeople);
-            if (!roomsByCapacity.Any())
-            {
-                AnsiConsole.MarkupLine("[red]No rooms available for the selected capacity.[/]");
-                return;
-            }
-
-            DisplayAvailableRooms(roomsByCapacity);
-
-            int selectedRoomId = AnsiConsole.Prompt(
-                new TextPrompt<int>("[yellow]Enter Room ID to view availability:[/]")
-                    .ValidationErrorMessage("[red]Invalid Room ID![/]")
-                    .Validate(input => roomsByCapacity.Any(r => r.RoomId == input))
-            );
-
-            var selectedRoom = roomsByCapacity.First(r => r.RoomId == selectedRoomId);
-
-            DateTime startDateByCapacity = SelectDateWithCalendar("[yellow]Select check-in date:[/]", selectedRoom.Type);
-            if (startDateByCapacity == DateTime.MinValue)
-            {
-                AnsiConsole.MarkupLine("[red]Date selection canceled.[/] Returning to menu...");
-                return;
-            }
-
-            DateTime endDateByCapacity = SelectDateWithCalendar("[yellow]Select check-out date:[/]", selectedRoom.Type);
-            if (endDateByCapacity == DateTime.MinValue || endDateByCapacity <= startDateByCapacity)
-            {
-                AnsiConsole.MarkupLine("[red]Check-out date must be after check-in date![/]");
-                return;
-            }
-
-            if (!_roomRepository.IsRoomAvailable(selectedRoomId, startDateByCapacity, endDateByCapacity))
-            {
-                AnsiConsole.MarkupLine("[red]The selected room is not available for the chosen dates.[/]");
-                return;
-            }
-
-            UpdateRoomAndBooking(room, booking, selectedRoomId, roomsByCapacity);
-        }
-
-        private void UpdateRoomAndBooking(Room room, Booking booking, int newRoomId, IEnumerable<Room> availableRooms)
-        {
-            var newRoom = availableRooms.First(r => r.RoomId == newRoomId);
-            booking.RoomId = newRoomId;
-
             try
             {
-                _roomRepository.UpdateRoom(newRoom);
+                int totalPeople = AnsiConsole.Ask<int>("[yellow]Enter the total number of people:[/]");
+
+                var roomsByCapacity = _roomRepository.GetRoomsByCapacity(totalPeople);
+                if (!roomsByCapacity.Any())
+                {
+                    AnsiConsole.MarkupLine("[red]No rooms available for the selected capacity.[/]");
+                    return;
+                }
+
+                DisplayAvailableRooms(roomsByCapacity);
+
+                int selectedRoomId = AnsiConsole.Prompt(
+                    new TextPrompt<int>("[yellow]Enter Room ID to view availability:[/]")
+                        .ValidationErrorMessage("[red]Invalid Room ID![/]")
+                        .Validate(input => roomsByCapacity.Any(r => r.RoomId == input))
+                );
+
+                var selectedRoom = roomsByCapacity.First(r => r.RoomId == selectedRoomId);
+
+                DateTime startDateByCapacity = SelectDateWithCalendar("[yellow]Select check-in date:[/]", selectedRoom.Type);
+                if (startDateByCapacity == DateTime.MinValue)
+                {
+                    AnsiConsole.MarkupLine("[red]Date selection canceled.[/] Returning to menu...");
+                    return;
+                }
+
+                DateTime endDateByCapacity = SelectDateWithCalendar("[yellow]Select check-out date:[/]", selectedRoom.Type);
+                if (endDateByCapacity == DateTime.MinValue || endDateByCapacity <= startDateByCapacity)
+                {
+                    AnsiConsole.MarkupLine("[red]Check-out date must be after check-in date![/]");
+                    return;
+                }
+
+                if (!_roomRepository.IsRoomAvailable(selectedRoomId, startDateByCapacity, endDateByCapacity))
+                {
+                    AnsiConsole.MarkupLine("[red]The selected room is not available for the chosen dates.[/]");
+                    return;
+                }
+
+                UpdateRoomAndBooking(room, booking, selectedRoomId, roomsByCapacity);
+
+                booking.CheckInDate = startDateByCapacity;
+                booking.CheckOutDate = endDateByCapacity;
+
                 _bookingRepository.UpdateBooking(booking);
+
+                AnsiConsole.MarkupLine("[green]Room and booking updated successfully![/]");
+            }
+            catch (Exception ex)
+            {
+                AnsiConsole.MarkupLine($"[red]An error occurred while updating the booking: {ex.Message}[/]");
+            }
+        }
+
+        private void UpdateRoomAndBooking(Room currentRoom, Booking booking, int newRoomId, IEnumerable<Room> availableRooms)
+        {
+            try
+            {
+                var newRoom = availableRooms.First(r => r.RoomId == newRoomId);
+
+                if (currentRoom != null)
+                {
+                    currentRoom.IsAvailable = true;
+                    _roomRepository.UpdateRoom(currentRoom);
+                }
+
+                newRoom.IsAvailable = false;
+                _roomRepository.UpdateRoom(newRoom);
+
+                booking.RoomId = newRoomId;
+                _bookingRepository.UpdateBooking(booking);
+
                 AnsiConsole.MarkupLine("[green]Room and booking updated successfully![/]");
             }
             catch (Exception ex)
@@ -337,6 +375,7 @@ namespace HotelBookingApp.Services.BookingServices
                 AnsiConsole.MarkupLine($"[red]Error updating room or booking: {ex.Message}[/]");
             }
         }
+
 
         private void DisplayAvailableRooms(IEnumerable<Room> rooms)
         {
@@ -529,9 +568,10 @@ namespace HotelBookingApp.Services.BookingServices
             Console.ReadKey();
         }
 
+
         private void DisplayBookingDetails(Booking booking, Invoice invoice)
         {
-            var room = _roomRepository.GetRoomById(booking.RoomId);
+            var room = _roomRepository.GetRoomById(booking.RoomId); 
             var bookingDetailsTable = new Table()
                 .Border(TableBorder.Rounded)
                 .AddColumn("[bold yellow]Detail[/]")
@@ -548,6 +588,7 @@ namespace HotelBookingApp.Services.BookingServices
 
             AnsiConsole.Write(bookingDetailsTable);
         }
+
 
     }
 }

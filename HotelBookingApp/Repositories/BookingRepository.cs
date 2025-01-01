@@ -206,9 +206,28 @@ namespace HotelBookingApp.Repositories
 
         public void UpdateBooking(Booking booking)
         {
-            _appDbContext.Bookings.Update(booking);
-            SaveChanges();
+            try
+            {
+                var trackedBooking = _appDbContext.Bookings.FirstOrDefault(b => b.BookingId == booking.BookingId);
+                if (trackedBooking == null)
+                {
+                    throw new Exception("Booking not found.");
+                }
+
+                // Uppdatera egenskaper
+                trackedBooking.RoomId = booking.RoomId;
+                trackedBooking.CheckInDate = booking.CheckInDate;
+                trackedBooking.CheckOutDate = booking.CheckOutDate;
+
+                _appDbContext.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating booking: {ex.Message}");
+                throw;
+            }
         }
+
 
         public void UpdateInvoice(Invoice invoice)
         {

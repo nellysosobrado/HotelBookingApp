@@ -44,7 +44,7 @@ namespace HotelBookingApp.Services.RoomServices
                 var action = GetEditAction();
 
                 if (HandleEditAction(action, tempRoom, originalRoom))
-                    return; // Exit if editing is finished
+                    return; 
             }
         }
 
@@ -256,7 +256,7 @@ namespace HotelBookingApp.Services.RoomServices
                 Console.ReadKey();
             }
 
-            return false; // Continue editing
+            return false; 
         }
     }
 

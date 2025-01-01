@@ -77,13 +77,25 @@ namespace HotelBookingApp.Repositories
 
         public bool IsRoomAvailable(int roomId, DateTime startDate, DateTime endDate)
         {
-            return !_appDbContext.Bookings.Any(b =>
+            var overlappingBookings = _appDbContext.Bookings.Where(b =>
                 b.RoomId == roomId &&
                 b.CheckInDate.HasValue &&
                 b.CheckOutDate.HasValue &&
                 b.CheckInDate.Value < endDate &&
-                b.CheckOutDate.Value > startDate);
+                b.CheckOutDate.Value > startDate).ToList();
+
+            if (overlappingBookings.Any())
+            {
+                foreach (var booking in overlappingBookings)
+                {
+                    Console.WriteLine($"Overlapping booking: {booking.BookingId}, CheckIn: {booking.CheckInDate}, CheckOut: {booking.CheckOutDate}");
+                }
+                return false;
+            }
+
+            return true;
         }
+
 
         public IEnumerable<Room> GetRoomsByCapacity(int totalPeople)
         {
@@ -99,19 +111,15 @@ namespace HotelBookingApp.Repositories
                 : _appDbContext.Rooms.Where(r => !r.IsDeleted).ToList(); 
         }
 
-        public IEnumerable<Room> GetRoomsWithBookings()
+        public IEnumerable<Room> GetRoomsWithBookings(bool includeDeleted = false)
         {
-            var canceledBookingIds = _appDbContext.CanceledBookingsHistory
-                .Select(cb => cb.BookingId)
-                .ToList();
-
             return _appDbContext.Rooms
-                .Where(r => !r.IsDeleted) 
-                .Include(r => r.Bookings
-                    .Where(b => !canceledBookingIds.Contains(b.BookingId))) 
-                .ThenInclude(b => b.Guest) 
+                .Where(r => includeDeleted || !r.IsDeleted)
+                .Include(r => r.Bookings)
+                .ThenInclude(b => b.Guest)
                 .ToList();
         }
+
 
         public RepositoryResult AddRoom(Room room)
         {
@@ -140,18 +148,21 @@ namespace HotelBookingApp.Repositories
 
         public RepositoryResult UpdateRoom(Room room)
         {
-            var validator = new RoomValidator();
-            var validationResult = validator.Validate(room);
-
-            if (!validationResult.IsValid)
+            try
             {
-                return RepositoryResult.Failure(validationResult.Errors.Select(e => e.ErrorMessage).ToList());
+                _appDbContext.Rooms.Update(room);
+                _appDbContext.SaveChanges();
+                return RepositoryResult.Success(); 
             }
-
-            _appDbContext.Rooms.Update(room);
-            _appDbContext.SaveChanges();
-            return RepositoryResult.Success();
+            catch (Exception ex)
+            {
+                return RepositoryResult.Failure(new List<string> { ex.Message }); 
+            }
         }
+
+
+
+
 
         public RepositoryResult DeleteRoom(int roomId)
         {

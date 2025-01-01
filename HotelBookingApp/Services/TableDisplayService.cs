@@ -198,7 +198,6 @@ namespace HotelBookingApp.Services.DisplayServices
 
             foreach (var booking in bookings)
             {
-                // Exkludera raderade gäster
                 if (booking.Guest == null || booking.Guest.IsDeleted)
                 {
                     continue;

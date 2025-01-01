@@ -64,11 +64,10 @@ namespace HotelBookingApp.Repositories
             _appDbContext.SaveChanges();
         }
 
-
-
-
         public void RegisterNewGuestWithBookingAndInvoice(Guest guest, Booking booking, Invoice invoice)
         {
+            guest.RemovalReason ??= string.Empty;
+
             _appDbContext.Guests.Add(guest);
             _appDbContext.SaveChanges();
 
@@ -80,6 +79,7 @@ namespace HotelBookingApp.Repositories
             _appDbContext.Invoices.Add(invoice);
             _appDbContext.SaveChanges();
         }
+
         public HashSet<DateTime> GetBookedDates(int month, int year, string roomType)
         {
             var bookings = _appDbContext.Bookings

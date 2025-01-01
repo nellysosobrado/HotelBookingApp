@@ -32,7 +32,6 @@ namespace HotelBookingApp.Services.RoomServices
             DisplayAllRooms(rooms);
 
             int roomId = GetRoomId();
-
             var room = _roomRepository.GetRoomById(roomId);
 
             if (room == null)
@@ -43,39 +42,30 @@ namespace HotelBookingApp.Services.RoomServices
                 return;
             }
 
-            if (!ValidateRoomDeletion(room)) return;
-
-            MarkRoomAsDeleted(room);
+            if (ValidateRoomDeletion(room))
+            {
+                MarkRoomAsDeleted(room);
+            }
         }
 
         private void DisplayAllRooms(IEnumerable<Room> rooms)
         {
-            if (rooms == null || !rooms.Any())
-            {
-                AnsiConsole.Markup("[red]No rooms found.[/]\n");
-                return;
-            }
-
             var table = new Table()
                 .Border(TableBorder.Rounded)
                 .AddColumn("[bold]Room ID[/]")
                 .AddColumn("[bold]Type[/]")
                 .AddColumn("[bold]Price[/]")
-                .AddColumn("[bold]Size (sqm)[/]")
-                .AddColumn("[bold]Status[/]");
+                .AddColumn("[bold]Size (sqm)[/]");
 
             foreach (var room in rooms)
             {
                 bool hasActiveBooking = room.Bookings != null && room.Bookings.Any();
-                string status = hasActiveBooking
-                    ? "[green]Active, has booking attached[/]"
-                    : "[red]Does not have a booking attached[/]";
+
                 table.AddRow(
                     room.RoomId.ToString(),
                     room.Type,
                     room.PricePerNight.ToString("C"),
-                    room.SizeInSquareMeters.ToString(),
-                    status
+                    room.SizeInSquareMeters.ToString()
                 );
             }
 
@@ -83,24 +73,20 @@ namespace HotelBookingApp.Services.RoomServices
             AnsiConsole.Write(table);
         }
 
-
-
         private int GetRoomId()
         {
             return AnsiConsole.Ask<int>("Enter [green]Room ID to delete[/]:");
         }
+
         private bool ValidateRoomDeletion(Room room)
         {
             var activeBookings = _roomRepository.GetActiveBookingsForRoom(room.RoomId);
 
             if (activeBookings.Any())
             {
-                AnsiConsole.Markup("[red]The room cannot be deleted because it is associated with active bookings. Please go to bookings and unbook the room[/]\n");
-                foreach (var booking in activeBookings)
-                {
-                    AnsiConsole.Markup($"[red]- Booking ID {booking.BookingId}: Check-In {booking.CheckInDate:yyyy-MM-dd}, Check-Out {booking.CheckOutDate:yyyy-MM-dd}[/]\n");
-                }
-                Console.WriteLine("\nPress any key to return...");
+                AnsiConsole.Markup("[red]The room cannot be deleted because it is associated with active bookings.[/]\n");
+
+                Console.WriteLine("\nPlease unbook all associated bookings first. Press any key to return...");
                 Console.ReadKey();
                 return false;
             }
@@ -118,36 +104,20 @@ namespace HotelBookingApp.Services.RoomServices
                 return;
             }
 
-            var activeBookings = _roomRepository.GetActiveBookingsForRoom(room.RoomId);
-
-            if (activeBookings.Any())
+            try
             {
-                AnsiConsole.Markup("[red]The room cannot be deleted because it is associated with active bookings. Please unbook all bookings first.[/]\n");
-                foreach (var booking in activeBookings)
-                {
-                    AnsiConsole.Markup($"[red]- Booking ID {booking.BookingId}: Check-In {booking.CheckInDate:yyyy-MM-dd}, Check-Out {booking.CheckOutDate:yyyy-MM-dd}[/]\n");
-                }
-                Console.WriteLine("\nPress any key to return...");
-                Console.ReadKey();
-                return;
-            }
+                room.IsDeleted = true;
+                _roomRepository.UpdateRoom(room);
 
-            room.IsDeleted = true;
-            var result = _roomRepository.UpdateRoom(room);
-
-            if (result.IsSuccess)
-            {
                 AnsiConsole.Markup($"[green]Room ID {room.RoomId} marked as deleted successfully![/]\n");
             }
-            else
+            catch (Exception ex)
             {
-                AnsiConsole.Markup($"[red]Error deleting room: {result.Errors.FirstOrDefault()}[/]\n");
+                AnsiConsole.Markup($"[red]Error deleting room: {ex.Message}[/]\n");
             }
 
             Console.WriteLine("\nPress any key to return...");
             Console.ReadKey();
         }
-
-
     }
 }
