@@ -188,10 +188,8 @@ namespace HotelBookingApp.Services.BookingServices
                 Console.Clear();
                 AnsiConsole.Markup($"[bold yellow]Editing Room ID {room.RoomId}[/]\n");
 
-                // Hämta det uppdaterade rummet från databasen
                 room = _roomRepository.GetRoomById(room.RoomId);
 
-                // Visa den senaste informationen i tabellen
                 DisplayRoomDetailsTable(room);
 
                 var action = AnsiConsole.Prompt(
@@ -230,7 +228,6 @@ namespace HotelBookingApp.Services.BookingServices
         }
 
 
-        // Ny metod för att visa tabellen
         private void DisplayRoomDetailsTable(Room room)
         {
             var roomDetailsTable = new Table()

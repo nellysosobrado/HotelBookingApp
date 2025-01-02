@@ -128,7 +128,6 @@ namespace HotelBookingApp.Services.GuestServices
                     .AddChoices("Single", "Double", "Suite")
             );
 
-            // Kontrollera tillgänglighet
             var availableRooms = _guestRepository.GetAvailableRooms(checkInDate, checkOutDate, roomType);
             if (!availableRooms.Any())
             {
