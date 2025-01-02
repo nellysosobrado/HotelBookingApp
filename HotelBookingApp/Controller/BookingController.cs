@@ -110,7 +110,7 @@ namespace HotelBookingApp
                         .AddChoices(new[]
                         {
                     "Check In/Check Out",
-                    "Register New Booking",
+                    "Register New Guest/Booking",
                     "Edit Booking",
                     "Unbook Booking",
                     "Guest Payments",
