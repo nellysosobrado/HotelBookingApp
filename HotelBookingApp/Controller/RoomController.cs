@@ -18,6 +18,7 @@ namespace HotelBookingApp.Controllers
         private readonly EditRoomService _editRoomService;
         private readonly RegisterRoomService _registerRoomService;
         private readonly TableDisplayService _tableDisplayService;
+        private readonly BookingRepository _bookingRepository;
 
         public RoomController(RoomRepository roomRepository,
             FindRoomByDate findRoomByDate,
@@ -25,7 +26,8 @@ namespace HotelBookingApp.Controllers
             DeleteRoomService deleteRoomService,
             EditRoomService editRoomService,
             RegisterRoomService registerRoomService,
-            TableDisplayService tableDisplayService)
+            TableDisplayService tableDisplayService,
+            BookingRepository bookingRepository)
         {
             _roomRepository = roomRepository;
             _findRoomByDate = findRoomByDate;
@@ -34,6 +36,7 @@ namespace HotelBookingApp.Controllers
             _editRoomService = editRoomService;
             _registerRoomService = registerRoomService;
             _tableDisplayService = tableDisplayService;
+            _bookingRepository = bookingRepository;
         }
         public void Run()
         {
@@ -43,7 +46,8 @@ namespace HotelBookingApp.Controllers
 
                 var allRooms = _roomRepository.GetAllRooms(includeDeleted: true);
                 var activeRooms = allRooms.Where(r => !r.IsDeleted).ToList();
-                var bookedActiveRooms = _roomRepository.GetRoomsWithActiveBookings(); 
+                var bookedActiveRooms = _roomRepository.GetRoomsWithActiveBookings();
+                var removedBookings = _bookingRepository.GetRemovedBookings().ToList();
                 var removedRooms = allRooms.Where(r => r.IsDeleted).ToList();
 
                 if (!allRooms.Any())
@@ -57,6 +61,9 @@ namespace HotelBookingApp.Controllers
 
                     _tableDisplayService.DisplayBookedRooms(bookedActiveRooms, "Booked Active Rooms");
                     Console.WriteLine(new string('-', 125));
+
+                    _tableDisplayService.DisplayBookingTable(removedBookings, "Unbooked Bookings:", includePaymentAndStatus: false);
+                    Console.WriteLine(new string('-', 100));
 
                     _tableDisplayService.DisplayRooms(removedRooms, "Removed Rooms", includeDeleted: true);
                     Console.WriteLine(new string('-', 125));
