@@ -125,7 +125,7 @@ namespace HotelBookingApp
                     case "Check In/Check Out":
                         _checkInOutService.Execute();
                         break;
-                    case "Register New Booking":
+                    case "Register New Guest/Booking":
                         _guestController.RegisterNewGuest();
                         break;
                     case "Edit Booking":
