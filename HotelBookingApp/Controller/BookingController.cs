@@ -48,12 +48,11 @@ namespace HotelBookingApp
             _guestRepository = GuestRepository;
             _displayRegisteredGuestsService = displayRegisteredGuestsService;
         }
-        public void Run()
+        public void DisplayTables()
         {
             Console.Clear();
 
-            while (true)
-            {
+        
                 Console.Clear();
 
                 var activeBookings = _bookingRepository.GetActiveBookings().ToList();
@@ -98,6 +97,13 @@ namespace HotelBookingApp
 
                 _displayRegisteredGuestsService.DisplayAllRegisteredGuests();
                 Console.WriteLine(new string('-', 100));
+            
+        }
+
+        public void Run()
+        {
+            DisplayTables();
+            
 
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
@@ -145,4 +151,4 @@ namespace HotelBookingApp
         }
 
     }
-}
+
