@@ -323,9 +323,12 @@ namespace HotelBookingApp.Services.DisplayServices
                 .AddColumn("[bold]Start Date[/]")
                 .AddColumn("[bold]End Date[/]");
 
-            foreach (var room in bookedRooms)
+            var activeRooms = bookedRooms
+                .Where(room => room.Bookings.Any(booking => !booking.IsCanceled));
+
+            foreach (var room in activeRooms)
             {
-                foreach (var booking in room.Bookings)
+                foreach (var booking in room.Bookings.Where(b => !b.IsCanceled))
                 {
                     table.AddRow(
                         room.RoomId.ToString(),
@@ -339,6 +342,7 @@ namespace HotelBookingApp.Services.DisplayServices
             AnsiConsole.Markup($"[bold green]{title}[/]\n");
             AnsiConsole.Write(table);
         }
+
 
 
 

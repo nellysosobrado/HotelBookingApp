@@ -2,6 +2,7 @@
 using Autofac.Extensions.DependencyInjection;
 using HotelBookingApp.Data;
 using HotelBookingApp.DI;
+using HotelBookingApp.Services.BookingServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Spectre.Console;
@@ -24,7 +25,7 @@ namespace HotelBookingApp
                     if (dbContext.Database.CanConnect())
                     {
                         AnsiConsole.MarkupLine("[bold green]Connected to the database successfully.![/]");
-                        ExistingGuests.AssignRoomsToExistingGuests(dbContext);
+                        SeededBookingAssignerService.AssignRoomsToExistingGuests(dbContext);
                     }
                     else
                     {

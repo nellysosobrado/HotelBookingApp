@@ -3,9 +3,9 @@ using HotelBookingApp.Entities;
 using System;
 using System.Linq;
 
-namespace HotelBookingApp
+namespace HotelBookingApp.Services.BookingServices
 {
-    public static class ExistingGuests
+    public static class SeededBookingAssignerService
     {
         public static void AssignRoomsToExistingGuests(AppDbContext context)
         {
@@ -31,8 +31,8 @@ namespace HotelBookingApp
                 var availableRoom = context.Rooms
                     .FirstOrDefault(r => r.IsAvailable && !context.Bookings
                         .Any(b => b.RoomId == r.RoomId &&
-                                  b.CheckInDate < DateTime.Now.AddDays(3) &&  
-                                  b.CheckOutDate > DateTime.Now)); 
+                                  b.CheckInDate < DateTime.Now.AddDays(3) &&
+                                  b.CheckOutDate > DateTime.Now));
 
                 if (availableRoom == null)
                 {
@@ -40,24 +40,24 @@ namespace HotelBookingApp
                     continue;
                 }
 
-              
+
                 var newBooking = new Booking
                 {
                     GuestId = guest.GuestId,
                     RoomId = availableRoom.RoomId,
-                    CheckInDate = DateTime.Now.AddDays(1), 
-                    CheckOutDate = DateTime.Now.AddDays(4), 
+                    CheckInDate = DateTime.Now.AddDays(1),
+                    CheckOutDate = DateTime.Now.AddDays(4),
                     IsCheckedIn = false,
                     IsCheckedOut = false,
                     BookingCompleted = false
                 };
 
-               
+
                 availableRoom.IsAvailable = false;
 
                 context.Bookings.Add(newBooking);
-                context.SaveChanges(); 
-               Console.WriteLine($"Booking created for guest {guest.FirstName} {guest.LastName} in room {availableRoom.RoomId}.");
+                context.SaveChanges();
+                Console.WriteLine($"Booking created for guest {guest.FirstName} {guest.LastName} in room {availableRoom.RoomId}.");
             }
             Console.WriteLine(new string('-', 100));
             Console.WriteLine("Notification: 4 Seeded guests, 4 Seeded rooms has been created as test subjects.");
