@@ -45,45 +45,37 @@ namespace HotelBookingApp
             _unpaidBookingService = UnpaidBookingService;
             _guestRepository = GuestRepository;
         }
-
-
         public void DisplayAllRegisteredGuests()
         {
-            AnsiConsole.MarkupLine("[yellow]Currently Registered Guests.[/]");
+            AnsiConsole.MarkupLine("[yellow]Currently Registered Guests:[/]");
 
-            var guests = _guestRepository.GetAllGuests()
-                .Where(g => !g.IsDeleted)
-                .Distinct()
-                .ToList();
+            var guests = _guestRepository.GetActiveGuests();
 
             if (!guests.Any())
             {
                 AnsiConsole.MarkupLine("[gray]No registered guests found.[/]");
+                return;
             }
-            else
+
+            var table = new Table()
+                .Border(TableBorder.Rounded)
+                .AddColumn("[bold]Guest ID[/]")
+                .AddColumn("[bold]Name[/]")
+                .AddColumn("[bold]Email[/]")
+                .AddColumn("[bold]Phone Number[/]");
+
+            foreach (var guest in guests)
             {
-                var table = new Table()
-                    .Border(TableBorder.Rounded)
-                    .AddColumn("[bold]Guest ID[/]")
-                    .AddColumn("[bold]Name[/]")
-                    .AddColumn("[bold]Email[/]")
-                    .AddColumn("[bold]Phone Number[/]");
-
-                foreach (var guest in guests)
-                {
-                    table.AddRow(
-                        guest.GuestId.ToString(),
-                        $"{guest.FirstName ?? "Unknown"} {guest.LastName ?? "Unknown"}",
-                        guest.Email ?? "N/A",
-                        guest.PhoneNumber ?? "N/A"
-                    );
-                }
-
-                AnsiConsole.Write(table);
+                table.AddRow(
+                    guest.GuestId.ToString(),
+                    $"{guest.FirstName ?? "[gray]Unknown[/]"} {guest.LastName ?? "[gray]Unknown[/]"}",
+                    guest.Email ?? "[gray]N/A[/]",
+                    guest.PhoneNumber ?? "[gray]N/A[/]"
+                );
             }
 
+            AnsiConsole.Write(table);
         }
-
 
         public void Run()
         {
