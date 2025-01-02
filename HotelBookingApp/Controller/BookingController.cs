@@ -49,7 +49,7 @@ namespace HotelBookingApp
         {
             AnsiConsole.MarkupLine("[yellow]Currently Registered Guests:[/]");
 
-            var guests = _guestRepository.GetActiveGuests();
+            var guests = _guestRepository.GetAllGuests();
 
             if (!guests.Any())
             {

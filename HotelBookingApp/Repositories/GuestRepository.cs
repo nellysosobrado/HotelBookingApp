@@ -18,13 +18,6 @@ namespace HotelBookingApp.Repositories
             _roomRepository = roomRepository;
             _bookingRepository = bookingRepository;
         }
-        public IEnumerable<Guest> GetActiveGuests()
-        {
-            return _appDbContext.Guests
-                .Where(g => !g.IsDeleted) 
-                .Distinct()
-                .ToList();
-        }
         public IEnumerable<Booking> GetBookingsByGuestId(int guestId)
         {
             return _appDbContext.Bookings
