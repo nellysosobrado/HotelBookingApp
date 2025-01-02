@@ -3,6 +3,7 @@ using HotelBookingApp.Controllers;
 using HotelBookingApp.Data;
 using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
+using HotelBookingApp.Services;
 using HotelBookingApp.Services.BookingServices;
 using HotelBookingApp.Services.DisplayServices;
 using HotelBookingApp.Services.GuestServices;
@@ -36,10 +37,7 @@ namespace HotelBookingApp.DI
                     {
                         AnsiConsole.MarkupLine("[bold green]Database created successfully.![/]");
                     }
-                    //else
-                    //{
-                    //    Console.WriteLine("Database already exists.");
-                    //}
+
                 }
                 catch (Exception ex)
                 {
@@ -74,6 +72,7 @@ namespace HotelBookingApp.DI
             builder.RegisterType<UnbookBooking>().AsSelf();
             builder.RegisterType<PaymentService>().AsSelf();
             builder.RegisterType<GuestRemovalService>().AsSelf();
+            builder.RegisterType<DisplayRegisteredGuestsService>().AsSelf();
 
             builder.RegisterType<UnpaidBookingService>().AsSelf();
 

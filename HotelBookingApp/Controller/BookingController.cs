@@ -5,6 +5,7 @@ using HotelBookingApp.Services.DisplayServices;
 using HotelBookingApp.Services.BookingServices;
 using HotelBookingApp.Services.GuestServices;
 using HotelBookingApp.Interfaces;
+using HotelBookingApp.Services;
 
 namespace HotelBookingApp
 {
@@ -20,7 +21,7 @@ namespace HotelBookingApp
         private readonly GuestRemovalService _guestRemovalService;
         private readonly UnpaidBookingService _unpaidBookingService;
         private readonly GuestRepository _guestRepository;
-
+        private readonly DisplayRegisteredGuestsService _displayRegisteredGuestsService;
 
         public BookingController(
             BookingRepository bookingRepository,
@@ -32,7 +33,8 @@ namespace HotelBookingApp
             PaymentService paymentService,
             GuestRemovalService guestRemovalService,
             UnpaidBookingService UnpaidBookingService,
-            GuestRepository GuestRepository)
+            GuestRepository GuestRepository,
+            DisplayRegisteredGuestsService displayRegisteredGuestsService)
         {
             _bookingRepository = bookingRepository;
             _guestController = guestController;
@@ -44,39 +46,8 @@ namespace HotelBookingApp
             _guestRemovalService = guestRemovalService;
             _unpaidBookingService = UnpaidBookingService;
             _guestRepository = GuestRepository;
+            _displayRegisteredGuestsService = displayRegisteredGuestsService;
         }
-        public void DisplayAllRegisteredGuests()
-        {
-            AnsiConsole.MarkupLine("[yellow]Currently Registered Guests:[/]");
-
-            var guests = _guestRepository.GetAllGuests();
-
-            if (!guests.Any())
-            {
-                AnsiConsole.MarkupLine("[gray]No registered guests found.[/]");
-                return;
-            }
-
-            var table = new Table()
-                .Border(TableBorder.Rounded)
-                .AddColumn("[bold]Guest ID[/]")
-                .AddColumn("[bold]Name[/]")
-                .AddColumn("[bold]Email[/]")
-                .AddColumn("[bold]Phone Number[/]");
-
-            foreach (var guest in guests)
-            {
-                table.AddRow(
-                    guest.GuestId.ToString(),
-                    $"{guest.FirstName ?? "[gray]Unknown[/]"} {guest.LastName ?? "[gray]Unknown[/]"}",
-                    guest.Email ?? "[gray]N/A[/]",
-                    guest.PhoneNumber ?? "[gray]N/A[/]"
-                );
-            }
-
-            AnsiConsole.Write(table);
-        }
-
         public void Run()
         {
             Console.Clear();
@@ -125,7 +96,7 @@ namespace HotelBookingApp
                 _unpaidBookingService.DisplayCanceledBookingHistory();
                 Console.WriteLine(new string('-', 100));
 
-                DisplayAllRegisteredGuests();
+                _displayRegisteredGuestsService.DisplayAllRegisteredGuests();
                 Console.WriteLine(new string('-', 100));
 
                 var action = AnsiConsole.Prompt(
