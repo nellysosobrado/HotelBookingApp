@@ -1,8 +1,7 @@
 ### README for HotelBooking Application
 
 # HotelBooking Application
-
-This is my **final project** for the **"Database Course"**. It's a simple console application designed for receptionists to manage hotel bookings. The app allows them to book rooms, manage guest details, create invoices, and track payments efficiently. The database is built using SQL for storing and retrieving booking and guest information.
+This is my **final project** for the **"Database Course"**. It's a simple console application designed for receptionists to manage hotel bookings. The app allows them to book rooms, manage guest details, create invoices, and track payments efficiently. The database is built using SQL with a **Code-First approach** for storing and retrieving booking and guest information.
 
 ## Database Design
 ![ER_NylegnaKir_Sosobrado_HotelBookignApp drawio (1)](https://github.com/user-attachments/assets/bc8f4f4a-6c43-42bd-b5f5-76d21f48b77b)
