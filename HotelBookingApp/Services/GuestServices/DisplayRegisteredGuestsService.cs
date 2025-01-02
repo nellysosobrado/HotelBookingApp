@@ -1,5 +1,4 @@
 ﻿using HotelBookingApp.Repositories;
-
 using Microsoft.IdentityModel.Tokens;
 using Spectre.Console;
 
@@ -9,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HotelBookingApp.Services
+namespace HotelBookingApp.Services.GuestServices
 {
     public class DisplayRegisteredGuestsService
     {
