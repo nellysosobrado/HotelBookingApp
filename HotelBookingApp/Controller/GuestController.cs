@@ -59,6 +59,16 @@ namespace HotelBookingApp.Controllers
 
             var selectedGuest = guests.First(g => g.GuestId == guestId);
 
+            var existingBooking = _bookingRepository.GetBookingsByGuestId(guestId)
+                .FirstOrDefault(b => !b.IsCheckedOut);
+
+            if (existingBooking != null)
+            {
+                AnsiConsole.MarkupLine($"[red]Guest {selectedGuest.FirstName} {selectedGuest.LastName} already has an active booking for Room {existingBooking.RoomId} from {existingBooking.CheckInDate:yyyy-MM-dd} to {existingBooking.CheckOutDate:yyyy-MM-dd}.[/]");
+                Console.ReadKey();
+                return;
+            }
+
             Booking booking = null;
             while (booking == null)
             {
@@ -100,6 +110,7 @@ namespace HotelBookingApp.Controllers
             AnsiConsole.MarkupLine($"[yellow]Invoice created:[/] Total Amount: {totalAmount:C}, Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
             Console.ReadKey();
         }
+
 
 
         public void RegisterNewGuest()

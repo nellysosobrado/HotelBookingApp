@@ -29,7 +29,6 @@ namespace HotelBookingApp.Data
 
             var guestFaker = new Faker<Guest>()
             .RuleFor(g => g.GuestId, f => f.IndexFaker + 1)
-            .RuleFor(g => g.GuestId, f => f.IndexFaker + 1)
             .RuleFor(g => g.FirstName, f => f.Name.FirstName())
             .RuleFor(g => g.LastName, f => f.Name.LastName())
             .RuleFor(g => g.Email, (f, g) => $"{g.FirstName.ToLower()}.{g.LastName.ToLower()}{f.UniqueIndex}@example.com")

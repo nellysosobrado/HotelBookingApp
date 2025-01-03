@@ -18,6 +18,7 @@ namespace HotelBookingApp.Repositories
             _appDbContext = context;
             _bookings = _appDbContext.Bookings.ToList();
         }
+
         public IEnumerable<Booking> GetEditableBookings()
         {
             var canceledBookingIds = _appDbContext.CanceledBookingsHistory
