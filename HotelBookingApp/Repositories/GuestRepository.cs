@@ -169,7 +169,6 @@ namespace HotelBookingApp.Repositories
                 .Where(r => r.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
-            Console.WriteLine($"All rooms for type '{roomType}': {string.Join(", ", allRooms.Select(r => r.RoomId))}");
 
             var bookedRoomIds = _bookingRepository.GetAllBookings()
                 .Where(b => b.Room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase))
@@ -177,11 +176,9 @@ namespace HotelBookingApp.Repositories
                 .Select(b => b.RoomId)
                 .ToHashSet();
 
-            Console.WriteLine($"Booked room IDs for type '{roomType}': {string.Join(", ", bookedRoomIds)}");
 
             var availableRooms = allRooms.Where(r => !bookedRoomIds.Contains(r.RoomId)).ToList();
 
-            Console.WriteLine($"Available room IDs for type '{roomType}': {string.Join(", ", availableRooms.Select(r => r.RoomId))}");
 
             return availableRooms;
         }

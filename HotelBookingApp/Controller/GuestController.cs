@@ -38,7 +38,7 @@ namespace HotelBookingApp.Controllers
                 return;
             }
 
-            bool createBooking = AnsiConsole.Confirm("[italic yellow]Would you like to continue to create a booking for this guest or cancel registration?[/]");
+            bool createBooking = AnsiConsole.Confirm("[italic yellow]Would you like to continue to create a booking(y) or cancel the booking but register the guest(n)?[/]");
             if (createBooking)
             {
                 Booking booking = null;
