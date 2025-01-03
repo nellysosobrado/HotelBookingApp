@@ -5,6 +5,7 @@ using HotelBookingApp.Services.DisplayServices;
 using HotelBookingApp.Services.BookingServices;
 using HotelBookingApp.Services.GuestServices;
 using HotelBookingApp.Interfaces;
+using Microsoft.VisualBasic;
 
 namespace HotelBookingApp
 {
@@ -111,7 +112,9 @@ namespace HotelBookingApp
                         {
                     "Check In/Check Out",
                     "Register New Guest/Booking",
+                    "Register Booking",
                     "Edit Booking",
+                    "Edit Guest Information",
                     "Unbook Booking",
                     "Guest Payments",
                     "Remove Guest",
@@ -128,8 +131,14 @@ namespace HotelBookingApp
                     case "Register New Guest/Booking":
                         _guestController.RegisterNewGuest();
                         break;
+                case "Register Booking":
+                        _guestController.RegisterBookingForExistingGuest();
+                        break;
                     case "Edit Booking":
                         _bookingEditService.EditBooking();
+                        break;
+                case "Edit Guest Information":
+                    _guestController.UpdateGuestInformation();
                         break;
                     case "Unbook Booking":
                         _unbookBooking.UnbookBookings();

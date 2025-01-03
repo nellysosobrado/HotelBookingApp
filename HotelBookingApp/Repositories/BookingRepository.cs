@@ -155,8 +155,10 @@ namespace HotelBookingApp.Repositories
 
         public void AddBooking(Booking booking)
         {
-            _bookings.Add(booking);
+            _appDbContext.Bookings.Add(booking);
+            _appDbContext.SaveChanges();
         }
+
         public void UpdateGuest(Guest guest)
         {
             _appDbContext.Guests.Update(guest);
