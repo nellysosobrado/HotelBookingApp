@@ -21,18 +21,22 @@ namespace HotelBookingApp.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Guest>()
+            .Property(g => g.RemovalReason)
+            .IsRequired(false);
             modelBuilder.Entity<Guest>().HasQueryFilter(g => !g.IsDeleted);
             var today = DateTime.Now.Date;
 
             var guestFaker = new Faker<Guest>()
-    .RuleFor(g => g.GuestId, f => f.IndexFaker + 1)
-    .RuleFor(g => g.FirstName, f => f.Name.FirstName())
-    .RuleFor(g => g.LastName, f => f.Name.LastName())
-    .RuleFor(g => g.Email, (f, g) => $"{g.FirstName.ToLower()}.{g.LastName.ToLower()}{f.UniqueIndex}@example.com")
-    .RuleFor(g => g.PhoneNumber, f => f.Phone.PhoneNumber())
-    .RuleFor(g => g.IsDeleted, f => false)
-    .RuleFor(g => g.DeletedDate, f => (DateTime?)null)
-    .RuleFor(g => g.RemovalReason, f => "Not applicable"); 
+            .RuleFor(g => g.GuestId, f => f.IndexFaker + 1)
+            .RuleFor(g => g.GuestId, f => f.IndexFaker + 1)
+            .RuleFor(g => g.FirstName, f => f.Name.FirstName())
+            .RuleFor(g => g.LastName, f => f.Name.LastName())
+            .RuleFor(g => g.Email, (f, g) => $"{g.FirstName.ToLower()}.{g.LastName.ToLower()}{f.UniqueIndex}@example.com")
+            .RuleFor(g => g.PhoneNumber, f => f.Phone.PhoneNumber())
+            .RuleFor(g => g.IsDeleted, f => false)
+            .RuleFor(g => g.DeletedDate, f => (DateTime?)null)
+            .RuleFor(g => g.RemovalReason, f => "Not applicable");
 
             var guests = guestFaker.Generate(4);
 
@@ -67,8 +71,8 @@ namespace HotelBookingApp.Data
                 TotalAmount = new Random().Next(5000, 20000),
                 IsPaid = index == 0 || index == 1 ? false : index == 2,
                 PaymentDeadline = index == 3
-                    ? today.AddDays(-11) 
-                    : today.AddDays(10), 
+                    ? today.AddDays(-11)
+                    : today.AddDays(10),
                 CreatedDate = today
             }).ToList();
 
@@ -94,7 +98,7 @@ namespace HotelBookingApp.Data
                 .HasForeignKey(c => c.RoomId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            
+
             modelBuilder.Entity<Guest>().HasData(guests);
             modelBuilder.Entity<Room>().HasData(rooms);
             modelBuilder.Entity<Booking>().HasData(bookings);
