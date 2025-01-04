@@ -24,6 +24,7 @@ namespace HotelBookingApp.Data
             modelBuilder.Entity<Guest>()
             .Property(g => g.RemovalReason)
             .IsRequired(false);
+
             modelBuilder.Entity<Guest>().HasQueryFilter(g => !g.IsDeleted);
             var today = DateTime.Now.Date;
 

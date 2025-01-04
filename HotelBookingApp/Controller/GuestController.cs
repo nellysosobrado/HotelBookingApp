@@ -49,7 +49,7 @@ namespace HotelBookingApp.Controllers
                     RegisterNewGuest();
                     break;
                 case "Read all guestst":
-                    _displayRegisteredGuestsService.DisplayAllRegisteredGuests();
+                    _displayRegisteredGuestsService.DisplayGuests();
                     break;
                 case "Update Guest Information":
                     UpdateGuestInformation();
