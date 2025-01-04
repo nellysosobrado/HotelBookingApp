@@ -17,7 +17,7 @@ namespace HotelBookingApp.Services.BookingServices
             _bookingRepository = bookingRepository;
         }
 
-        public void DisplayUnpaidBookings(IEnumerable<Booking> bookings)
+        public void DisplayUnpaidBookings(IEnumerable<Entities.Booking> bookings)
         {
             var table = new Table()
                 .Border(TableBorder.Rounded)

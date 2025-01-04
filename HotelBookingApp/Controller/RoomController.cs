@@ -47,7 +47,7 @@ namespace HotelBookingApp.Controllers
                 //var allRooms = _roomRepository.GetAllRooms(includeDeleted: true);
                 //var activeRooms = allRooms.Where(r => !r.IsDeleted).ToList();
                 //var bookedActiveRooms = _roomRepository.GetRoomsWithActiveBookings();
-                //var removedBookings = _bookingRepository.GetRemovedBookings().ToList();
+                //var removedBookings = _booking.GetRemovedBookings().ToList();
                 //var removedRooms = allRooms.Where(r => r.IsDeleted).ToList();
 
                 //if (!allRooms.Any())

@@ -97,7 +97,7 @@ namespace HotelBookingApp.Services.BookingServices
 
             }
         }
-        private void HandleCheckIn(Booking booking)
+        private void HandleCheckIn(Entities.Booking booking)
         {
             if (booking.IsCheckedIn)
             {
@@ -130,7 +130,7 @@ namespace HotelBookingApp.Services.BookingServices
             //UpdateAndDisplayBookings();
         }
 
-        private void HandleCheckOut(Booking booking)
+        private void HandleCheckOut(Entities.Booking booking)
         {
             
             if (!booking.IsCheckedIn)

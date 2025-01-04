@@ -41,7 +41,7 @@ namespace HotelBookingApp.Services.BookingServices
                 }
 
 
-                var newBooking = new Booking
+                var newBooking = new Entities.Booking
                 {
                     GuestId = guest.GuestId,
                     RoomId = availableRoom.RoomId,

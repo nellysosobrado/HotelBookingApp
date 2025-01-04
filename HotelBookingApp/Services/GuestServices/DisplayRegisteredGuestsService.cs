@@ -48,7 +48,7 @@ namespace HotelBookingApp.Services.GuestServices
                         break;
 
                     case "Back":
-                        return; // Avslutar funktionen och går tillbaka
+                        return; 
 
                     default:
                         AnsiConsole.Markup("[red]Invalid option. Try again.[/]\n");

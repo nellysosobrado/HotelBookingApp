@@ -42,21 +42,11 @@ namespace HotelBookingApp.Repositories
 
         public IEnumerable<Guest> GetDeletedGuests()
         {
-            // Logga SQL-frågan för felsökning
-            Console.WriteLine("Querying for deleted guests...");
-
+    
             var guests = _appDbContext.Guests
                 .IgnoreQueryFilters()
                 .Where(g => g.IsDeleted == true)
                 .ToList();
-
-            // Logga resultatet för att säkerställa att data hämtas korrekt
-            Console.WriteLine($"Number of deleted guests retrieved: {guests.Count}");
-
-            foreach (var guest in guests)
-            {
-                Console.WriteLine($"Guest ID: {guest.GuestId}, Name: {guest.FirstName} {guest.LastName}, IsDeleted: {guest.IsDeleted}");
-            }
 
             return guests;
         }

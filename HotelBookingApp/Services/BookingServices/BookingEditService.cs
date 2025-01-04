@@ -51,7 +51,7 @@ namespace HotelBookingApp.Services.BookingServices
             EditBookingDetails(booking);
         }
 
-        private void DisplayBookings(IEnumerable<Booking> bookings)
+        private void DisplayBookings(IEnumerable<Entities.Booking> bookings)
         {
             var table = new Table()
                 .Border(TableBorder.Rounded)
@@ -67,7 +67,7 @@ namespace HotelBookingApp.Services.BookingServices
             AnsiConsole.Write(table);
         }
 
-        private void EditBookingDetails(Booking booking)
+        private void EditBookingDetails(Entities.Booking booking)
         {
             var invoice = _bookingRepository.GetInvoiceByBookingId(booking.BookingId);
 
@@ -91,7 +91,7 @@ namespace HotelBookingApp.Services.BookingServices
             }
         }
 
-        private void HandleEditAction(Booking booking, Invoice invoice, string action)
+        private void HandleEditAction(Entities.Booking booking, Invoice invoice, string action)
         {
             switch (action)
             {
@@ -117,7 +117,7 @@ namespace HotelBookingApp.Services.BookingServices
             }
         }
 
-        private void EditGuestInformation(Booking booking)
+        private void EditGuestInformation(Entities.Booking booking)
         {
             var guest = booking.Guest;
 
@@ -181,7 +181,7 @@ namespace HotelBookingApp.Services.BookingServices
             Console.ReadKey();
         }
 
-        public void EditRoomDetails(Room room, Booking booking)
+        public void EditRoomDetails(Room room, Entities.Booking booking)
         {
             while (true)
             {
@@ -243,7 +243,7 @@ namespace HotelBookingApp.Services.BookingServices
         }
 
 
-        private void HandleRoomSelectionByDate(Room room, Booking booking)
+        private void HandleRoomSelectionByDate(Room room, Entities.Booking booking)
         {
             string roomTypeByDate = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
@@ -289,7 +289,7 @@ namespace HotelBookingApp.Services.BookingServices
         }
 
 
-        private void HandleRoomSelectionByCapacity(Room room, Booking booking)
+        private void HandleRoomSelectionByCapacity(Room room, Entities.Booking booking)
         {
             try
             {
@@ -347,7 +347,7 @@ namespace HotelBookingApp.Services.BookingServices
             }
         }
 
-        private void UpdateRoomAndBooking(Room currentRoom, Booking booking, int newRoomId, IEnumerable<Room> availableRooms)
+        private void UpdateRoomAndBooking(Room currentRoom, Entities.Booking booking, int newRoomId, IEnumerable<Room> availableRooms)
         {
             try
             {
@@ -513,7 +513,7 @@ namespace HotelBookingApp.Services.BookingServices
             Console.WriteLine();
             AnsiConsole.MarkupLine("[blue]Use arrow keys to navigate and Enter to select a date. Press Escape to cancel.[/]");
         }
-        private void EditCheckInDate(Booking booking, Invoice invoice)
+        private void EditCheckInDate(Entities.Booking booking, Invoice invoice)
         {
             var newCheckInDate = AnsiConsole.Ask<DateTime>("Enter [green]new Check-In Date (yyyy-MM-dd)[/]:");
             if (newCheckInDate >= DateTime.Now.Date)
@@ -529,7 +529,7 @@ namespace HotelBookingApp.Services.BookingServices
             Console.ReadKey();
         }
 
-        private void EditCheckOutDate(Booking booking, Invoice invoice)
+        private void EditCheckOutDate(Entities.Booking booking, Invoice invoice)
         {
             var newCheckOutDate = AnsiConsole.Ask<DateTime>("Enter [green]new Check-Out Date (yyyy-MM-dd)[/]:");
             if (newCheckOutDate > booking.CheckInDate)
@@ -545,13 +545,13 @@ namespace HotelBookingApp.Services.BookingServices
             Console.ReadKey();
         }
 
-        private void UpdateInvoice(Booking booking, Invoice invoice)
+        private void UpdateInvoice(Entities.Booking booking, Invoice invoice)
         {
             invoice.TotalAmount = _bookingRepository.CalculateTotalAmount(booking);
             _bookingRepository.UpdateInvoice(invoice);
         }
 
-        private void ConfirmBookingEdit(Booking booking)
+        private void ConfirmBookingEdit(Entities.Booking booking)
         {
             try
             {
@@ -566,7 +566,7 @@ namespace HotelBookingApp.Services.BookingServices
         }
 
 
-        private void DisplayBookingDetails(Booking booking, Invoice invoice)
+        private void DisplayBookingDetails(Entities.Booking booking, Invoice invoice)
         {
             var room = _roomRepository.GetRoomById(booking.RoomId); 
             var bookingDetailsTable = new Table()

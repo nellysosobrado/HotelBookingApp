@@ -16,6 +16,7 @@ public class BookingController : IMenuDisplay
     private readonly BookingEditService _bookingEditService;
     private readonly UnbookBooking _unbookBooking;
     private readonly PaymentService _paymentService;
+    private readonly GuestBookings _guestBookings;
 
     public BookingController(
         GuestController guestController,
@@ -23,14 +24,17 @@ public class BookingController : IMenuDisplay
         CheckInOutService checkInOutService,
         BookingEditService bookingEditService,
         UnbookBooking unbookBooking,
-        PaymentService paymentService)
+        PaymentService paymentService,
+        GuestBookings guestBookings
+        )
     {
         _guestController = guestController;
         _tableDisplayService = tableDisplayService;
         _checkInOutService = checkInOutService;
         _bookingEditService = bookingEditService;
         _unbookBooking = unbookBooking;
-        _paymentService = paymentService;   
+        _paymentService = paymentService;
+        _guestBookings = guestBookings;
     }
     public void Run()
     {
@@ -54,7 +58,7 @@ public class BookingController : IMenuDisplay
             {
                 
             case "Register Booking":
-                _guestController.RegisterBooking();
+                _guestBookings.RegisterBooking();
                     break;
             case "Read all bookings":
                 _tableDisplayService.DisplayBookings();
