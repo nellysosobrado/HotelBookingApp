@@ -111,7 +111,6 @@ namespace HotelBookingApp
                         .AddChoices(new[]
                         {
                     "Check In/Check Out",
-                    "Register New Guest/Booking",
                     "Register Booking",
                     "Edit Booking",
                     "Unbook Booking",
@@ -125,9 +124,6 @@ namespace HotelBookingApp
                 {
                     case "Check In/Check Out":
                         _checkInOutService.Execute();
-                        break;
-                    case "Register New Guest/Booking":
-                        _guestController.RegisterNewGuest();
                         break;
                 case "Register Booking":
                         _guestController.RegisterBookingForExistingGuest();

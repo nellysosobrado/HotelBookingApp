@@ -157,8 +157,6 @@ namespace HotelBookingApp.Controllers
             Console.ReadKey();
         }
 
-
-
         public void RegisterNewGuest()
         {
             Console.Clear();
@@ -179,48 +177,12 @@ namespace HotelBookingApp.Controllers
                 return;
             }
 
-            bool createBooking = AnsiConsole.Confirm("[italic yellow]Would you like to continue to create a booking(y) or cancel the booking but register the guest(n)?[/]");
-            if (createBooking)
-            {
-                Booking booking = null;
-
-                while (booking == null)
-                {
-                    booking = CollectBookingDetailsWithCalendar(guest);
-                    if (booking == null)
-                    {
-                        bool tryAgain = AnsiConsole.Confirm("No rooms available for the selected dates and room type. Would you like to try again?");
-                        if (!tryAgain)
-                        {
-                            AnsiConsole.MarkupLine("[red]Booking has been canceled.[/]");
-                            return;
-                        }
-                    }
-                }
-
-                decimal totalAmount = _guestRepository.CalculateTotalAmount(booking);
-
-                var invoice = new Invoice
-                {
-                    BookingId = booking.BookingId,
-                    TotalAmount = totalAmount,
-                    IsPaid = false,
-                    PaymentDeadline = DateTime.Now.AddDays(10)
-                };
-
-                _guestRepository.RegisterNewGuestWithBookingAndInvoice(guest, booking, invoice);
-
-                AnsiConsole.MarkupLine("[bold green]Guest has been successfully registered and booked![/]");
-                AnsiConsole.MarkupLine($"[yellow]Invoice created:[/] Total Amount: {totalAmount:C}, Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
-            }
-            else
-            {
-                _guestRepository.AddGuest(guest);
-                AnsiConsole.MarkupLine("[bold green]Guest has been successfully registered![/]");
-            }
-
+            _guestRepository.AddGuest(guest);
+            AnsiConsole.MarkupLine("[bold green]Guest has been successfully registered![/]");
             Console.ReadKey();
         }
+
+        
 
         private Guest CollectGuestInformation()
         {
