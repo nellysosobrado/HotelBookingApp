@@ -20,6 +20,41 @@ namespace HotelBookingApp.Services.DisplayServices
             _guestRepository = guestRepository;
             _roomRepository = roomRepository;
         }
+        public void DisplayBookings()
+        {
+            while (true)
+            {
+                var action = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("[italic yellow]Display Bookings[/]")
+                        .AddChoices(new[]
+                        {
+                    "Display Canceled Bookings",
+                    "Display Booking Statuses",
+                    "Back"
+                        })
+                        .HighlightStyle(new Style(foreground: Color.Green))
+                );
+
+                switch (action)
+                {
+                    case "Display Canceled Bookings":
+                        DisplayCanceledBookings();
+                        break;
+
+                    case "Display Booking Statuses":
+                        DisplayBookingStatuses();
+                        break;
+
+                    case "Back":
+                        return;
+
+                    default:
+                        AnsiConsole.Markup("[red]Invalid option. Try again.[/]\n");
+                        break;
+                }
+            }
+        }
 
         public void DisplayBookingStatuses()
         {
@@ -38,11 +73,15 @@ namespace HotelBookingApp.Services.DisplayServices
 
                 foreach (var booking in allBookings)
                 {
-                    var invoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
-                    if (invoice != null && !invoice.IsPaid && invoice.PaymentDeadline < DateTime.Now)
+                    var invoice = booking.Invoices?.FirstOrDefault(); 
+                    if (invoice != null)
                     {
-                        booking.IsCanceled = true;
-                        _bookingRepository.UpdateBooking(booking); 
+                      
+                        if (!invoice.IsPaid && invoice.PaymentDeadline < DateTime.Now)
+                        {
+                            booking.IsCanceled = true;
+                            _bookingRepository.UpdateBooking(booking);
+                        }
                     }
                 }
 
@@ -120,14 +159,6 @@ namespace HotelBookingApp.Services.DisplayServices
                 if (key != ConsoleKey.R) continue; 
             }
         }
-
-
-
-
-
-
-
-        //--
         public void DisplayGuestTable(IEnumerable<Guest> guests)
         {
             var guestBookingStatus = _guestRepository.GetGuestBookingStatus();
@@ -243,44 +274,70 @@ namespace HotelBookingApp.Services.DisplayServices
 
         public void DisplayCanceledBookings()
         {
-            Console.Clear();
-            Console.WriteLine("CANCELED BOOKINGS HISTORY");
-            Console.WriteLine(new string('-', 80));
-
-            var canceledBookings = _bookingRepository.GetCanceledBookingsHistory();
-
-            if (!canceledBookings.Any())
+            while (true)
             {
-                Console.WriteLine("No canceled bookings found.");
-            }
-            else
-            {
-                var table = new Table();
-                table.Border(TableBorder.Rounded);
+                Console.Clear();
+                Console.WriteLine("CANCELED BOOKINGS HISTORY");
+                Console.WriteLine(new string('-', 80));
 
-                table.AddColumn("[bold yellow]Booking ID[/]");
-                table.AddColumn("[bold yellow]Guest Name[/]");
-                table.AddColumn("[bold yellow]Room ID[/]");
-                table.AddColumn("[bold yellow]Canceled Date[/]");
-                table.AddColumn("[bold yellow]Reason[/]");
+                var canceledBookings = _bookingRepository.GetCanceledBookingsHistory();
 
-                foreach (var canceledBooking in canceledBookings)
+                if (!canceledBookings.Any())
                 {
-                    table.AddRow(
-                        canceledBooking.BookingId.ToString(),
-                        canceledBooking.GuestName ?? "[grey]Unknown[/]",
-                        canceledBooking.RoomId.ToString(),
-                        canceledBooking.CanceledDate.ToString("yyyy-MM-dd"),
-                        canceledBooking.Reason ?? "[grey]No reason provided[/]"
-                    );
+                    Console.WriteLine("No canceled bookings found.");
+                }
+                else
+                {
+                    var table = new Table();
+                    table.Border(TableBorder.Rounded);
+
+                    table.AddColumn("[bold yellow]Booking ID[/]");
+                    table.AddColumn("[bold yellow]Guest Name[/]");
+                    table.AddColumn("[bold yellow]Room ID[/]");
+                    table.AddColumn("[bold yellow]Canceled Date[/]");
+                    table.AddColumn("[bold yellow]Reason[/]");
+
+                    foreach (var canceledBooking in canceledBookings)
+                    {
+                        table.AddRow(
+                            canceledBooking.BookingId.ToString(),
+                            canceledBooking.GuestName ?? "[grey]Unknown[/]",
+                            canceledBooking.RoomId.ToString(),
+                            canceledBooking.CanceledDate.ToString("yyyy-MM-dd"),
+                            canceledBooking.Reason ?? "[grey]No reason provided[/]"
+                        );
+                    }
+
+                    AnsiConsole.Write(table);
                 }
 
-                AnsiConsole.Write(table);
-            }
+                var action = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("[italic yellow]Canceled Bookings Management[/]")
+                .AddChoices(new[]
+                {
+                    "Refresh",
+                    "Back"
+                })
+                .HighlightStyle(new Style(foreground: Color.Green))
+        );
 
-            Console.WriteLine("Press any key to return...");
-            Console.ReadKey();
+                switch (action)
+                {
+
+                    case "Refresh":
+                        continue;
+
+                    case "Back":
+                        return; 
+
+                    default:
+                        AnsiConsole.Markup("[red]Invalid option. Try again.[/]\n");
+                        break;
+                }
+            }
         }
+
         public void DisplayBookingTable(IEnumerable<Booking> bookings, string title, bool includePaymentAndStatus = true)
         {
             Console.Clear();
@@ -441,55 +498,6 @@ namespace HotelBookingApp.Services.DisplayServices
                 }
             }
         }
-
-
-
-        //public void DisplayRooms(IEnumerable<Room> rooms, string title, bool includeDeleted)
-        //{
-        //    if (rooms == null || !rooms.Any())
-        //    {
-        //        AnsiConsole.Markup($"[red]No rooms found for {title}[/].\n");
-        //        return;
-        //    }
-
-        //    var table = new Table()
-        //        .Border(TableBorder.Rounded)
-        //        .AddColumn("[bold]Room ID[/]")
-        //        .AddColumn("[bold]Type[/]")
-        //        .AddColumn("[bold]Price[/]")
-        //        .AddColumn("[bold]Size (sqm)[/]");
-
-        //    if (!includeDeleted)
-        //    {
-        //        table.AddColumn("[bold]Max People[/]");
-        //    }
-
-        //    foreach (var room in rooms)
-        //    {
-        //        if (includeDeleted)
-        //        {
-        //            table.AddRow(
-        //                room.RoomId.ToString(),
-        //                room.Type,
-        //                room.PricePerNight.ToString("C"),
-        //                room.SizeInSquareMeters.ToString()
-        //            );
-        //        }
-        //        else
-        //        {
-        //            table.AddRow(
-        //                room.RoomId.ToString(),
-        //                room.Type,
-        //                room.PricePerNight.ToString("C"),
-        //                room.SizeInSquareMeters.ToString(),
-        //                room.TotalPeople.ToString("F1")
-        //            );
-        //        }
-        //    }
-
-        //    AnsiConsole.Markup($"[bold green]{title}[/]\n");
-        //    AnsiConsole.Write(table);
-        //}
         public void DisplayBookedRooms(IEnumerable<Room> bookedRooms, string title)
         {
             if (bookedRooms == null || !bookedRooms.Any())
@@ -524,9 +532,5 @@ namespace HotelBookingApp.Services.DisplayServices
             AnsiConsole.Markup($"[bold green]{title}[/]\n");
             AnsiConsole.Write(table);
         }
-
-
-
-
     }
 }
