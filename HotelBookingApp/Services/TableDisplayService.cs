@@ -1,6 +1,7 @@
 ﻿using HotelBookingApp.Data;
 using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Spectre.Console;
 using System.Collections.Generic;
 using System.Linq;
@@ -372,53 +373,123 @@ namespace HotelBookingApp.Services.DisplayServices
         }
 
 
+        //---
 
-        public void DisplayRooms(IEnumerable<Room> rooms, string title, bool includeDeleted)
+        public void DisplayRooms()
         {
-            if (rooms == null || !rooms.Any())
+            while (true)
             {
-                AnsiConsole.Markup($"[red]No rooms found for {title}[/].\n");
-                return;
-            }
+                Console.Clear();
 
-            var table = new Table()
-                .Border(TableBorder.Rounded)
-                .AddColumn("[bold]Room ID[/]")
-                .AddColumn("[bold]Type[/]")
-                .AddColumn("[bold]Price[/]")
-                .AddColumn("[bold]Size (sqm)[/]");
+                var rooms = _roomRepository.GetAllRooms();
 
-            if (!includeDeleted)
-            {
-                table.AddColumn("[bold]Max People[/]");
-            }
-
-            foreach (var room in rooms)
-            {
-                if (includeDeleted)
+                if (rooms == null || !rooms.Any())
                 {
-                    table.AddRow(
-                        room.RoomId.ToString(),
-                        room.Type,
-                        room.PricePerNight.ToString("C"),
-                        room.SizeInSquareMeters.ToString()
-                    );
+                    Console.WriteLine("No rooms found in the database.");
+                    return;
                 }
-                else
+
+                var table = new Table()
+                    .Border(TableBorder.Rounded)
+                    .AddColumn("[bold]Room ID[/]")
+                    .AddColumn("[bold]Type[/]")
+                    .AddColumn("[bold]Price/Night[/]")
+                    .AddColumn("[bold]Size (sqm)[/]")
+                    .AddColumn("[bold]Max People[/]")
+                    .AddColumn("[bold]Extra Beds[/]")
+                    .AddColumn("[bold]Status[/]");
+
+                foreach (var room in rooms)
                 {
+                    string status;
+                    if (room.IsDeleted)
+                    {
+                        status = "[red]Removed[/]";
+                    }
+                    else if (!room.IsAvailable)
+                    {
+                        status = "[yellow]Inactive[/]";
+                    }
+                    else if (room.Bookings != null && room.Bookings.Any())
+                    {
+                        status = "[green]Booked[/]";
+                    }
+                    else
+                    {
+                        status = "[blue]No bookings attached[/]";
+                    }
+
                     table.AddRow(
                         room.RoomId.ToString(),
                         room.Type,
                         room.PricePerNight.ToString("C"),
                         room.SizeInSquareMeters.ToString(),
-                        room.TotalPeople.ToString("F1")
+                        room.TotalPeople.ToString("F1"),
+                        room.ExtraBeds.ToString(),
+                        status
                     );
                 }
-            }
 
-            AnsiConsole.Markup($"[bold green]{title}[/]\n");
-            AnsiConsole.Write(table);
+                Console.WriteLine("\nRegistered rooms");
+                AnsiConsole.Write(table);
+
+                Console.WriteLine("\nPress 'c' to continue");
+                var key = Console.ReadKey(intercept: true);
+                if (key.Key == ConsoleKey.C)
+                {
+                    break; 
+                }
+            }
         }
+
+
+
+        //public void DisplayRooms(IEnumerable<Room> rooms, string title, bool includeDeleted)
+        //{
+        //    if (rooms == null || !rooms.Any())
+        //    {
+        //        AnsiConsole.Markup($"[red]No rooms found for {title}[/].\n");
+        //        return;
+        //    }
+
+        //    var table = new Table()
+        //        .Border(TableBorder.Rounded)
+        //        .AddColumn("[bold]Room ID[/]")
+        //        .AddColumn("[bold]Type[/]")
+        //        .AddColumn("[bold]Price[/]")
+        //        .AddColumn("[bold]Size (sqm)[/]");
+
+        //    if (!includeDeleted)
+        //    {
+        //        table.AddColumn("[bold]Max People[/]");
+        //    }
+
+        //    foreach (var room in rooms)
+        //    {
+        //        if (includeDeleted)
+        //        {
+        //            table.AddRow(
+        //                room.RoomId.ToString(),
+        //                room.Type,
+        //                room.PricePerNight.ToString("C"),
+        //                room.SizeInSquareMeters.ToString()
+        //            );
+        //        }
+        //        else
+        //        {
+        //            table.AddRow(
+        //                room.RoomId.ToString(),
+        //                room.Type,
+        //                room.PricePerNight.ToString("C"),
+        //                room.SizeInSquareMeters.ToString(),
+        //                room.TotalPeople.ToString("F1")
+        //            );
+        //        }
+        //    }
+
+        //    AnsiConsole.Markup($"[bold green]{title}[/]\n");
+        //    AnsiConsole.Write(table);
+        //}
         public void DisplayBookedRooms(IEnumerable<Room> bookedRooms, string title)
         {
             if (bookedRooms == null || !bookedRooms.Any())

@@ -44,37 +44,38 @@ namespace HotelBookingApp.Controllers
             {
                 Console.Clear();
 
-                var allRooms = _roomRepository.GetAllRooms(includeDeleted: true);
-                var activeRooms = allRooms.Where(r => !r.IsDeleted).ToList();
-                var bookedActiveRooms = _roomRepository.GetRoomsWithActiveBookings();
-                var removedBookings = _bookingRepository.GetRemovedBookings().ToList();
-                var removedRooms = allRooms.Where(r => r.IsDeleted).ToList();
+                //var allRooms = _roomRepository.GetAllRooms(includeDeleted: true);
+                //var activeRooms = allRooms.Where(r => !r.IsDeleted).ToList();
+                //var bookedActiveRooms = _roomRepository.GetRoomsWithActiveBookings();
+                //var removedBookings = _bookingRepository.GetRemovedBookings().ToList();
+                //var removedRooms = allRooms.Where(r => r.IsDeleted).ToList();
 
-                if (!allRooms.Any())
-                {
-                    AnsiConsole.Markup("[red]No rooms found in the database.[/]\n");
-                }
-                else
-                {
-                    _tableDisplayService.DisplayRooms(activeRooms, "Overview of registered rooms", includeDeleted: false);
-                    Console.WriteLine(new string('-', 125));
+                //if (!allRooms.Any())
+                //{
+                //    AnsiConsole.Markup("[red]No rooms found in the database.[/]\n");
+                //}
+                //else
+                //{
+                //    //_tableDisplayService.DisplayRooms(activeRooms, "Overview of registered rooms", includeDeleted: false);
+                //    //Console.WriteLine(new string('-', 125));
 
-                    _tableDisplayService.DisplayBookedRooms(bookedActiveRooms, "Booked Active Rooms");
-                    Console.WriteLine(new string('-', 125));
+                //    //_tableDisplayService.DisplayBookedRooms(bookedActiveRooms, "Booked Active Rooms");
+                //    //Console.WriteLine(new string('-', 125));
 
-                    _tableDisplayService.DisplayBookingTable(removedBookings, "Unbooked Bookings:", includePaymentAndStatus: false);
-                    Console.WriteLine(new string('-', 100));
+                //    //_tableDisplayService.DisplayBookingTable(removedBookings, "Unbooked Bookings:", includePaymentAndStatus: false);
+                //    //Console.WriteLine(new string('-', 100));
 
-                    _tableDisplayService.DisplayRooms(removedRooms, "Removed Rooms", includeDeleted: true);
-                    Console.WriteLine(new string('-', 125));
-                }
+                //    //_tableDisplayService.DisplayRooms(removedRooms, "Removed Rooms", includeDeleted: true);
+                //    //Console.WriteLine(new string('-', 125));
+                //}
 
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .AddChoices(new[]
                         {
                     "Register a new room",
-                    "Edit a Room",
+                    "Read all rooms",
+                    "Update a room",
                     "Delete a Room",
                     "Find Available Room By Date",
                     "Find Available Room By Total People",
@@ -84,11 +85,16 @@ namespace HotelBookingApp.Controllers
 
                 switch (action)
                 {
+                    //CRUD CREATE, READ, UPDATE, DELETE
                     case "Register a new room":
                         _registerRoomService.Execute();
                         break;
 
-                    case "Edit a Room":
+                    case "Read all rooms":
+                        _tableDisplayService.DisplayRooms();
+                        break;
+
+                    case "Update a room":
                         _editRoomService.Execute();
                         break;
 

@@ -1,5 +1,6 @@
 ﻿using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
+using HotelBookingApp.Services.DisplayServices;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
@@ -10,10 +11,12 @@ namespace HotelBookingApp.Services.RoomServices
     public class DeleteRoomService
     {
         private readonly RoomRepository _roomRepository;
+        private readonly TableDisplayService _tableDisplayService;
 
-        public DeleteRoomService(RoomRepository roomRepository)
+        public DeleteRoomService(RoomRepository roomRepository, TableDisplayService tableDisplayService)
         {
             _roomRepository = roomRepository;
+            _tableDisplayService = tableDisplayService;
         }
 
         public void Execute()
@@ -29,7 +32,8 @@ namespace HotelBookingApp.Services.RoomServices
                 return;
             }
 
-            DisplayAllRooms(rooms);
+            _tableDisplayService.DisplayRooms();
+            //DisplayAllRooms(rooms);
 
             int roomId = GetRoomId();
             var room = _roomRepository.GetRoomById(roomId);
@@ -48,30 +52,30 @@ namespace HotelBookingApp.Services.RoomServices
             }
         }
 
-        private void DisplayAllRooms(IEnumerable<Room> rooms)
-        {
-            var table = new Table()
-                .Border(TableBorder.Rounded)
-                .AddColumn("[bold]Room ID[/]")
-                .AddColumn("[bold]Type[/]")
-                .AddColumn("[bold]Price[/]")
-                .AddColumn("[bold]Size (sqm)[/]");
+        //private void DisplayAllRooms(IEnumerable<Room> rooms)
+        //{
+        //    var table = new Table()
+        //        .Border(TableBorder.Rounded)
+        //        .AddColumn("[bold]Room ID[/]")
+        //        .AddColumn("[bold]Type[/]")
+        //        .AddColumn("[bold]Price[/]")
+        //        .AddColumn("[bold]Size (sqm)[/]");
 
-            foreach (var room in rooms)
-            {
-                bool hasActiveBooking = room.Bookings != null && room.Bookings.Any();
+        //    foreach (var room in rooms)
+        //    {
+        //        bool hasActiveBooking = room.Bookings != null && room.Bookings.Any();
 
-                table.AddRow(
-                    room.RoomId.ToString(),
-                    room.Type,
-                    room.PricePerNight.ToString("C"),
-                    room.SizeInSquareMeters.ToString()
-                );
-            }
+        //        table.AddRow(
+        //            room.RoomId.ToString(),
+        //            room.Type,
+        //            room.PricePerNight.ToString("C"),
+        //            room.SizeInSquareMeters.ToString()
+        //        );
+        //    }
 
-            AnsiConsole.Markup("[bold green]Available Rooms:[/]\n");
-            AnsiConsole.Write(table);
-        }
+        //    AnsiConsole.Markup("[bold green]Available Rooms:[/]\n");
+        //    AnsiConsole.Write(table);
+        //}
 
         private int GetRoomId()
         {
