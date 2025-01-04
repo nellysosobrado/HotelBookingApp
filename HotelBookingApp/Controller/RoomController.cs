@@ -71,6 +71,7 @@ namespace HotelBookingApp.Controllers
 
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
+                        .Title("[italic yellow] Rooms[/]")
                         .AddChoices(new[]
                         {
                     "Register a new room",
@@ -79,7 +80,7 @@ namespace HotelBookingApp.Controllers
                     "Delete a Room",
                     "Find Available Room By Date",
                     "Find Available Room By Total People",
-                    "Go Back"
+                    "Back"
                         })
                         .HighlightStyle(new Style(foreground: Color.Green)));
 
@@ -110,7 +111,7 @@ namespace HotelBookingApp.Controllers
                         _findRoomByTotalPeople.Execute();
                         break;
 
-                    case "Go Back":
+                    case "Back":
                         return;
 
                     default:

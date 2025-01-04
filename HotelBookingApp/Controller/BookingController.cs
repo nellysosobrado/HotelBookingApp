@@ -107,7 +107,7 @@ namespace HotelBookingApp
             //var activeBookings = _bookingRepository.GetActiveBookings().ToList();
             var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
-                        .Title("[bold green]What would you like to do?[/]")
+                        .Title("[italic yellow]Bookings[/]")
                         .AddChoices(new[]
                         {
                   
