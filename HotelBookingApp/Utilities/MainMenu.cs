@@ -7,13 +7,13 @@ using System;
 
 namespace HotelBookingApp.Utilities
 {
-    public class DisplayMainMenu : IMenuDisplay
+    public class MainMenu : IMenuDisplay
     {
         private readonly BookingController _bookingController;
         private readonly RoomController _roomController;
         private readonly GuestController _guestController;
 
-        public DisplayMainMenu(
+        public MainMenu(
             GuestController guestController,
             BookingController bookingController,
             RoomController roomController,
@@ -28,7 +28,7 @@ namespace HotelBookingApp.Utilities
             _guestController = guestController;
         }
 
-        public void Run()
+        public void MenuOptions()
         {
             while (true)
             {
@@ -48,13 +48,13 @@ namespace HotelBookingApp.Utilities
                 switch (choice)
                 {
                     case "Rooms":
-                        _roomController.Run();
+                        _roomController.MenuOptions();
                         break;
                     case "Bookings":
-                        _bookingController.Run();
+                        _bookingController.MenuOptions();
                         break;
                     case "Guests":
-                        _guestController.GuestOptions();
+                        _guestController.MenuOptions();
                         break;
                     case "Exit":
                         AnsiConsole.MarkupLine("[bold green]Thank you for using the Hotel Booking App. Goodbye![/]");

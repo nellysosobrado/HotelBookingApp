@@ -1,5 +1,6 @@
 ﻿using HotelBookingApp.Data;
 using HotelBookingApp.Entities;
+using HotelBookingApp.Interfaces;
 using HotelBookingApp.Repositories;
 using HotelBookingApp.Services.BookingServices;
 using HotelBookingApp.Services.GuestServices;
@@ -11,7 +12,7 @@ using System.Linq;
 
 namespace HotelBookingApp.Controllers
 {
-    public class GuestController
+    public class GuestController : IMenuDisplay
     {
 
         private readonly DisplayRegisteredGuestsService _displayRegisteredGuestsService;
@@ -31,7 +32,7 @@ namespace HotelBookingApp.Controllers
             _updateGuestInformation = updateGuestInformation;
             _registerGuest = registerGuest;
         }
-        public void GuestOptions()
+        public void MenuOptions()
         {
             var action = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()

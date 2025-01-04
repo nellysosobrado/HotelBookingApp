@@ -102,7 +102,7 @@ namespace HotelBookingApp.Services.RoomServices
                         room.TotalPeople.ToString()
                     );
                 }
-
+                Console.Clear();
                 AnsiConsole.Markup($"[bold green]Available Rooms from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}:[/]\n");
                 AnsiConsole.Write(table);
             }

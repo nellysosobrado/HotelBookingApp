@@ -36,7 +36,7 @@ public class BookingController : IMenuDisplay
         _paymentService = paymentService;
         _guestBookings = guestBookings;
     }
-    public void Run()
+    public void MenuOptions()
     {
         var action = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()

@@ -47,7 +47,7 @@ namespace HotelBookingApp.DI
             }).As<AppDbContext>().InstancePerLifetimeScope();
 
 
-            builder.RegisterType<DisplayMainMenu>().AsSelf();
+            builder.RegisterType<MainMenu>().AsSelf();
             builder.RegisterType<App>().AsSelf();
             builder.RegisterType<BookingController>().AsSelf();
             builder.RegisterType<BookingRepository>().AsSelf();

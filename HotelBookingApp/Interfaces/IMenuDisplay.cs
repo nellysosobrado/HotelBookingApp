@@ -8,6 +8,6 @@ namespace HotelBookingApp.Interfaces
 {
     public interface IMenuDisplay
     {
-        void Run();
+        void MenuOptions();
     }
 }

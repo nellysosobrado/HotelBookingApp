@@ -431,8 +431,6 @@ namespace HotelBookingApp.Services.DisplayServices
         }
 
 
-        //---
-
         public void DisplayRooms()
         {
             while (true)

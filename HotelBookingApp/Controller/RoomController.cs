@@ -38,36 +38,11 @@ namespace HotelBookingApp.Controllers
             _tableDisplayService = tableDisplayService;
             _bookingRepository = bookingRepository;
         }
-        public void Run()
+        public void MenuOptions()
         {
             while (true)
             {
                 Console.Clear();
-
-                //var allRooms = _roomRepository.GetAllRooms(includeDeleted: true);
-                //var activeRooms = allRooms.Where(r => !r.IsDeleted).ToList();
-                //var bookedActiveRooms = _roomRepository.GetRoomsWithActiveBookings();
-                //var removedBookings = _booking.GetRemovedBookings().ToList();
-                //var removedRooms = allRooms.Where(r => r.IsDeleted).ToList();
-
-                //if (!allRooms.Any())
-                //{
-                //    AnsiConsole.Markup("[red]No rooms found in the database.[/]\n");
-                //}
-                //else
-                //{
-                //    //_tableDisplayService.DisplayRooms(activeRooms, "Overview of registered rooms", includeDeleted: false);
-                //    //Console.WriteLine(new string('-', 125));
-
-                //    //_tableDisplayService.DisplayBookedRooms(bookedActiveRooms, "Booked Active Rooms");
-                //    //Console.WriteLine(new string('-', 125));
-
-                //    //_tableDisplayService.DisplayBookingTable(removedBookings, "Unbooked Bookings:", includePaymentAndStatus: false);
-                //    //Console.WriteLine(new string('-', 100));
-
-                //    //_tableDisplayService.DisplayRooms(removedRooms, "Removed Rooms", includeDeleted: true);
-                //    //Console.WriteLine(new string('-', 125));
-                //}
 
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
@@ -75,7 +50,7 @@ namespace HotelBookingApp.Controllers
                         .AddChoices(new[]
                         {
                     "Register a new room",
-                    "Read all rooms",
+                    "Display rooms",
                     "Update a room",
                     "Delete a Room",
                     "Find Available Room By Date",
@@ -86,12 +61,11 @@ namespace HotelBookingApp.Controllers
 
                 switch (action)
                 {
-                    //CRUD CREATE, READ, UPDATE, DELETE
                     case "Register a new room":
                         _registerRoomService.Execute();
                         break;
 
-                    case "Read all rooms":
+                    case "Display rooms":
                         _tableDisplayService.DisplayRooms();
                         break;
 
