@@ -120,7 +120,7 @@ namespace HotelBookingApp.Services.GuestServices
                 if (!guests.Any())
                 {
                     AnsiConsole.MarkupLine("[gray]No registered guests found.[/]");
-                    Console.WriteLine("\nPress 'B' to go back or 'R' to refresh.");
+                    Console.WriteLine("\n[B] Back");
                     var input = Console.ReadKey(true).Key;
 
                     if (input == ConsoleKey.B) 

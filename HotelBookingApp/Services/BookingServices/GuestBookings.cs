@@ -25,21 +25,20 @@ namespace HotelBookingApp.Services.BookingServices
         public void RegisterBooking()
         {
             Console.Clear();
-            AnsiConsole.MarkupLine("[italic white]Register Booking[/]\n");
 
             var choice = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("[yellow]Choose an option to register a booking:[/]")
-                    .AddChoices("New Guest", "Existing Guest", "Cancel")
+                    .Title("[italic yellow]Register a booking[/]")
+                    .AddChoices("Register a booking for a new guest", "Register a booking for a existing guest", "Cancel")
             );
 
             switch (choice)
             {
-                case "New Guest":
+                case "Register a booking for a new guest":
                     RegisterBookingForNewGuest();
                     break;
 
-                case "Existing Guest":
+                case "Register a booking for a existing guest":
                     RegisterBookingForExistingGuest();
                     break;
 
@@ -57,46 +56,66 @@ namespace HotelBookingApp.Services.BookingServices
 
         public void RegisterBookingForNewGuest()
         {
-            Console.Clear();
-            AnsiConsole.MarkupLine("[italic yellow]Register new bookign with new guest[/]\n");
+            bool keepRunning = true;
 
-            Guest newGuest;
-            FluentValidationResult validationResult;
-
-            do
+            while (keepRunning)
             {
-                newGuest = new Guest
-                {
-                    FirstName = AnsiConsole.Prompt(new TextPrompt<string>("[white]Enter First Name:[/]")),
-                    LastName = AnsiConsole.Prompt(new TextPrompt<string>("[white]Enter Last Name:[/]")),
-                    Email = AnsiConsole.Prompt(new TextPrompt<string>("[white]Enter Email Address:[/]")),
-                    PhoneNumber = AnsiConsole.Prompt(new TextPrompt<string>("[white]Enter Phone Number :[/]"))
-                };
+                Console.Clear();
+                AnsiConsole.MarkupLine("[italic yellow]Register a booking for a new guest[/]\n");
 
-                var validator = new GuestValidator();
-                validationResult = validator.Validate(newGuest);
+                Guest newGuest;
+                FluentValidationResult validationResult;
 
-                if (!validationResult.IsValid)
+                do
                 {
-                    AnsiConsole.MarkupLine("[bold red]Error:[/]");
-                    foreach (var failure in validationResult.Errors)
+                    newGuest = new Guest
                     {
-                        AnsiConsole.MarkupLine($"[red]- {failure.PropertyName}: {failure.ErrorMessage}[/]");
+                        FirstName = AnsiConsole.Prompt(new TextPrompt<string>("[white]Enter First Name:[/]")),
+                        LastName = AnsiConsole.Prompt(new TextPrompt<string>("[white]Enter Last Name:[/]")),
+                        Email = AnsiConsole.Prompt(new TextPrompt<string>("[white]Enter Email Address:[/]")),
+                        PhoneNumber = AnsiConsole.Prompt(new TextPrompt<string>("[white]Enter Phone Number:[/]"))
+                    };
+
+                    var validator = new GuestValidator();
+                    validationResult = validator.Validate(newGuest);
+
+                    if (!validationResult.IsValid)
+                    {
+                        AnsiConsole.MarkupLine("[bold red]Error:[/]");
+                        foreach (var failure in validationResult.Errors)
+                        {
+                            AnsiConsole.MarkupLine($"[red]- {failure.PropertyName}: {failure.ErrorMessage}[/]");
+
+                        }
+
+                        AnsiConsole.MarkupLine("[yellow]Please try again.[/]\n");
                     }
-
-                    AnsiConsole.MarkupLine("[yellow]Please try again.[/]\n");
                 }
+                while (!validationResult.IsValid);
+
+                _guestRepository.AddGuest(newGuest);
+
+                var booking = CreateNewBooking(newGuest);
+                if (booking == null)
+                {
+                    AnsiConsole.MarkupLine("[red]Booking creation was canceled.[/]");
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine("[bold green]Booking successfully added for new guest![/]");
+                }
+
+                var choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .HighlightStyle("green")
+                        .AddChoices("Register another guest", "Back")
+                );
+
+                if (choice == "Back")
+                    keepRunning = false;
             }
-            while (!validationResult.IsValid); 
-
-            _guestRepository.AddGuest(newGuest);
-
-            var booking = CreateNewBooking(newGuest);
-            if (booking == null) return;
-
-            AnsiConsole.MarkupLine("[bold green]Booking successfully added for new guest![/]");
-            Console.ReadKey();
         }
+
 
 
         private Booking CreateNewBooking(Guest guest)
@@ -139,8 +158,8 @@ namespace HotelBookingApp.Services.BookingServices
 
             _guestRepository.AddInvoice(invoice);
             Console.Clear();
-            AnsiConsole.MarkupLine($"[green]Total Amount: {totalAmount:C}[/]");
-            AnsiConsole.MarkupLine($"[green]Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}[/]");
+            AnsiConsole.MarkupLine($"[green]Total Amount:[/]  {totalAmount:C}");
+            AnsiConsole.MarkupLine($"[green]Payment Deadline:[/] {invoice.PaymentDeadline:yyyy-MM-dd}");
  
             return booking;
             
@@ -253,10 +272,6 @@ namespace HotelBookingApp.Services.BookingServices
             AnsiConsole.MarkupLine($"[yellow]Invoice created:[/] Total Amount: {totalAmount:C}, Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
             Console.ReadKey();
         }
-
-
-
-
 
         private Entities.Booking CollectBookingDetailsWithCalendar(Guest guest)
         {
