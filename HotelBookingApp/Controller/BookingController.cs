@@ -127,7 +127,7 @@ namespace HotelBookingApp
                 {
                     
                 case "Register Booking":
-                        _guestController.RegisterBookingForExistingGuest();
+                    _guestController.RegisterBooking();
                         break;
                 case "Read all bookings":
                     _tableDisplayService.DisplayBookingStatuses();
