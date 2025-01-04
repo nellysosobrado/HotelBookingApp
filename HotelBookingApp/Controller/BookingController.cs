@@ -110,31 +110,34 @@ namespace HotelBookingApp
                         .Title("[bold green]What would you like to do?[/]")
                         .AddChoices(new[]
                         {
-                    "Check In/Check Out",
+                  
                     "Register Booking",
-                    "Edit Booking",
-                    "Unbook Booking",
+                    "Update Booking",
+                    "Delete Booking",
+                    "Check In/Check Out",
                     "Guest Payments",
                     "Back"
                         })
                         .HighlightStyle(new Style(foreground: Color.Green))
                 );
+            //CRUD CREATE, READ, UPDATE, DELETE
 
                 switch (action)
                 {
-                    case "Check In/Check Out":
-                        _checkInOutService.Execute();
-                        break;
+                    
                 case "Register Booking":
                         _guestController.RegisterBookingForExistingGuest();
                         break;
-                    case "Edit Booking":
+                    case "Update Booking":
                         _bookingEditService.EditBooking();
                         break;
-                    case "Unbook Booking":
+                    case "Delete Booking":
                         _unbookBooking.UnbookBookings();
                         break;
-                    case "Guest Payments":
+                case "Check In/Check Out":
+                    _checkInOutService.Execute();
+                    break;
+                case "Guest Payments":
                         _paymentService.PayInvoiceBeforeCheckout();
                         break;
                     case "Back":
