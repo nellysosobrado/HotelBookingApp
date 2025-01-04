@@ -19,6 +19,14 @@ namespace HotelBookingApp.Repositories
             _bookings = _appDbContext.Bookings.ToList();
         }
 
+        public IEnumerable<Booking> GetBookingsByRoomId(int roomId)
+        {
+            return _appDbContext.Bookings
+                .Include(b => b.Room) // Inkludera Room om nödvändigt
+                .Where(b => b.RoomId == roomId)
+                .ToList();
+        }
+
         public IEnumerable<Booking> GetEditableBookings()
         {
             var canceledBookingIds = _appDbContext.CanceledBookingsHistory

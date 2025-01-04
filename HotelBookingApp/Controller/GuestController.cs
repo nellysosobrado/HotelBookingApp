@@ -233,19 +233,19 @@ namespace HotelBookingApp.Controllers
             Console.Clear();
             AnsiConsole.MarkupLine("[italic white]Add Booking for Existing Guest[/]\n");
 
-            // Hämta alla gäster som kan registrera en bokning (ej borttagna och utan aktiv bokning)
+            // Hämta alla gäster som inte är borttagna
             var guests = _guestRepository.GetAllGuests()
-                .Where(g => !g.IsDeleted && !_bookingRepository.GetBookingsByGuestId(g.GuestId).Any(b => !b.IsCheckedOut))
+                .Where(g => !g.IsDeleted) // Endast gäster som inte är borttagna
                 .ToList();
 
             if (!guests.Any())
             {
-                AnsiConsole.MarkupLine("[red]No guests available for booking.[/]");
+                AnsiConsole.MarkupLine("[red]No registered guests found in the system.[/]");
                 Console.ReadKey();
                 return;
             }
 
-            // Visa endast gäster som kan registrera en bokning
+            // Visa gäster
             var table = new Table()
                 .AddColumn("[yellow]Guest ID[/]")
                 .AddColumn("[yellow]First Name[/]")
@@ -264,6 +264,7 @@ namespace HotelBookingApp.Controllers
 
             AnsiConsole.Write(table);
 
+            // Be användaren välja en gäst
             int guestId = AnsiConsole.Prompt(
                 new TextPrompt<int>("[yellow]Enter the Guest ID to add a booking for:[/]")
                     .ValidationErrorMessage("[red]Please enter a valid numeric Guest ID.[/]")
@@ -273,9 +274,11 @@ namespace HotelBookingApp.Controllers
             var selectedGuest = guests.First(g => g.GuestId == guestId);
 
             Booking booking = null;
+
             while (booking == null)
             {
                 booking = CollectBookingDetailsWithCalendar(selectedGuest);
+
                 if (booking == null)
                 {
                     bool tryAgain = AnsiConsole.Confirm("[red]No rooms available. Would you like to try again?[/]");
@@ -286,8 +289,31 @@ namespace HotelBookingApp.Controllers
                         return;
                     }
                 }
+                else
+                {
+                    // Kontrollera om rummet är bokat under den valda perioden
+                    var conflictingBooking = _bookingRepository.GetBookingsByRoomId(booking.RoomId)
+                        .FirstOrDefault(b =>
+                            (b.CheckInDate < booking.CheckOutDate && booking.CheckInDate < b.CheckOutDate) && !b.IsCheckedOut);
+
+                    if (conflictingBooking != null)
+                    {
+                        AnsiConsole.MarkupLine($"[red]Room {booking.RoomId} is already booked during the selected period by another guest.[/]");
+                        AnsiConsole.MarkupLine($"[red]Conflicting Booking: Guest ID {conflictingBooking.GuestId}, Check-In: {conflictingBooking.CheckInDate:yyyy-MM-dd}, Check-Out: {conflictingBooking.CheckOutDate:yyyy-MM-dd}[/]");
+                        booking = null;
+
+                        bool tryAgain = AnsiConsole.Confirm("[yellow]Would you like to select a different room?[/]");
+                        if (!tryAgain)
+                        {
+                            AnsiConsole.MarkupLine("[red]Booking process canceled.[/]");
+                            Console.ReadKey();
+                            return;
+                        }
+                    }
+                }
             }
 
+            // Lägg till bokning
             _bookingRepository.AddBooking(booking);
 
             if (booking.BookingId <= 0)
@@ -297,6 +323,7 @@ namespace HotelBookingApp.Controllers
                 return;
             }
 
+            // Beräkna totalkostnad och skapa faktura
             decimal totalAmount = _guestRepository.CalculateTotalAmount(booking);
 
             var invoice = new Invoice
@@ -309,10 +336,12 @@ namespace HotelBookingApp.Controllers
 
             _guestRepository.AddInvoice(invoice);
 
+            // Bekräftelsemeddelande
             AnsiConsole.MarkupLine("[bold green]Booking successfully added for existing guest![/]");
             AnsiConsole.MarkupLine($"[yellow]Invoice created:[/] Total Amount: {totalAmount:C}, Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
             Console.ReadKey();
         }
+
 
 
 
