@@ -48,70 +48,71 @@ namespace HotelBookingApp
             _guestRepository = GuestRepository;
             _displayRegisteredGuestsService = displayRegisteredGuestsService;
         }
-        public void DisplayTables()
-        {
-            Console.Clear();
+        //public void DisplayTables()
+        //{
+        //    Console.Clear();
 
         
-                Console.Clear();
+        //        Console.Clear();
 
-                var activeBookings = _bookingRepository.GetActiveBookings().ToList();
-                var completedBookings = _bookingRepository.GetCompletedBookings().ToList();
-                var removedBookings = _bookingRepository.GetRemovedBookings().ToList();
+        //        var activeBookings = _bookingRepository.GetActiveBookings().ToList();
+        //        var completedBookings = _bookingRepository.GetCompletedBookings().ToList();
+        //        var removedBookings = _bookingRepository.GetRemovedBookings().ToList();
 
-                if (activeBookings.Any())
-                {
-                    _tableDisplayService.DisplayBookingTable(activeBookings, "Active Bookings:");
-                    Console.WriteLine(new string('-', 100));
-                }
-                else
-                {
-                    AnsiConsole.MarkupLine("[gray]No active bookings found.[/]");
-                    Console.WriteLine(new string('-', 100));
-                }
+        //        if (activeBookings.Any())
+        //        {
+        //            _tableDisplayService.DisplayBookingTable(activeBookings, "Active Bookings:");
+        //            Console.WriteLine(new string('-', 100));
+        //        }
+        //        else
+        //        {
+        //            AnsiConsole.MarkupLine("[gray]No active bookings found.[/]");
+        //            Console.WriteLine(new string('-', 100));
+        //        }
 
-                if (completedBookings.Any())
-                {
-                    _tableDisplayService.DisplayBookingTable(completedBookings, "Completed Bookings:", includePaymentAndStatus: true);
-                    Console.WriteLine(new string('-', 100));
-                }
-                else
-                {
-                    AnsiConsole.MarkupLine("[gray]No completed bookings found.[/]");
-                    Console.WriteLine(new string('-', 100));
-                }
+        //        if (completedBookings.Any())
+        //        {
+        //            _tableDisplayService.DisplayBookingTable(completedBookings, "Completed Bookings:", includePaymentAndStatus: true);
+        //            Console.WriteLine(new string('-', 100));
+        //        }
+        //        else
+        //        {
+        //            AnsiConsole.MarkupLine("[gray]No completed bookings found.[/]");
+        //            Console.WriteLine(new string('-', 100));
+        //        }
 
-                if (removedBookings.Any())
-                {
-                    _tableDisplayService.DisplayBookingTable(removedBookings, "Unbooked Bookings:", includePaymentAndStatus: false);
-                    Console.WriteLine(new string('-', 100));
-                }
-                else
-                {
-                    AnsiConsole.MarkupLine("[gray]No unbooked bookings found.[/]");
-                    Console.WriteLine(new string('-', 100));
-                }
+        //        if (removedBookings.Any())
+        //        {
+        //            _tableDisplayService.DisplayBookingTable(removedBookings, "Unbooked Bookings:", includePaymentAndStatus: false);
+        //            Console.WriteLine(new string('-', 100));
+        //        }
+        //        else
+        //        {
+        //            AnsiConsole.MarkupLine("[gray]No unbooked bookings found.[/]");
+        //            Console.WriteLine(new string('-', 100));
+        //        }
 
-                _unpaidBookingService.DisplayCanceledBookingHistory();
-                Console.WriteLine(new string('-', 100));
+        //        _unpaidBookingService.DisplayCanceledBookingHistory();
+        //        Console.WriteLine(new string('-', 100));
 
-                _displayRegisteredGuestsService.DisplayAllRegisteredGuests();
-                Console.WriteLine(new string('-', 100));
+        //        _displayRegisteredGuestsService.DisplayAllRegisteredGuests();
+        //        Console.WriteLine(new string('-', 100));
             
-        }
-
+        //}
+        //Display all active bookings
         public void Run()
         {
-            DisplayTables();
-            
+           // DisplayTables();
 
-                var action = AnsiConsole.Prompt(
+            //var activeBookings = _bookingRepository.GetActiveBookings().ToList();
+            var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("[bold green]What would you like to do?[/]")
                         .AddChoices(new[]
                         {
                   
                     "Register Booking",
+                    "Read all bookings",
                     "Update Booking",
                     "Delete Booking",
                     "Check In/Check Out",
@@ -128,7 +129,10 @@ namespace HotelBookingApp
                 case "Register Booking":
                         _guestController.RegisterBookingForExistingGuest();
                         break;
-                    case "Update Booking":
+                case "Read all bookings":
+                    _tableDisplayService.DisplayBookingStatuses();
+                    break;
+                case "Update Booking":
                         _bookingEditService.EditBooking();
                         break;
                     case "Delete Booking":

@@ -24,9 +24,11 @@ namespace HotelBookingApp.Services.BookingServices
             {
                 Console.Clear();
 
-                UpdateAndDisplayBookings();
+                _tableDisplayService.DisplayBookingStatuses();
 
-                var activeBookings = _bookingRepository.GetActiveBookings().ToList();
+                var activeBookings = _bookingRepository.GetActiveBookings()
+                  .Where(b => !b.IsCanceled) 
+                  .ToList();
 
                 if (!activeBookings.Any())
                 {
@@ -59,9 +61,9 @@ namespace HotelBookingApp.Services.BookingServices
                 }
 
                 var booking = _bookingRepository.GetBookingById(bookingId);
-                if (booking == null)
+                if (booking == null || booking.IsCanceled) 
                 {
-                    AnsiConsole.MarkupLine("[red]Selected booking could not be found. Try again.[/]");
+                    AnsiConsole.MarkupLine("[red]Selected booking could not be found or has been removed. Try again.[/]");
                     Console.ReadKey();
                     continue;
                 }
@@ -81,7 +83,9 @@ namespace HotelBookingApp.Services.BookingServices
 
                     case "Check Out":
                         HandleCheckOut(booking);
-                        activeBookings = _bookingRepository.GetActiveBookings().ToList();
+                        activeBookings = _bookingRepository.GetActiveBookings()
+                            .Where(b => !b.IsCanceled) 
+                            .ToList();
                         break;
 
                     case "Go Back":
@@ -90,6 +94,7 @@ namespace HotelBookingApp.Services.BookingServices
 
                 AnsiConsole.MarkupLine("[green]Press any key to continue[/]");
                 Console.ReadKey();
+
             }
         }
         private void HandleCheckIn(Booking booking)
@@ -122,11 +127,12 @@ namespace HotelBookingApp.Services.BookingServices
             _bookingRepository.UpdateBooking(booking);
 
             AnsiConsole.MarkupLine("[green]Check-In completed successfully.[/]");
-            UpdateAndDisplayBookings();
+            //UpdateAndDisplayBookings();
         }
 
         private void HandleCheckOut(Booking booking)
         {
+            
             if (!booking.IsCheckedIn)
             {
                 AnsiConsole.MarkupLine("[Bold red]Cannot check out. Booking needs to check in first![/]");
@@ -154,7 +160,7 @@ namespace HotelBookingApp.Services.BookingServices
             _bookingRepository.UpdateBooking(booking);
 
             AnsiConsole.MarkupLine("[green]Check-Out completed successfully.[/]");
-            UpdateAndDisplayBookings();
+           // UpdateAndDisplayBookings();
         }
 
         private void UpdateAndDisplayBookings()

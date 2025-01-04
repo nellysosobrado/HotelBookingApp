@@ -19,6 +19,114 @@ namespace HotelBookingApp.Services.DisplayServices
             _guestRepository = guestRepository;
             _roomRepository = roomRepository;
         }
+
+        public void DisplayBookingStatuses()
+        {
+            while (true)
+            {
+                Console.Clear();
+
+                var allBookings = _bookingRepository.GetAllBookings();
+                if (allBookings == null || !allBookings.Any())
+                {
+                    AnsiConsole.Markup("[red]No bookings available.[/]\n");
+                    Console.WriteLine("Press any key to return...");
+                    Console.ReadKey();
+                    return;
+                }
+
+                foreach (var booking in allBookings)
+                {
+                    var invoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
+                    if (invoice != null && !invoice.IsPaid && invoice.PaymentDeadline < DateTime.Now)
+                    {
+                        booking.IsCanceled = true;
+                        _bookingRepository.UpdateBooking(booking); 
+                    }
+                }
+
+                var table = new Table()
+                    .Border(TableBorder.Rounded)
+                    .AddColumn("[bold]Booking ID[/]")
+                    .AddColumn("[bold]Guest Name[/]")
+                    .AddColumn("[bold]Room ID[/]")
+                    .AddColumn("[bold]Check-In Date[/]")
+                    .AddColumn("[bold]Check-Out Date[/]")
+                    .AddColumn("[bold]Status[/]")
+                    .AddColumn("[bold]Payment Status[/]");
+
+                foreach (var booking in allBookings)
+                {
+                    string status = "[grey]Unknown[/]";
+                    string paymentStatus = "[grey]No Invoice[/]";
+
+                    if (booking.IsCanceled)
+                    {
+                        status = "[red]Removed[/]";
+                    }
+                    else if (booking.IsCheckedOut)
+                    {
+                        status = "[blue]Checked Out[/]";
+                    }
+                    else if (booking.IsCheckedIn)
+                    {
+                        status = "[green]Checked In[/]";
+                    }
+                    else if (booking.CheckInDate.HasValue && booking.CheckInDate > DateTime.Now)
+                    {
+                        status = "[yellow]Not Checked In Yet[/]";
+                    }
+                    else
+                    {
+                        status = "[grey]Unbooked[/]";
+                    }
+
+                    var invoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
+                    if (invoice != null)
+                    {
+                        if (invoice.IsPaid)
+                        {
+                            paymentStatus = "[green]Paid[/]";
+                        }
+                        else if (invoice.PaymentDeadline < DateTime.Now)
+                        {
+                            paymentStatus = "[red]Overdue (Not Paid)[/]";
+                        }
+                        else
+                        {
+                            paymentStatus = "[yellow]Not Paid[/]";
+                        }
+                    }
+
+                    table.AddRow(
+                        booking.BookingId.ToString(),
+                        $"{booking.Guest?.FirstName ?? "Unknown"} {booking.Guest?.LastName ?? "Unknown"}",
+                        booking.RoomId.ToString(),
+                        booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]",
+                        booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]",
+                        status,
+                        paymentStatus
+                    );
+                }
+
+                AnsiConsole.Markup("[bold yellow]Booking Status Overview[/]\n");
+                AnsiConsole.Write(table);
+
+                Console.WriteLine("Press 'R' to refresh or 'C' to continue...");
+                var key = Console.ReadKey(true).Key;
+
+                if (key == ConsoleKey.C) break; 
+                if (key != ConsoleKey.R) continue; 
+            }
+        }
+
+
+
+
+
+
+
+        //--
         public void DisplayGuestTable(IEnumerable<Guest> guests)
         {
             var guestBookingStatus = _guestRepository.GetGuestBookingStatus();
@@ -174,6 +282,7 @@ namespace HotelBookingApp.Services.DisplayServices
         }
         public void DisplayBookingTable(IEnumerable<Booking> bookings, string title, bool includePaymentAndStatus = true)
         {
+            Console.Clear();
             if (bookings == null || !bookings.Any())
             {
                 AnsiConsole.Markup($"[bold gray]There's no existing '{title}' currently.[/]\n");
@@ -258,6 +367,8 @@ namespace HotelBookingApp.Services.DisplayServices
 
             AnsiConsole.Markup($"[bold yellow]{title}[/]\n");
             AnsiConsole.Write(table);
+            Console.WriteLine("Press any key "); 
+            Console.ReadKey();
         }
 
 
