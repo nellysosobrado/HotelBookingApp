@@ -14,7 +14,6 @@ namespace HotelBookingApp
 
             using (var scope = host.Services.CreateScope())
             {
-                // Hämtar App-instansen via DI
                 var app = scope.ServiceProvider.GetService<App>();
                 app?.Run();
             }
@@ -25,7 +24,6 @@ namespace HotelBookingApp
                 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureContainer<ContainerBuilder>(builder =>
                 {
-                    // Registrerar modulen som hanterar beroenden
                     builder.RegisterModule(new DependencyRegistrar());
                 });
     }

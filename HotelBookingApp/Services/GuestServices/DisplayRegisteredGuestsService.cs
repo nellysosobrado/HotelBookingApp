@@ -27,11 +27,11 @@ namespace HotelBookingApp.Services.GuestServices
             {
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
-                        .Title("[italic yellow]Guest Management[/]")
+                        .Title("[italic yellow]Display guest information[/]")
                         .AddChoices(new[]
                         {
-                    "View Deleted Guests",
-                    "View All Registered Guests",
+                    "Display deleted guests",
+                    "Display registered guests",
                     "Back"
                         })
                         .HighlightStyle(new Style(foreground: Color.Green))
@@ -39,11 +39,11 @@ namespace HotelBookingApp.Services.GuestServices
 
                 switch (action)
                 {
-                    case "View Deleted Guests":
+                    case "Display deleted guests":
                         DisplayDeletedGuests();
                         break;
 
-                    case "View All Registered Guests":
+                    case "Display registered guests":
                         DisplayAllRegisteredGuests();
                         break;
 
@@ -59,82 +59,108 @@ namespace HotelBookingApp.Services.GuestServices
 
         public void DisplayDeletedGuests()
         {
-            AnsiConsole.MarkupLine("[yellow]Deleted Guests:[/]");
+            bool keepRunning = true;
 
-            var deletedGuests = _guestRepository.GetDeletedGuests();
-
-
-            if (!deletedGuests.Any())
+            while (keepRunning)
             {
-                AnsiConsole.MarkupLine("[gray]No deleted guests found.[/]");
-                Console.ReadKey();
-                return;
+                Console.Clear(); 
+                AnsiConsole.MarkupLine("[yellow]Deleted Guests:[/]");
+
+                var deletedGuests = _guestRepository.GetDeletedGuests();
+
+                if (!deletedGuests.Any())
+                {
+                    AnsiConsole.MarkupLine("[gray]No deleted guests found.[/]");
+                    Console.WriteLine("[B] Back");
+                    var input = Console.ReadKey(true).Key;
+
+                    if (input == ConsoleKey.B)
+                        keepRunning = false;
+
+                    continue;
+                }
+
+                var table = new Table()
+                    .Border(TableBorder.Rounded)
+                    .AddColumn("[bold]Guest ID[/]")
+                    .AddColumn("[bold]Name[/]")
+                    .AddColumn("[bold]Last Name[/]");
+
+                foreach (var guest in deletedGuests)
+                {
+                    table.AddRow(
+                        guest.GuestId.ToString(),
+                        $"{guest.FirstName ?? "[gray]Unknown[/]"}",
+                        $"{guest.LastName ?? "[gray]Unknown[/]"}"
+                    );
+                }
+
+                AnsiConsole.Write(table);
+
+                Console.WriteLine("\n[B] Back");
+                var userInput = Console.ReadKey(true).Key;
+
+                if (userInput == ConsoleKey.B) 
+                    keepRunning = false;
             }
-
-            var table = new Table()
-                .Border(TableBorder.Rounded)
-                .AddColumn("[bold]Guest ID[/]")
-                .AddColumn("[bold]Name[/]")
-                .AddColumn("[bold]Email[/]")
-                .AddColumn("[bold]Phone Number[/]")
-                .AddColumn("[bold]Number of Bookings[/]");
-
-            foreach (var guest in deletedGuests)
-            {
-                int bookingCount = _bookingRepository.GetBookingsByGuestId(guest.GuestId).Count();
-
-                table.AddRow(
-                    guest.GuestId.ToString(),
-                    $"{guest.FirstName ?? "[gray]Unknown[/]"} {guest.LastName ?? "[gray]Unknown[/]"}",
-                    guest.Email ?? "[gray]N/A[/]",
-                    guest.PhoneNumber ?? "[gray]N/A[/]",
-                    bookingCount.ToString()
-                );
-            }
-
-            AnsiConsole.Write(table);
-            Console.WriteLine("Press any key to continue..");
-            Console.ReadKey();
         }
+
 
         public void DisplayAllRegisteredGuests()
         {
-            AnsiConsole.MarkupLine("[yellow]Currently Registered Guests:[/]");
+            bool keepRunning = true;
 
-            var guests = _guestRepository.GetAllGuests();
-
-            if (!guests.Any())
+            while (keepRunning)
             {
-                AnsiConsole.MarkupLine("[gray]No registered guests found.[/]");
-                Console.ReadKey();
-                return;
+                Console.Clear(); 
+                AnsiConsole.MarkupLine("[yellow]Currently Registered Guests:[/]");
+
+                var guests = _guestRepository.GetAllGuests();
+
+                if (!guests.Any())
+                {
+                    AnsiConsole.MarkupLine("[gray]No registered guests found.[/]");
+                    Console.WriteLine("\nPress 'B' to go back or 'R' to refresh.");
+                    var input = Console.ReadKey(true).Key;
+
+                    if (input == ConsoleKey.B) 
+                        keepRunning = false;
+
+                    continue; 
+                }
+
+                var table = new Table()
+                    .Border(TableBorder.Rounded)
+                    .AddColumn("[bold]Guest ID[/]")
+                    .AddColumn("[bold]Name[/]")
+                    .AddColumn("[bold]Email[/]")
+                    .AddColumn("[bold]Phone Number[/]")
+                    .AddColumn("[bold]Number of Bookings[/]");
+
+                foreach (var guest in guests)
+                {
+                    int bookingCount = _bookingRepository.GetBookingsByGuestId(guest.GuestId).Count();
+
+                    table.AddRow(
+                        guest.GuestId.ToString(),
+                        $"{guest.FirstName ?? "[gray]Unknown[/]"} {guest.LastName ?? "[gray]Unknown[/]"}",
+                        guest.Email ?? "[gray]N/A[/]",
+                        guest.PhoneNumber ?? "[gray]N/A[/]",
+                        bookingCount.ToString()
+                    );
+                }
+
+                AnsiConsole.Write(table);
+
+                Console.WriteLine("\n[B] Back");
+                var userInput = Console.ReadKey(true).Key;
+
+                if (userInput == ConsoleKey.B) 
+                    keepRunning = false;
+
             }
-
-            var table = new Table()
-                .Border(TableBorder.Rounded)
-                .AddColumn("[bold]Guest ID[/]")
-                .AddColumn("[bold]Name[/]")
-                .AddColumn("[bold]Email[/]")
-                .AddColumn("[bold]Phone Number[/]")
-                .AddColumn("[bold]Number of Bookings[/]");
-
-            foreach (var guest in guests)
-            {
-                int bookingCount = _bookingRepository.GetBookingsByGuestId(guest.GuestId).Count();
-
-                table.AddRow(
-                    guest.GuestId.ToString(),
-                    $"{guest.FirstName ?? "[gray]Unknown[/]"} {guest.LastName ?? "[gray]Unknown[/]"}",
-                    guest.Email ?? "[gray]N/A[/]",
-                    guest.PhoneNumber ?? "[gray]N/A[/]",
-                    bookingCount.ToString()
-                );
-            }
-
-            AnsiConsole.Write(table);
-            Console.WriteLine("Press any key to continue..");
-            Console.ReadKey();
         }
+
 
     }
 }

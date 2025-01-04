@@ -39,10 +39,10 @@ namespace HotelBookingApp.Controllers
                     .Title("[italic yellow]Guests[/]")
                     .AddChoices(new[]
                     {
-                    "Create new guest",
-                    "Read all guestst",
-                    "Update Guest Information",
-                    "Remove Guest",
+                    "Register a new guest",
+                    "Display guests",
+                    "Update guest information",
+                    "Remove guest",
                     "Back"
                     })
                     .HighlightStyle(new Style(foreground: Color.Green))
@@ -50,16 +50,16 @@ namespace HotelBookingApp.Controllers
 
             switch (action)
             {
-                case "Create new guest":
+                case "Register a new guest":
                     _registerGuest.NewGuest();
                     break;
-                case "Read all guestst":
+                case "Display guests":
                     _displayRegisteredGuestsService.DisplayGuests();
                     break;
-                case "Update Guest Information":
+                case "Update guest information":
                     _updateGuestInformation.Run();
                     break;
-                case "Remove Guest":
+                case "Remove guest":
                     _guestRemovalService.Execute();
                     break;
                 case "Back":
