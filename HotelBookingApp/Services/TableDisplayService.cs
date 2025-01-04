@@ -103,6 +103,7 @@ namespace HotelBookingApp.Services.DisplayServices
                     if (booking.IsCanceled)
                     {
                         status = "[red]Removed[/]";
+                        paymentStatus = "[red]Removed[/]"; 
                     }
                     else if (booking.IsCheckedOut)
                     {
@@ -122,7 +123,7 @@ namespace HotelBookingApp.Services.DisplayServices
                     }
 
                     var invoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
-                    if (invoice != null)
+                    if (invoice != null && !booking.IsCanceled) 
                     {
                         if (invoice.IsPaid)
                         {
