@@ -1,6 +1,8 @@
 ﻿using HotelBookingApp.Data;
 using HotelBookingApp.Entities;
 using HotelBookingApp.Repositories;
+using HotelBookingApp.Services.BookingServices;
+using HotelBookingApp.Services.GuestServices;
 using Microsoft.EntityFrameworkCore;
 using Spectre.Console;
 using System;
@@ -10,13 +12,57 @@ namespace HotelBookingApp.Controllers
 {
     public class GuestController
     {
+
         private readonly GuestRepository _guestRepository;
         private readonly BookingRepository _bookingRepository;
+        private readonly DisplayRegisteredGuestsService _displayRegisteredGuestsService;
+        private readonly GuestRemovalService _guestRemovalService;
 
-        public GuestController(AppDbContext context, BookingRepository bookingRepository, GuestRepository guestRepository)
+        public GuestController(AppDbContext context, BookingRepository bookingRepository, GuestRepository guestRepository, DisplayRegisteredGuestsService displayRegisteredGuestsService, GuestRemovalService guestRemovalService)
         {
             _guestRepository = guestRepository;
             _bookingRepository = bookingRepository;
+            _displayRegisteredGuestsService = displayRegisteredGuestsService;
+            _guestRemovalService = guestRemovalService;
+
+        }
+        //CRUD , CREATE, READ, UPDATE, DELETE
+        public void Run()
+        {
+            var action = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[bold green]What would you like to do?[/]")
+                    .AddChoices(new[]
+                    {
+                    "Create new guest",
+                    "Read all guestst",
+                    "Update Guest Information",
+                    "Remove Guest",
+                    "Back"
+                    })
+                    .HighlightStyle(new Style(foreground: Color.Green))
+            );
+
+            switch (action)
+            {
+                case "Create new guest":
+                    RegisterNewGuest();
+                    break;
+                case "Read all guestst":
+                    _displayRegisteredGuestsService.DisplayAllRegisteredGuests();
+                    break;
+                case "Update Guest Information":
+                    UpdateGuestInformation();
+                    break;
+                case "Remove Guest":
+                    _guestRemovalService.Execute();
+                    break;
+                case "Back":
+                    return;
+                default:
+                    AnsiConsole.Markup("[red]Invalid option. Try again.[/]\n");
+                    break;
+            }
         }
 
         public void RegisterBookingForExistingGuest()
@@ -159,7 +205,7 @@ namespace HotelBookingApp.Controllers
                     BookingId = booking.BookingId,
                     TotalAmount = totalAmount,
                     IsPaid = false,
-                    PaymentDeadline = DateTime.Now.AddDays(10) 
+                    PaymentDeadline = DateTime.Now.AddDays(10)
                 };
 
                 _guestRepository.RegisterNewGuestWithBookingAndInvoice(guest, booking, invoice);
@@ -281,7 +327,7 @@ namespace HotelBookingApp.Controllers
             var bookedDates = _bookingRepository.GetAllBookings()
                 .Where(b => b.Room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase))
                 .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue)
-                .Where(b => b.CheckOutDate.Value >= b.CheckInDate.Value) 
+                .Where(b => b.CheckOutDate.Value >= b.CheckInDate.Value)
                 .SelectMany(b => Enumerable.Range(0, 1 + (b.CheckOutDate.Value - b.CheckInDate.Value).Days)
                                             .Select(offset => b.CheckInDate.Value.AddDays(offset)))
                 .ToHashSet();
@@ -338,7 +384,7 @@ namespace HotelBookingApp.Controllers
             startDay = (startDay == 0) ? 6 : startDay - 1;
 
             var bookedDates = _bookingRepository.GetAllBookings()
-                .Where(b => b.Room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase)) 
+                .Where(b => b.Room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase))
                 .SelectMany(b => Enumerable.Range(0, 1 + (b.CheckOutDate.Value - b.CheckInDate.Value).Days)
                                             .Select(offset => b.CheckInDate.Value.AddDays(offset)))
                 .ToHashSet();
@@ -386,7 +432,7 @@ namespace HotelBookingApp.Controllers
             AnsiConsole.MarkupLine("[blue]Use arrow keys to navigate and Enter to select a date. Press Escape to cancel.[/]");
         }
 
-      
+
         public void UpdateGuestInformation()
         {
             Console.Clear();
@@ -452,7 +498,7 @@ namespace HotelBookingApp.Controllers
                 {
                     AnsiConsole.MarkupLine("[red]Guest not found. Press any key to try again.[/]");
                     Console.ReadKey();
-                    continue; 
+                    continue;
                 }
 
                 while (true)
@@ -515,6 +561,6 @@ namespace HotelBookingApp.Controllers
                 }
             }
         }
-        
+
     }
 }

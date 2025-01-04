@@ -11,6 +11,7 @@ namespace HotelBookingApp.Utilities
     {
         private readonly BookingController _bookingController;
         private readonly RoomController _roomController;
+        private readonly GuestController _guestController;
 
         public DisplayMainMenu(
             GuestController guestController,
@@ -19,10 +20,12 @@ namespace HotelBookingApp.Utilities
             CheckInOutService checkInOutService,
             BookingEditService bookingEditService,
             PaymentService paymentSerice,
-            UnpaidBookingService unpaidBookingService)
+            UnpaidBookingService unpaidBookingService
+            )
         {
             _bookingController = bookingController;
             _roomController = roomController;
+            _guestController = guestController;
         }
 
         public void Run()
@@ -39,6 +42,7 @@ namespace HotelBookingApp.Utilities
                         .AddChoices(
                             "Rooms",
                             "Bookings",
+                            "Guests",
                             "Exit")
                 );
                 switch (choice)
@@ -48,6 +52,9 @@ namespace HotelBookingApp.Utilities
                         break;
                     case "Bookings":
                         _bookingController.Run();
+                        break;
+                    case "Guests":
+                        _guestController.Run();
                         break;
                     case "Exit":
                         AnsiConsole.MarkupLine("[bold green]Thank you for using the Hotel Booking App. Goodbye![/]");

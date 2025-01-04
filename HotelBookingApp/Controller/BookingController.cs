@@ -114,10 +114,8 @@ namespace HotelBookingApp
                     "Register New Guest/Booking",
                     "Register Booking",
                     "Edit Booking",
-                    "Edit Guest Information",
                     "Unbook Booking",
                     "Guest Payments",
-                    "Remove Guest",
                     "Back"
                         })
                         .HighlightStyle(new Style(foreground: Color.Green))
@@ -137,17 +135,11 @@ namespace HotelBookingApp
                     case "Edit Booking":
                         _bookingEditService.EditBooking();
                         break;
-                case "Edit Guest Information":
-                    _guestController.UpdateGuestInformation();
-                        break;
                     case "Unbook Booking":
                         _unbookBooking.UnbookBookings();
                         break;
                     case "Guest Payments":
                         _paymentService.PayInvoiceBeforeCheckout();
-                        break;
-                    case "Remove Guest":
-                        _guestRemovalService.Execute();
                         break;
                     case "Back":
                         return;

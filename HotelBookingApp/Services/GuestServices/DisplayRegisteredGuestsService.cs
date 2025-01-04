@@ -49,6 +49,7 @@ namespace HotelBookingApp.Services.GuestServices
             }
 
             AnsiConsole.Write(table);
+            Console.ReadKey();
         }
     }
 }
