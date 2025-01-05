@@ -1,10 +1,7 @@
 ﻿using HotelBookingApp.Repositories;
 using Spectre.Console;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HotelBookingApp.Services.RoomServices
 {
@@ -37,10 +34,25 @@ namespace HotelBookingApp.Services.RoomServices
                 return;
             }
 
+            if (_guestRepository.GetAllGuests().Any(g => g.Email == guest.Email))
+            {
+                AnsiConsole.MarkupLine("[bold red]Error: The email address already exists in the system.[/]");
+                Console.ReadKey();
+                return;
+            }
+
+            if (_guestRepository.GetAllGuests().Any(g => g.PhoneNumber == guest.PhoneNumber))
+            {
+                AnsiConsole.MarkupLine("[bold red]Error: The phone number already exists in the system.[/]");
+                Console.ReadKey();
+                return;
+            }
+
             _guestRepository.AddGuest(guest);
             AnsiConsole.MarkupLine("[bold green]Guest has been successfully registered![/]");
             Console.ReadKey();
         }
+
         private Guest CollectGuestInformation()
         {
             string firstName = AnsiConsole.Prompt(
@@ -59,7 +71,7 @@ namespace HotelBookingApp.Services.RoomServices
                     .Validate(input => input.Contains("@")));
 
             string phone = AnsiConsole.Prompt(
-                new TextPrompt<string>("[white]Phone number(must be Swedish, e.g., +46701234567 or 0701234567):[/]")
+                new TextPrompt<string>("[white]Phone number (must be Swedish, e.g., +46701234567 or 0701234567):[/]")
                     .ValidationErrorMessage("[red]Invalid phone number! Must be exactly 10 digits and start with +46 or 0.[/]")
                     .Validate(input => IsValidSwedishPhoneNumber(input)));
 
@@ -82,7 +94,7 @@ namespace HotelBookingApp.Services.RoomServices
             }
             else if (phoneNumber.StartsWith("+46"))
             {
-                return phoneNumber.Length == 12 && long.TryParse(phoneNumber.Substring(1), out _); 
+                return phoneNumber.Length == 12 && long.TryParse(phoneNumber.Substring(1), out _);
             }
 
             return false;
