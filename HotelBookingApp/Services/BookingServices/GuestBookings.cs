@@ -233,8 +233,8 @@ namespace HotelBookingApp.Services.BookingServices
 
                         if (conflictingBooking != null)
                         {
-                            AnsiConsole.MarkupLine($"[red]Room {booking.RoomId} is already booked during the selected period by another guest.[/]");
-                            AnsiConsole.MarkupLine($"[red]Conflicting Booking: Guest ID {conflictingBooking.GuestId}, Check-In: {conflictingBooking.CheckInDate:yyyy-MM-dd}, Check-Out: {conflictingBooking.CheckOutDate:yyyy-MM-dd}[/]");
+                            AnsiConsole.MarkupLine($"[red]Room {booking.RoomId} is already booked during the selected period by {conflictingBooking.GuestId}.[/]");
+                            AnsiConsole.MarkupLine($"[red]Booking: Guest ID {conflictingBooking.GuestId}, Check-In: {conflictingBooking.CheckInDate:yyyy-MM-dd}, Check-Out: {conflictingBooking.CheckOutDate:yyyy-MM-dd}[/]");
                             booking = null;
 
                             bool tryAgain = AnsiConsole.Confirm("[yellow]Would you like to select a different room?[/]");
@@ -285,13 +285,13 @@ namespace HotelBookingApp.Services.BookingServices
                     .Title("[yellow]Please select room type:[/]")
                     .AddChoices("Single", "Double"));
 
-            DateTime startDate = SelectDateWithCalendar("[yellow]Select check-in date:[/]", roomType);
+            DateTime startDate = SelectDateWithCalendar("Select check-in date:[/]", roomType);
             if (startDate == DateTime.MinValue)
             {
                 return null; 
             }
 
-            DateTime endDate = SelectDateWithCalendar("[yellow]Select check-out date:[/]", roomType);
+            DateTime endDate = SelectDateWithCalendar("Select check-out date:[/]", roomType);
             if (endDate == DateTime.MinValue || endDate <= startDate)
             {
                 AnsiConsole.MarkupLine("[red]Check-out date must be after check-in date![/]");
@@ -299,6 +299,7 @@ namespace HotelBookingApp.Services.BookingServices
             }
 
             var availableRooms = _guestRepository.GetAvailableRooms(startDate, endDate, roomType);
+
             if (!availableRooms.Any())
             {
                 AnsiConsole.MarkupLine("[red]No available rooms found for the selected dates and room type.[/]");
@@ -313,7 +314,7 @@ namespace HotelBookingApp.Services.BookingServices
                 .AddColumn("[blue]Room Type[/]")
                 .AddColumn("[blue]Price per Night[/]")
                 .AddColumn("[blue]Size (sqm)[/]")
-                .AddColumn("[blue]Max People[/]");
+                .AddColumn("[blue]MaxTEST People[/]");
 
             foreach (var room in availableRooms)
             {
