@@ -21,14 +21,14 @@ namespace HotelBookingApp.Services.RoomServices
         {
             Console.Clear();
 
-            bool proceed = AnsiConsole.Confirm("[italic white]Do you want to register a new guest?[/]");
+            bool proceed = AnsiConsole.Confirm("[white]Do you want to register a new guest?[/]");
             if (!proceed)
             {
                 AnsiConsole.MarkupLine("[red]Guest registration canceled. Returning to the main menu.[/]");
                 return;
             }
 
-            AnsiConsole.MarkupLine("[italic white]Register New Guest[/]\n");
+            AnsiConsole.MarkupLine("[italic yellow]Register New Guest[/]\n");
 
             var guest = CollectGuestInformation();
             if (guest == null)
@@ -47,22 +47,22 @@ namespace HotelBookingApp.Services.RoomServices
         private Guest CollectGuestInformation()
         {
             string firstName = AnsiConsole.Prompt(
-                new TextPrompt<string>("[yellow]Please enter your first name:[/]")
+                new TextPrompt<string>("[white]Please enter your first name:[/]")
                     .ValidationErrorMessage("[red]First name cannot be empty[/]")
                     .Validate(input => !string.IsNullOrWhiteSpace(input)));
 
             string lastName = AnsiConsole.Prompt(
-                new TextPrompt<string>("[yellow]Please enter your last name:[/]")
+                new TextPrompt<string>("[white]Please enter your last name:[/]")
                     .ValidationErrorMessage("[red]Last name cannot be empty[/]")
                     .Validate(input => !string.IsNullOrWhiteSpace(input)));
 
             string email = AnsiConsole.Prompt(
-                new TextPrompt<string>("[yellow]Please enter your email address (must include @):[/]")
+                new TextPrompt<string>("[white]Please enter your email address (must include @):[/]")
                     .ValidationErrorMessage("[red]Invalid email[/]")
                     .Validate(input => input.Contains("@")));
 
             string phone = AnsiConsole.Prompt(
-                new TextPrompt<string>("[yellow]Please enter your phone number:[/]")
+                new TextPrompt<string>("[white]Please enter your phone number:[/]")
                     .ValidationErrorMessage("[red]Invalid phone number![/]")
                     .Validate(input => long.TryParse(input, out _)));
 
