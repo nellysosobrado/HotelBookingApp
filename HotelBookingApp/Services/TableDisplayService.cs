@@ -505,7 +505,7 @@ namespace HotelBookingApp.Services.DisplayServices
                     }
                     else if (room.Bookings != null && room.Bookings.Any())
                     {
-                        status = "[green]Booked[/]";
+                        status = "[green]Active[/]";
                     }
                     else
                     {
