@@ -272,7 +272,6 @@ namespace HotelBookingApp.Services.BookingServices
             AnsiConsole.MarkupLine($"[yellow]Invoice created:[/] Total Amount: {totalAmount:C}, Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
             Console.ReadKey();
         }
-
         private Entities.Booking CollectBookingDetailsWithCalendar(Guest guest)
         {
             string roomType = AnsiConsole.Prompt(
@@ -283,7 +282,7 @@ namespace HotelBookingApp.Services.BookingServices
             DateTime startDate = SelectDateWithCalendar("[yellow]Select check-in date:[/]", roomType);
             if (startDate == DateTime.MinValue)
             {
-                return null;
+                return null; 
             }
 
             DateTime endDate = SelectDateWithCalendar("[yellow]Select check-out date:[/]", roomType);
@@ -328,6 +327,18 @@ namespace HotelBookingApp.Services.BookingServices
                     .ValidationErrorMessage("[red]Invalid Room ID![/]")
                     .Validate(input => availableRooms.Any(r => r.RoomId == input)));
 
+            var roomBookingConflict = _bookingRepository.GetBookingsByRoomId(roomId)
+                .FirstOrDefault(b =>
+                    (b.CheckInDate < endDate && startDate < b.CheckOutDate) && 
+                    !b.IsCheckedOut);
+
+            if (roomBookingConflict != null)
+            {
+                AnsiConsole.MarkupLine($"[red]Room {roomId} is already booked during the selected period by another guest.[/]");
+                AnsiConsole.MarkupLine($"[red]Conflicting Booking: Guest ID {roomBookingConflict.GuestId}, Check-In: {roomBookingConflict.CheckInDate:yyyy-MM-dd}, Check-Out: {roomBookingConflict.CheckOutDate:yyyy-MM-dd}[/]");
+                return null;
+            }
+
             return new Entities.Booking
             {
                 RoomId = roomId,
@@ -339,24 +350,18 @@ namespace HotelBookingApp.Services.BookingServices
                 BookingCompleted = false
             };
         }
+
+
         private DateTime SelectDateWithCalendar(string prompt, string roomType)
         {
             DateTime currentDate = DateTime.Now.Date;
             DateTime selectedDate = currentDate;
 
-            var bookedDates = _bookingRepository.GetAllBookings()
-                .Where(b => b.Room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase))
-                .Where(b => b.CheckInDate.HasValue && b.CheckOutDate.HasValue)
-                .Where(b => b.CheckOutDate.Value >= b.CheckInDate.Value)
-                .SelectMany(b => Enumerable.Range(0, 1 + (b.CheckOutDate.Value - b.CheckInDate.Value).Days)
-                                            .Select(offset => b.CheckInDate.Value.AddDays(offset)))
-                .ToHashSet();
-
             while (true)
             {
                 Console.Clear();
                 Console.WriteLine(prompt);
-                RenderCalendar(selectedDate, roomType);
+                RenderCalendar(selectedDate, roomType); 
 
                 var key = Console.ReadKey(true).Key;
                 switch (key)
@@ -376,18 +381,9 @@ namespace HotelBookingApp.Services.BookingServices
                         selectedDate = selectedDate.AddDays(7);
                         break;
                     case ConsoleKey.Enter:
-                        if (bookedDates.Contains(selectedDate))
-                        {
-                            AnsiConsole.MarkupLine("[red]The selected date is already booked. Please choose another date.[/]");
-                            Console.ReadKey();
-                        }
-                        else
-                        {
-                            return selectedDate;
-                        }
-                        break;
+                        return selectedDate;  
                     case ConsoleKey.Escape:
-                        return DateTime.MinValue;
+                        return DateTime.MinValue;  
                 }
             }
         }
@@ -422,13 +418,9 @@ namespace HotelBookingApp.Services.BookingServices
                 {
                     calendarContent.Write($"[blue]{day,2}[/]   ");
                 }
-                else if (bookedDates.Contains(currentDate))
-                {
-                    calendarContent.Write($"[red]{day,2}[/]   ");
-                }
                 else if (currentDate < DateTime.Now.Date)
                 {
-                    calendarContent.Write($"[grey]{day,2}[/]   ");
+                    calendarContent.Write($"[grey]{day,2}[/]   ");  
                 }
                 else
                 {
@@ -451,5 +443,6 @@ namespace HotelBookingApp.Services.BookingServices
             Console.WriteLine();
             AnsiConsole.MarkupLine("[blue]Use arrow keys to navigate and Enter to select a date. Press Escape to cancel.[/]");
         }
+
     }
 }
