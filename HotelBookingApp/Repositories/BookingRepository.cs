@@ -162,11 +162,24 @@ namespace HotelBookingApp.Repositories
         }
 
 
+        //public void AddBooking(Booking booking)
+        //{
+        //    _appDbContext.Bookings.Add(booking);
+        //    _appDbContext.SaveChanges();
+        //}
         public void AddBooking(Booking booking)
         {
+            if (booking.RegistrationDate == default)
+            {
+                booking.RegistrationDate = DateTime.Now; // Sätt registreringsdatum om det inte redan är satt
+            }
+
             _appDbContext.Bookings.Add(booking);
             _appDbContext.SaveChanges();
         }
+
+
+
 
         public void UpdateGuest(Guest guest)
         {

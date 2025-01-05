@@ -73,10 +73,9 @@ namespace HotelBookingApp.Services.DisplayServices
 
                 foreach (var booking in allBookings)
                 {
-                    var invoice = booking.Invoices?.FirstOrDefault(); 
+                    var invoice = booking.Invoices?.FirstOrDefault();
                     if (invoice != null)
                     {
-                      
                         if (!invoice.IsPaid && invoice.PaymentDeadline < DateTime.Now)
                         {
                             booking.IsCanceled = true;
@@ -92,18 +91,25 @@ namespace HotelBookingApp.Services.DisplayServices
                     .AddColumn("[bold]Room ID[/]")
                     .AddColumn("[bold]Check-In Date[/]")
                     .AddColumn("[bold]Check-Out Date[/]")
+                    .AddColumn("[bold]Registration Date[/]")
                     .AddColumn("[bold]Status[/]")
-                    .AddColumn("[bold]Payment Status[/]");
+                    .AddColumn("[bold]Payment Status[/]")
+                    .AddColumn("[bold]Days Remaining[/]")
+                    .AddColumn("[bold]Payment Deadline Day[/]"); 
 
                 foreach (var booking in allBookings)
                 {
                     string status = "[grey]Unknown[/]";
                     string paymentStatus = "[grey]No Invoice[/]";
+                    string daysRemaining = "[grey]N/A[/]";
+                    string paymentDeadline = "[grey]N/A[/]";
 
                     if (booking.IsCanceled)
                     {
                         status = "[red]Removed[/]";
-                        paymentStatus = "[red]Removed[/]"; 
+                        paymentStatus = "[red]Removed[/]";
+                        daysRemaining = "[red]Removed[/]";
+                        paymentDeadline = "[red]Removed[/]";
                     }
                     else if (booking.IsCheckedOut)
                     {
@@ -123,19 +129,25 @@ namespace HotelBookingApp.Services.DisplayServices
                     }
 
                     var invoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
-                    if (invoice != null && !booking.IsCanceled) 
+                    if (invoice != null && !booking.IsCanceled)
                     {
                         if (invoice.IsPaid)
                         {
                             paymentStatus = "[green]Paid[/]";
+                            daysRemaining = "[green]Paid[/]";
+                            paymentDeadline = "[green]Paid[/]";
                         }
                         else if (invoice.PaymentDeadline < DateTime.Now)
                         {
                             paymentStatus = "[red]Overdue (Not Paid)[/]";
+                            daysRemaining = "[red]Overdue[/]";
                         }
                         else
                         {
                             paymentStatus = "[yellow]Not Paid[/]";
+                            int remainingDays = (invoice.PaymentDeadline - DateTime.Now).Days;
+                            daysRemaining = $"[yellow]{remainingDays} days[/]";
+                            paymentDeadline = $"[yellow]{invoice.PaymentDeadline:yyyy-MM-dd}[/]";
                         }
                     }
 
@@ -145,8 +157,11 @@ namespace HotelBookingApp.Services.DisplayServices
                         booking.RoomId.ToString(),
                         booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]",
                         booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]",
+                        booking.RegistrationDate.ToString("yyyy-MM-dd HH:mm:ss"),
                         status,
-                        paymentStatus
+                        paymentStatus,
+                        daysRemaining,
+                        paymentDeadline
                     );
                 }
 
@@ -156,10 +171,12 @@ namespace HotelBookingApp.Services.DisplayServices
                 Console.WriteLine("Press 'R' to refresh or 'C' to continue...");
                 var key = Console.ReadKey(true).Key;
 
-                if (key == ConsoleKey.C) break; 
-                if (key != ConsoleKey.R) continue; 
+                if (key == ConsoleKey.C) break;
+                if (key != ConsoleKey.R) continue;
             }
         }
+
+
         public void DisplayGuestTable(IEnumerable<Guest> guests)
         {
             var guestBookingStatus = _guestRepository.GetGuestBookingStatus();
