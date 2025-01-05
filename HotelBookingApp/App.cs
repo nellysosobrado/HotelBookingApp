@@ -30,7 +30,7 @@ namespace HotelBookingApp
                 if (_dbContext.Database.CanConnect())
                 {
                     AnsiConsole.MarkupLine("[bold green]Connected to the database successfully![/]");
-                    SeededBookingAssignerService.AssignRoomsToExistingGuests(_dbContext);
+                    Console.WriteLine("Notification: 4 Seeded guests, 4 Seeded rooms has been created as test subjects.");
                 }
                 else
                 {
