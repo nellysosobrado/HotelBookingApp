@@ -95,7 +95,7 @@ namespace HotelBookingApp.Services.DisplayServices
                     .AddColumn("[bold]Status[/]")
                     .AddColumn("[bold]Payment Status[/]")
                     .AddColumn("[bold]Days Remaining[/]")
-                    .AddColumn("[bold]Payment Deadline Day[/]"); 
+                    .AddColumn("[bold]Payment Deadline Day[/]");
 
                 foreach (var booking in allBookings)
                 {
@@ -103,13 +103,32 @@ namespace HotelBookingApp.Services.DisplayServices
                     string paymentStatus = "[grey]No Invoice[/]";
                     string daysRemaining = "[grey]N/A[/]";
                     string paymentDeadline = "[grey]N/A[/]";
+                    string roomId = booking.RoomId.ToString();
+                    string checkInDate = booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]";
+                    string checkOutDate = booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]";
+                    string registrationDate = booking.RegistrationDate.ToString("yyyy-MM-dd HH:mm:ss");
 
                     if (booking.IsCanceled)
                     {
-                        status = "[red]Removed[/]";
-                        paymentStatus = "[red]Removed[/]";
-                        daysRemaining = "[red]Removed[/]";
-                        paymentDeadline = "[red]Removed[/]";
+                        var invoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
+
+                        if (invoice != null && !invoice.IsPaid && invoice.PaymentDeadline < DateTime.Now)
+                        {
+                            status = "[red]Overdue Payment, removed[/]";
+                            paymentStatus = "[red]Overdue Payment[/]";
+                        }
+                        else
+                        {
+                            status = "[red]Removed by user[/]";
+                            paymentStatus = "[red]Removed[/]";
+                        }
+
+                        roomId = "[red]removed[/]";
+                        checkInDate = "[red]removed[/]";
+                        checkOutDate = "[red]removed[/]";
+                        registrationDate = "[red]removed[/]";
+                        daysRemaining = "[red]removed[/]";
+                        paymentDeadline = "[red]removed[/]";
                     }
                     else if (booking.IsCheckedOut)
                     {
@@ -128,42 +147,43 @@ namespace HotelBookingApp.Services.DisplayServices
                         status = "[grey]Unbooked[/]";
                     }
 
-                    var invoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
-                    if (invoice != null && !booking.IsCanceled)
+                    var activeInvoice = booking.Invoices?.OrderByDescending(i => i.PaymentDeadline).FirstOrDefault();
+                    if (activeInvoice != null && !booking.IsCanceled)
                     {
-                        if (invoice.IsPaid)
+                        if (activeInvoice.IsPaid)
                         {
                             paymentStatus = "[green]Paid[/]";
                             daysRemaining = "[green]Paid[/]";
                             paymentDeadline = "[green]Paid[/]";
                         }
-                        else if (invoice.PaymentDeadline < DateTime.Now)
+                        else if (activeInvoice.PaymentDeadline < DateTime.Now)
                         {
-                            paymentStatus = "[red]Overdue (Not Paid)[/]";
+                            paymentStatus = "[red]Overdue Payment[/]";
                             daysRemaining = "[red]Overdue[/]";
                         }
                         else
                         {
                             paymentStatus = "[yellow]Not Paid[/]";
-                            int remainingDays = (invoice.PaymentDeadline - DateTime.Now).Days;
+                            int remainingDays = (activeInvoice.PaymentDeadline - DateTime.Now).Days;
                             daysRemaining = $"[yellow]{remainingDays} days[/]";
-                            paymentDeadline = $"[yellow]{invoice.PaymentDeadline:yyyy-MM-dd}[/]";
+                            paymentDeadline = $"[yellow]{activeInvoice.PaymentDeadline:yyyy-MM-dd}[/]";
                         }
                     }
 
                     table.AddRow(
                         booking.BookingId.ToString(),
                         $"{booking.Guest?.FirstName ?? "Unknown"} {booking.Guest?.LastName ?? "Unknown"}",
-                        booking.RoomId.ToString(),
-                        booking.CheckInDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]",
-                        booking.CheckOutDate?.ToString("yyyy-MM-dd") ?? "[grey]N/A[/]",
-                        booking.RegistrationDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                        roomId,
+                        checkInDate,
+                        checkOutDate,
+                        registrationDate,
                         status,
                         paymentStatus,
                         daysRemaining,
                         paymentDeadline
                     );
                 }
+
 
                 AnsiConsole.Markup("[bold yellow]Booking Status Overview[/]\n");
                 AnsiConsole.Write(table);

@@ -61,7 +61,8 @@ namespace HotelBookingApp.Data
                     : today.AddDays(f.Random.Int(1, 5)))
                 .RuleFor(b => b.IsCheckedIn, f => false)
                 .RuleFor(b => b.IsCheckedOut, f => false)
-                .RuleFor(b => b.BookingCompleted, f => false);
+                .RuleFor(b => b.BookingCompleted, f => false)
+                .RuleFor(b => b.RegistrationDate, f => today);
             var bookings = bookingFaker.Generate(4);
 
             var invoices = bookings.Select((booking, index) => new Invoice
