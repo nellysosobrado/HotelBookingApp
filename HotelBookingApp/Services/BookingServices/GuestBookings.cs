@@ -73,7 +73,7 @@ namespace HotelBookingApp.Services.BookingServices
                         FirstName = AnsiConsole.Prompt(new TextPrompt<string>("[white]Enter First Name:[/]")),
                         LastName = AnsiConsole.Prompt(new TextPrompt<string>("[white]Enter Last Name:[/]")),
                         Email = AnsiConsole.Prompt(new TextPrompt<string>("[white]Enter Email Address:[/]")),
-                        PhoneNumber = AnsiConsole.Prompt(new TextPrompt<string>("[white]Enter Phone Number:[/]"))
+                        PhoneNumber = AnsiConsole.Prompt(new TextPrompt<string>("[white]Enter Phone Number (must be Swedish, e.g., +46701234567 or 0701234567):[/]"))
                     };
 
                     var validator = new GuestValidator();

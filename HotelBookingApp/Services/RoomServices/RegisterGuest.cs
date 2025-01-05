@@ -41,30 +41,27 @@ namespace HotelBookingApp.Services.RoomServices
             AnsiConsole.MarkupLine("[bold green]Guest has been successfully registered![/]");
             Console.ReadKey();
         }
-
-
-
         private Guest CollectGuestInformation()
         {
             string firstName = AnsiConsole.Prompt(
-                new TextPrompt<string>("[white]Please enter your first name:[/]")
+                new TextPrompt<string>("[white]Firstname:[/]")
                     .ValidationErrorMessage("[red]First name cannot be empty[/]")
                     .Validate(input => !string.IsNullOrWhiteSpace(input)));
 
             string lastName = AnsiConsole.Prompt(
-                new TextPrompt<string>("[white]Please enter your last name:[/]")
+                new TextPrompt<string>("[white]Lastname:[/]")
                     .ValidationErrorMessage("[red]Last name cannot be empty[/]")
                     .Validate(input => !string.IsNullOrWhiteSpace(input)));
 
             string email = AnsiConsole.Prompt(
-                new TextPrompt<string>("[white]Please enter your email address (must include @):[/]")
+                new TextPrompt<string>("[white]Email:[/]")
                     .ValidationErrorMessage("[red]Invalid email[/]")
                     .Validate(input => input.Contains("@")));
 
             string phone = AnsiConsole.Prompt(
-                new TextPrompt<string>("[white]Please enter your phone number:[/]")
-                    .ValidationErrorMessage("[red]Invalid phone number![/]")
-                    .Validate(input => long.TryParse(input, out _)));
+                new TextPrompt<string>("[white]Phone number(must be Swedish, e.g., +46701234567 or 0701234567):[/]")
+                    .ValidationErrorMessage("[red]Invalid phone number! Must be exactly 10 digits and start with +46 or 0.[/]")
+                    .Validate(input => IsValidSwedishPhoneNumber(input)));
 
             return new Guest
             {
@@ -75,5 +72,20 @@ namespace HotelBookingApp.Services.RoomServices
             };
         }
 
+        private bool IsValidSwedishPhoneNumber(string phoneNumber)
+        {
+            phoneNumber = phoneNumber.Replace(" ", "").Replace("-", "");
+
+            if (phoneNumber.StartsWith("0"))
+            {
+                return phoneNumber.Length == 10 && long.TryParse(phoneNumber, out _);
+            }
+            else if (phoneNumber.StartsWith("+46"))
+            {
+                return phoneNumber.Length == 12 && long.TryParse(phoneNumber.Substring(1), out _); 
+            }
+
+            return false;
+        }
     }
 }
