@@ -47,6 +47,7 @@ namespace HotelBookingApp.Controllers
                 var action = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("[italic yellow] Rooms[/]")
+                        .WrapAround(true)
                         .AddChoices(new[]
                         {
                     "Register a new room",
@@ -58,6 +59,7 @@ namespace HotelBookingApp.Controllers
                     "Back"
                         })
                         .HighlightStyle(new Style(foreground: Color.Green)));
+
 
                 switch (action)
                 {

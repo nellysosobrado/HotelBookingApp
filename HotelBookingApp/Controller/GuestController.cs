@@ -37,6 +37,7 @@ namespace HotelBookingApp.Controllers
             var action = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("[italic yellow]Guests[/]")
+                    .WrapAround(true)
                     .AddChoices(new[]
                     {
                     "Register a new guest",

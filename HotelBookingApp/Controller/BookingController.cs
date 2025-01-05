@@ -41,6 +41,7 @@ public class BookingController : IMenuDisplay
         var action = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("[italic yellow]Bookings[/]")
+                    .WrapAround(true)
                     .AddChoices(new[]
                     {
               

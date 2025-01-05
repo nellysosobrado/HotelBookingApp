@@ -37,14 +37,12 @@ namespace HotelBookingApp.Utilities
                 var choice = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("[italic yellow] Hotel Booking Application[/]")
-                        .PageSize(10)
+                        .PageSize(10)  
                         .HighlightStyle(new Style(Color.Green, decoration: Decoration.Bold))
-                        .AddChoices(
-                            "Rooms",
-                            "Bookings",
-                            "Guests",
-                            "Exit")
+                        .AddChoices("Rooms", "Bookings", "Guests", "Exit")  
+                        .WrapAround(true)  
                 );
+
                 switch (choice)
                 {
                     case "Rooms":
@@ -59,12 +57,12 @@ namespace HotelBookingApp.Utilities
                     case "Exit":
                         AnsiConsole.MarkupLine("[bold green]Thank you for using the Hotel Booking App. Goodbye![/]");
                         return;
-
                     default:
                         AnsiConsole.MarkupLine("[bold red]Invalid choice. Please try again.[/]");
                         break;
                 }
             }
         }
+
     }
 }
