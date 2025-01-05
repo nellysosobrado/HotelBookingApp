@@ -76,22 +76,37 @@ namespace HotelBookingApp.Services.BookingServices
                         PhoneNumber = AnsiConsole.Prompt(new TextPrompt<string>("[white]Enter Phone Number (must be Swedish, e.g., +46701234567 or 0701234567):[/]"))
                     };
 
+                    if (_guestRepository.GetAllGuests().Any(g => g.Email == newGuest.Email))
+                    {
+                        AnsiConsole.MarkupLine("[bold red]Error: The email address already exists in the database.[/]");
+                        continue;
+                    }
+
+                    if (_guestRepository.GetAllGuests().Any(g => g.PhoneNumber == newGuest.PhoneNumber))
+                    {
+                        AnsiConsole.MarkupLine("[bold red]Error: The phone number already exists in the database.[/]");
+                        continue;
+                    }
+
                     var validator = new GuestValidator();
                     validationResult = validator.Validate(newGuest);
 
                     if (!validationResult.IsValid)
                     {
-                        AnsiConsole.MarkupLine("[bold red]Error:[/]");
+                        AnsiConsole.MarkupLine("[bold red]Validation Error:[/]");
                         foreach (var failure in validationResult.Errors)
                         {
                             AnsiConsole.MarkupLine($"[red]- {failure.PropertyName}: {failure.ErrorMessage}[/]");
-
                         }
 
                         AnsiConsole.MarkupLine("[yellow]Please try again.[/]\n");
                     }
+                    else
+                    {
+                        break; 
+                    }
                 }
-                while (!validationResult.IsValid);
+                while (true);
 
                 _guestRepository.AddGuest(newGuest);
 
@@ -115,6 +130,7 @@ namespace HotelBookingApp.Services.BookingServices
                     keepRunning = false;
             }
         }
+
         private Booking CreateNewBooking(Guest guest)
         {
             Booking booking = null;
