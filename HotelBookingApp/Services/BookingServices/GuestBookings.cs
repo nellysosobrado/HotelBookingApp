@@ -115,9 +115,6 @@ namespace HotelBookingApp.Services.BookingServices
                     keepRunning = false;
             }
         }
-
-
-
         private Booking CreateNewBooking(Guest guest)
         {
             Booking booking = null;
@@ -165,112 +162,121 @@ namespace HotelBookingApp.Services.BookingServices
             
         }
 
-
         public void RegisterBookingForExistingGuest()
         {
-            Console.Clear();
-            AnsiConsole.MarkupLine("[italic white]Add Booking for Existing Guest[/]\n");
+            bool keepRunning = true;
 
-            var guests = _guestRepository.GetAllGuests()
-                .Where(g => !g.IsDeleted)
-                .ToList();
-
-            if (!guests.Any())
+            while (keepRunning)
             {
-                AnsiConsole.MarkupLine("[red]No registered guests found in the system.[/]");
-                Console.ReadKey();
-                return;
-            }
+                Console.Clear();
+                AnsiConsole.MarkupLine("[italic white]Add Booking for Existing Guest[/]\n");
 
-            var table = new Table()
-                .AddColumn("[yellow]Guest ID[/]")
-                .AddColumn("[yellow]First Name[/]")
-                .AddColumn("[yellow]Last Name[/]")
-                .AddColumn("[yellow]Email[/]");
+                var guests = _guestRepository.GetAllGuests()
+                    .Where(g => !g.IsDeleted)
+                    .ToList();
 
-            foreach (var guest in guests)
-            {
-                table.AddRow(
-                    guest.GuestId.ToString(),
-                    guest.FirstName,
-                    guest.LastName,
-                    guest.Email
-                );
-            }
-
-            AnsiConsole.Write(table);
-
-            int guestId = AnsiConsole.Prompt(
-                new TextPrompt<int>("[yellow]Enter the Guest ID to add a booking for:[/]")
-                    .ValidationErrorMessage("[red]Please enter a valid numeric Guest ID.[/]")
-                    .Validate(id => guests.Any(g => g.GuestId == id))
-            );
-
-            var selectedGuest = guests.First(g => g.GuestId == guestId);
-
-            Entities.Booking booking = null;
-
-            while (booking == null)
-            {
-                booking = CollectBookingDetailsWithCalendar(selectedGuest);
-
-                if (booking == null)
+                if (!guests.Any())
                 {
-                    bool tryAgain = AnsiConsole.Confirm("[red]No rooms available. Would you like to try again?[/]");
-                    if (!tryAgain)
-                    {
-                        AnsiConsole.MarkupLine("[red]Booking process canceled.[/]");
-                        Console.ReadKey();
-                        return;
-                    }
+                    AnsiConsole.MarkupLine("[red]No registered guests found in the system.[/]");
+                    Console.ReadKey();
+                    return;
                 }
-                else
+
+                var table = new Table()
+                    .AddColumn("[yellow]Guest ID[/]")
+                    .AddColumn("[yellow]First Name[/]")
+                    .AddColumn("[yellow]Last Name[/]")
+                    .AddColumn("[yellow]Email[/]");
+
+                foreach (var guest in guests)
                 {
-                    var conflictingBooking = _bookingRepository.GetBookingsByRoomId(booking.RoomId)
-                        .FirstOrDefault(b =>
-                            (b.CheckInDate < booking.CheckOutDate && booking.CheckInDate < b.CheckOutDate) && !b.IsCheckedOut);
+                    table.AddRow(
+                        guest.GuestId.ToString(),
+                        guest.FirstName,
+                        guest.LastName,
+                        guest.Email
+                    );
+                }
 
-                    if (conflictingBooking != null)
+                AnsiConsole.Write(table);
+
+                int guestId = AnsiConsole.Prompt(
+                    new TextPrompt<int>("[yellow]Enter the Guest ID to add a booking for:[/]")
+                        .ValidationErrorMessage("[red]Please enter a valid numeric Guest ID.[/]")
+                        .Validate(id => guests.Any(g => g.GuestId == id))
+                );
+
+                var selectedGuest = guests.First(g => g.GuestId == guestId);
+
+                Entities.Booking booking = null;
+
+                while (booking == null)
+                {
+                    booking = CollectBookingDetailsWithCalendar(selectedGuest);
+
+                    if (booking == null)
                     {
-                        AnsiConsole.MarkupLine($"[red]Room {booking.RoomId} is already booked during the selected period by another guest.[/]");
-                        AnsiConsole.MarkupLine($"[red]Conflicting Booking: Guest ID {conflictingBooking.GuestId}, Check-In: {conflictingBooking.CheckInDate:yyyy-MM-dd}, Check-Out: {conflictingBooking.CheckOutDate:yyyy-MM-dd}[/]");
-                        booking = null;
-
-                        bool tryAgain = AnsiConsole.Confirm("[yellow]Would you like to select a different room?[/]");
+                        bool tryAgain = AnsiConsole.Confirm("[red]No rooms available. Would you like to try again?[/]");
                         if (!tryAgain)
                         {
                             AnsiConsole.MarkupLine("[red]Booking process canceled.[/]");
                             Console.ReadKey();
+                            keepRunning = false; 
                             return;
                         }
                     }
+                    else
+                    {
+                        var conflictingBooking = _bookingRepository.GetBookingsByRoomId(booking.RoomId)
+                            .FirstOrDefault(b =>
+                                (b.CheckInDate < booking.CheckOutDate && booking.CheckInDate < b.CheckOutDate) && !b.IsCheckedOut);
+
+                        if (conflictingBooking != null)
+                        {
+                            AnsiConsole.MarkupLine($"[red]Room {booking.RoomId} is already booked during the selected period by another guest.[/]");
+                            AnsiConsole.MarkupLine($"[red]Conflicting Booking: Guest ID {conflictingBooking.GuestId}, Check-In: {conflictingBooking.CheckInDate:yyyy-MM-dd}, Check-Out: {conflictingBooking.CheckOutDate:yyyy-MM-dd}[/]");
+                            booking = null;
+
+                            bool tryAgain = AnsiConsole.Confirm("[yellow]Would you like to select a different room?[/]");
+                            if (!tryAgain)
+                            {
+                                AnsiConsole.MarkupLine("[red]Booking process canceled.[/]");
+                                Console.ReadKey();
+                                keepRunning = false; 
+                                return;
+                            }
+                        }
+                    }
                 }
-            }
 
-            _bookingRepository.AddBooking(booking);
+                _bookingRepository.AddBooking(booking);
 
-            if (booking.BookingId <= 0)
-            {
-                AnsiConsole.MarkupLine("[red]Failed to save booking. Cannot create invoice.[/]");
+                if (booking.BookingId <= 0)
+                {
+                    AnsiConsole.MarkupLine("[red]Failed to save booking. Cannot create invoice.[/]");
+                    Console.ReadKey();
+                    return;
+                }
+
+                decimal totalAmount = _guestRepository.CalculateTotalAmount(booking);
+
+                var invoice = new Invoice
+                {
+                    BookingId = booking.BookingId,
+                    TotalAmount = totalAmount,
+                    IsPaid = false,
+                    PaymentDeadline = DateTime.Now.AddDays(10)
+                };
+
+                _guestRepository.AddInvoice(invoice);
+
+                AnsiConsole.MarkupLine("[bold green]Booking successfully added for existing guest![/]");
+                AnsiConsole.MarkupLine($"[yellow]Invoice created:[/] Total Amount: {totalAmount:C}, Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
+                AnsiConsole.MarkupLine($"[white]Press any key to continue[/]");
                 Console.ReadKey();
-                return;
+
+                keepRunning = AnsiConsole.Confirm("[yellow]Would you like to make another booking? [/]");
             }
-
-            decimal totalAmount = _guestRepository.CalculateTotalAmount(booking);
-
-            var invoice = new Invoice
-            {
-                BookingId = booking.BookingId,
-                TotalAmount = totalAmount,
-                IsPaid = false,
-                PaymentDeadline = DateTime.Now.AddDays(10)
-            };
-
-            _guestRepository.AddInvoice(invoice);
-
-            AnsiConsole.MarkupLine("[bold green]Booking successfully added for existing guest![/]");
-            AnsiConsole.MarkupLine($"[yellow]Invoice created:[/] Total Amount: {totalAmount:C}, Payment Deadline: {invoice.PaymentDeadline:yyyy-MM-dd}");
-            Console.ReadKey();
         }
         private Entities.Booking CollectBookingDetailsWithCalendar(Guest guest)
         {
