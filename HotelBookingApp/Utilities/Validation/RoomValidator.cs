@@ -24,11 +24,5 @@ public class RoomValidator : AbstractValidator<Room>
             .LessThanOrEqualTo(2).WithMessage("Extra beds cannot exceed 2.")
             .When(r => r.Type == "Double", ApplyConditionTo.CurrentValidator)
             .WithMessage("Extra beds are only applicable for 'Double' rooms.");
-
-        //// Validera totala antalet personer
-        //RuleFor(r => r.TotalPeople)
-        //    .NotNull().WithMessage("Total people is required.")
-        //    .GreaterThan(0).WithMessage("Total people must be greater than 0.")
-        //    .LessThanOrEqualTo(4).WithMessage("Total people cannot exceed 4.");
     }
 }

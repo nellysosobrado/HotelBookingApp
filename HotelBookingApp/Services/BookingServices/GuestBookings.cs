@@ -315,27 +315,6 @@ namespace HotelBookingApp.Services.BookingServices
                 keepRunning = AnsiConsole.Confirm("[yellow]Would you like to make another booking? [/]");
             }
         }
-        //private List<Room> GetAvailableRooms(DateTime startDate, DateTime endDate, string roomType)
-        //{
-        //    var rooms = _roomRepository.GetRoomsWithBookings();
-
-        //    // Hämta avbokade bokningar
-        //    var canceledBookingIds = _bookingRepository.GetCanceledBookingsHistory()
-        //        .Select(cb => cb.BookingId)
-        //        .ToHashSet();
-
-        //    return rooms
-        //        .Where(room =>
-        //            !room.IsDeleted && // Uteslut raderade rum
-        //            room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase) && // Filtrera på rumstyp
-        //            !room.Bookings.Any(booking =>
-        //                !canceledBookingIds.Contains(booking.BookingId) && // Exkludera avbokade bokningar
-        //                booking.CheckInDate.HasValue &&
-        //                booking.CheckOutDate.HasValue &&
-        //                !(booking.CheckOutDate.Value <= startDate || booking.CheckInDate.Value >= endDate))) // Kontrollera överlappande bokningar
-        //        .ToList();
-        //}
-
 
         private Entities.Booking CollectBookingDetailsWithCalendar(Guest guest)
         {
