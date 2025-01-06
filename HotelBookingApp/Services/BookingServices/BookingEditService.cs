@@ -311,47 +311,41 @@ namespace HotelBookingApp.Services.BookingServices
             {
                 int totalPeople = AnsiConsole.Ask<int>("[yellow]Enter the total number of people:[/]");
 
-                var roomsByCapacity = _roomRepository.GetRoomsByCapacity(totalPeople);
-                if (!roomsByCapacity.Any())
-                {
-                    AnsiConsole.MarkupLine("[red]No rooms available for the selected capacity.[/]");
-                    return;
-                }
-
-                DisplayAvailableRooms(roomsByCapacity);
-
-                int selectedRoomId = AnsiConsole.Prompt(
-                    new TextPrompt<int>("[yellow]Enter Room ID to view availability:[/]")
-                        .ValidationErrorMessage("[red]Invalid Room ID![/]")
-                        .Validate(input => roomsByCapacity.Any(r => r.RoomId == input))
-                );
-
-                var selectedRoom = roomsByCapacity.First(r => r.RoomId == selectedRoomId);
-
-                DateTime startDateByCapacity = _guestBookings.SelectDateWithCalendar("[yellow]Select check-in date:[/]", selectedRoom.Type);
-                if (startDateByCapacity == DateTime.MinValue)
+                DateTime startDate = _guestBookings.SelectDateWithCalendar("[yellow]Select check-in date:[/]", room.Type);
+                if (startDate == DateTime.MinValue)
                 {
                     AnsiConsole.MarkupLine("[red]Date selection canceled.[/] Returning to menu...");
                     return;
                 }
 
-                DateTime endDateByCapacity = _guestBookings.SelectDateWithCalendar("[yellow]Select check-out date:[/]", selectedRoom.Type);
-                if (endDateByCapacity == DateTime.MinValue || endDateByCapacity <= startDateByCapacity)
+                DateTime endDate = _guestBookings.SelectDateWithCalendar("[yellow]Select check-out date:[/]", room.Type);
+                if (endDate == DateTime.MinValue || endDate < startDate)
                 {
-                    AnsiConsole.MarkupLine("[red]Check-out date must be after check-in date![/]");
+                    AnsiConsole.MarkupLine("[red]Check-out date must be on or after check-in date![/]");
                     return;
                 }
 
-                if (!_roomRepository.IsRoomAvailable(selectedRoomId, startDateByCapacity, endDateByCapacity))
+                var availableRooms = _roomRepository.GetAvailableRoomsByCapacityAndDates(totalPeople, startDate, endDate);
+                if (!availableRooms.Any())
                 {
-                    AnsiConsole.MarkupLine("[red]The selected room is not available for the chosen dates.[/]");
+                    AnsiConsole.MarkupLine("[red]No rooms available for the selected capacity and dates.[/]");
                     return;
                 }
 
-                UpdateRoomAndBooking(room, booking, selectedRoomId, roomsByCapacity);
+                DisplayAvailableRooms(availableRooms);
 
-                booking.CheckInDate = startDateByCapacity;
-                booking.CheckOutDate = endDateByCapacity;
+                int selectedRoomId = AnsiConsole.Prompt(
+                    new TextPrompt<int>("[yellow]Enter Room ID to select:[/]")
+                        .ValidationErrorMessage("[red]Invalid Room ID![/]")
+                        .Validate(input => availableRooms.Any(r => r.RoomId == input))
+                );
+
+                var selectedRoom = availableRooms.First(r => r.RoomId == selectedRoomId);
+
+                UpdateRoomAndBooking(room, booking, selectedRoomId, availableRooms);
+
+                booking.CheckInDate = startDate;
+                booking.CheckOutDate = endDate;
 
                 _bookingRepository.UpdateBooking(booking);
 
@@ -362,6 +356,7 @@ namespace HotelBookingApp.Services.BookingServices
                 AnsiConsole.MarkupLine($"[red]An error occurred while updating the booking: {ex.Message}[/]");
             }
         }
+
 
         private void UpdateRoomAndBooking(Room currentRoom, Entities.Booking booking, int newRoomId, IEnumerable<Room> availableRooms)
         {

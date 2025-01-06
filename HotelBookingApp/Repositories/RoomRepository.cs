@@ -16,6 +16,22 @@ namespace HotelBookingApp.Repositories
             _appDbContext = context;
             _bookingRepository = bookingRepository;
         }
+        public IEnumerable<Room> GetAvailableRoomsByCapacityAndDates(int totalPeople, DateTime startDate, DateTime endDate)
+        {
+            var canceledBookingIds = _appDbContext.CanceledBookingsHistory
+                .Select(cb => cb.BookingId)
+                .ToHashSet();
+
+            return _appDbContext.Rooms
+                .Where(r => r.TotalPeople >= totalPeople && !r.IsDeleted) 
+                .Where(r => r.Bookings.All(b =>
+                    canceledBookingIds.Contains(b.BookingId) || 
+                    b.CheckOutDate < startDate ||             
+                    b.CheckInDate > endDate ||               
+                    b.IsCheckedOut))                        
+                .ToList();
+        }
+
         public List<Room> GetAvailableRooms(DateTime startDate, DateTime endDate, string roomType)
         {
             var rooms = GetRoomsWithBookings();
@@ -117,6 +133,7 @@ namespace HotelBookingApp.Repositories
 
         public IEnumerable<Room> GetRoomsByCapacity(int totalPeople)
         {
+            // Hämta alla avbokade bokningar
             var canceledBookingIds = _appDbContext.CanceledBookingsHistory
                 .Select(cb => cb.BookingId)
                 .ToHashSet();
@@ -124,11 +141,12 @@ namespace HotelBookingApp.Repositories
             return _appDbContext.Rooms
                 .Where(r => r.TotalPeople >= totalPeople && !r.IsDeleted) 
                 .Where(r => r.Bookings.All(b =>
-                    canceledBookingIds.Contains(b.BookingId) ||
+                    canceledBookingIds.Contains(b.BookingId) || 
                     b.CheckOutDate < DateTime.Now ||            
-                    b.IsCheckedOut))                           
+                    b.IsCheckedOut))                            
                 .ToList();
         }
+
 
 
 
