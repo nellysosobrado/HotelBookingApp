@@ -425,7 +425,7 @@ namespace HotelBookingApp.Services.BookingServices
 
 
 
-        private DateTime SelectDateWithCalendar(string prompt, string roomType)
+        public DateTime SelectDateWithCalendar(string prompt, string roomType)
         {
             DateTime currentDate = DateTime.Now.Date;
             DateTime selectedDate = currentDate;
@@ -460,7 +460,7 @@ namespace HotelBookingApp.Services.BookingServices
                 }
             }
         }
-        private void RenderCalendar(DateTime selectedDate, string roomType)
+        public void RenderCalendar(DateTime selectedDate, string roomType)
         {
             var calendarContent = new StringWriter();
             calendarContent.WriteLine($"[bold yellow]{selectedDate:MMMM yyyy}[/]".ToUpper());

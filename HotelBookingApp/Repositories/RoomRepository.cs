@@ -115,13 +115,22 @@ namespace HotelBookingApp.Repositories
             return true;
         }
 
-
         public IEnumerable<Room> GetRoomsByCapacity(int totalPeople)
         {
+            var canceledBookingIds = _appDbContext.CanceledBookingsHistory
+                .Select(cb => cb.BookingId)
+                .ToHashSet();
+
             return _appDbContext.Rooms
-                .Where(r => r.TotalPeople >= totalPeople && r.IsAvailable)
+                .Where(r => r.TotalPeople >= totalPeople && !r.IsDeleted) 
+                .Where(r => r.Bookings.All(b =>
+                    canceledBookingIds.Contains(b.BookingId) ||
+                    b.CheckOutDate < DateTime.Now ||            
+                    b.IsCheckedOut))                           
                 .ToList();
         }
+
+
 
         public List<Room> GetAllRooms(bool includeDeleted = false)
         {

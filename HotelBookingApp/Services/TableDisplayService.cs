@@ -138,14 +138,7 @@ namespace HotelBookingApp.Services.DisplayServices
                     {
                         status = "[green]Checked In[/]";
                     }
-                    //else if (booking.CheckInDate.HasValue && booking.CheckInDate.Value.Date == DateTime.Now.Date && booking.CheckOutDate.Value.Date == DateTime.Now.Date)
-                    //{
-                    //    status = "[yellow]Not Checked In Yet (One Day Booking)[/]";
-                    //}
-                    //else if (booking.CheckInDate.HasValue && booking.CheckInDate >= DateTime.Now)
-                    //{
-                    //    status = "[yellow]Not Checked In Yet[/]";
-                    //}
+
                     else
                     {
                         status = "[grey]Not Checked In Yet[/]";

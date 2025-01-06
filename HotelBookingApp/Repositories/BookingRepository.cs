@@ -22,24 +22,37 @@ namespace HotelBookingApp.Repositories
         public IEnumerable<Booking> GetBookingsByRoomId(int roomId)
         {
             return _appDbContext.Bookings
-                .Include(b => b.Room) // Inkludera Room om nödvändigt
+                .Include(b => b.Room) 
                 .Where(b => b.RoomId == roomId)
                 .ToList();
         }
 
-        public IEnumerable<Booking> GetEditableBookings()
+        public IEnumerable<Room> GetRoomsByCapacity(int totalPeople, int? currentBookingId = null)
         {
             var canceledBookingIds = _appDbContext.CanceledBookingsHistory
                 .Select(cb => cb.BookingId)
                 .ToHashSet();
 
+            return _appDbContext.Rooms
+                .Where(r => r.TotalPeople >= totalPeople && !r.IsDeleted) 
+                .Where(r => r.Bookings.All(b =>
+                    canceledBookingIds.Contains(b.BookingId) || 
+                    b.CheckOutDate < DateTime.Now ||            
+                    b.IsCheckedOut ||                         
+                    b.BookingId == currentBookingId))          
+                .ToList();
+        }
+
+        public IEnumerable<Booking> GetEditableBookings()
+        {
             return _appDbContext.Bookings
-                .Where(b => !canceledBookingIds.Contains(b.BookingId) &&
-                            !b.BookingCompleted &&
-                            b.CheckInDate.HasValue &&
-                            !b.IsCheckedOut)
-                .Include(b => b.Guest)
-                .Include(b => b.Room)
+                .Where(b =>
+                    !b.IsCanceled &&                    
+                    !b.BookingCompleted &&             
+                    b.CheckInDate.HasValue &&          
+                    !b.IsCheckedOut)                  
+                .Include(b => b.Guest)                
+                .Include(b => b.Room)                 
                 .ToList();
         }
 
@@ -162,16 +175,11 @@ namespace HotelBookingApp.Repositories
         }
 
 
-        //public void AddBooking(Booking booking)
-        //{
-        //    _appDbContext.Bookings.Add(booking);
-        //    _appDbContext.SaveChanges();
-        //}
         public void AddBooking(Booking booking)
         {
             if (booking.RegistrationDate == default)
             {
-                booking.RegistrationDate = DateTime.Now; // Sätt registreringsdatum om det inte redan är satt
+                booking.RegistrationDate = DateTime.Now; 
             }
 
             _appDbContext.Bookings.Add(booking);
