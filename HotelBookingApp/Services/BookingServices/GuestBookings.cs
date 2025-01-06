@@ -360,7 +360,6 @@ namespace HotelBookingApp.Services.BookingServices
             if (endDate == startDate)
             {
                 endDate = startDate.AddDays(1); 
-                AnsiConsole.MarkupLine("[blue]Single-day booking: Check-out adjusted to the next day.[/]");
             }
 
             var availableRooms = _roomRepository.GetAvailableRooms(startDate, endDate, roomType);
