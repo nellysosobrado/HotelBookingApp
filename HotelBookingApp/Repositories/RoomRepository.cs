@@ -10,12 +10,31 @@ namespace HotelBookingApp.Repositories
     public class RoomRepository
     {
         private readonly AppDbContext _appDbContext;
-
-        public RoomRepository(AppDbContext context)
+        private readonly BookingRepository _bookingRepository;
+        public RoomRepository(AppDbContext context, BookingRepository bookingRepository)
         {
             _appDbContext = context;
+            _bookingRepository = bookingRepository;
         }
+        public List<Room> GetAvailableRooms(DateTime startDate, DateTime endDate, string roomType)
+        {
+            var rooms = GetRoomsWithBookings();
 
+            var canceledBookingIds = _bookingRepository.GetCanceledBookingsHistory()
+                .Select(cb => cb.BookingId)
+                .ToHashSet();
+
+            return rooms
+                .Where(room =>
+                    !room.IsDeleted && 
+                    room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase) && 
+                    !room.Bookings.Any(booking =>
+                        !canceledBookingIds.Contains(booking.BookingId) && 
+                        booking.CheckInDate.HasValue &&
+                        booking.CheckOutDate.HasValue &&
+                        !(booking.CheckOutDate.Value <= startDate || booking.CheckInDate.Value >= endDate))) 
+                .ToList();
+        }
         public IEnumerable<Booking> GetActiveBookingsForRoom(int roomId, bool includeGuest = false)
         {
             var canceledBookingIds = _appDbContext.CanceledBookingsHistory

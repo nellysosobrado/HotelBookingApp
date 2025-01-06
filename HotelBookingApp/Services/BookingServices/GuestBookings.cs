@@ -17,10 +17,12 @@ namespace HotelBookingApp.Services.BookingServices
     {
         private readonly GuestRepository _guestRepository;
         private readonly BookingRepository _bookingRepository;
-        public GuestBookings(GuestRepository guestRepository, BookingRepository bookingRepository)
+        private readonly RoomRepository _roomRepository;
+        public GuestBookings(GuestRepository guestRepository, BookingRepository bookingRepository, RoomRepository roomRepository)
         {
             _guestRepository = guestRepository;
             _bookingRepository = bookingRepository;
+            _roomRepository = roomRepository;
         }
         public void RegisterBooking()
         {
@@ -117,7 +119,7 @@ namespace HotelBookingApp.Services.BookingServices
                 }
                 else
                 {
-                    AnsiConsole.MarkupLine("[bold green]Booking successfully added for new guest![/]");
+                    AnsiConsole.MarkupLine("[bold green]\nBooking successfully added for new guest![/]");
                 }
 
                 var choice = AnsiConsole.Prompt(
@@ -171,9 +173,28 @@ namespace HotelBookingApp.Services.BookingServices
 
             _guestRepository.AddInvoice(invoice);
             Console.Clear();
-            AnsiConsole.MarkupLine($"[green]Total Amount:[/]  {totalAmount:C}");
-            AnsiConsole.MarkupLine($"[green]Payment Deadline:[/] {invoice.PaymentDeadline:yyyy-MM-dd}");
- 
+
+            var table = new Table()
+                .Border(TableBorder.Rounded)
+                .AddColumn(new TableColumn("[yellow]Guest Name[/]").Centered())
+                .AddColumn(new TableColumn("[yellow]Room ID[/]").Centered())
+                .AddColumn(new TableColumn("[yellow]Check-In Date[/]").Centered())
+                .AddColumn(new TableColumn("[yellow]Check-Out Date[/]").Centered())
+                .AddColumn(new TableColumn("[green]Total Amount[/]").Centered())
+                .AddColumn(new TableColumn("[green]Payment Deadline[/]").Centered());
+
+            table.AddRow(
+                $"{guest.FirstName} {guest.LastName}",
+                $"{booking.RoomId}",
+                $"{booking.CheckInDate:yyyy-MM-dd}",
+                $"{booking.CheckOutDate:yyyy-MM-dd}",
+                $"{totalAmount:C}",
+                $"{invoice.PaymentDeadline:yyyy-MM-dd}"
+            );
+
+            // Visa tabellen
+            AnsiConsole.Write(table);
+
             return booking;
             
         }
@@ -294,6 +315,28 @@ namespace HotelBookingApp.Services.BookingServices
                 keepRunning = AnsiConsole.Confirm("[yellow]Would you like to make another booking? [/]");
             }
         }
+        //private List<Room> GetAvailableRooms(DateTime startDate, DateTime endDate, string roomType)
+        //{
+        //    var rooms = _roomRepository.GetRoomsWithBookings();
+
+        //    // Hämta avbokade bokningar
+        //    var canceledBookingIds = _bookingRepository.GetCanceledBookingsHistory()
+        //        .Select(cb => cb.BookingId)
+        //        .ToHashSet();
+
+        //    return rooms
+        //        .Where(room =>
+        //            !room.IsDeleted && // Uteslut raderade rum
+        //            room.Type.Equals(roomType, StringComparison.OrdinalIgnoreCase) && // Filtrera på rumstyp
+        //            !room.Bookings.Any(booking =>
+        //                !canceledBookingIds.Contains(booking.BookingId) && // Exkludera avbokade bokningar
+        //                booking.CheckInDate.HasValue &&
+        //                booking.CheckOutDate.HasValue &&
+        //                !(booking.CheckOutDate.Value <= startDate || booking.CheckInDate.Value >= endDate))) // Kontrollera överlappande bokningar
+        //        .ToList();
+        //}
+
+
         private Entities.Booking CollectBookingDetailsWithCalendar(Guest guest)
         {
             string roomType = AnsiConsole.Prompt(
@@ -304,17 +347,23 @@ namespace HotelBookingApp.Services.BookingServices
             DateTime startDate = SelectDateWithCalendar("Select check-in date:[/]", roomType);
             if (startDate == DateTime.MinValue)
             {
-                return null; 
-            }
-
-            DateTime endDate = SelectDateWithCalendar("Select check-out date:[/]", roomType);
-            if (endDate == DateTime.MinValue || endDate <= startDate)
-            {
-                AnsiConsole.MarkupLine("[red]Check-out date must be after check-in date![/]");
                 return null;
             }
 
-            var availableRooms = _guestRepository.GetAvailableRooms(startDate, endDate, roomType);
+            DateTime endDate = SelectDateWithCalendar("Select check-out date:[/]", roomType);
+            if (endDate == DateTime.MinValue || endDate < startDate)
+            {
+                AnsiConsole.MarkupLine("[red]Check-out date must be on or after check-in date![/]");
+                return null;
+            }
+
+            if (endDate == startDate)
+            {
+                endDate = startDate.AddDays(1); 
+                AnsiConsole.MarkupLine("[blue]Single-day booking: Check-out adjusted to the next day.[/]");
+            }
+
+            var availableRooms = _roomRepository.GetAvailableRooms(startDate, endDate, roomType);
 
             if (!availableRooms.Any())
             {
@@ -330,7 +379,7 @@ namespace HotelBookingApp.Services.BookingServices
                 .AddColumn("[blue]Room Type[/]")
                 .AddColumn("[blue]Price per Night[/]")
                 .AddColumn("[blue]Size (sqm)[/]")
-                .AddColumn("[blue]MaxTEST People[/]");
+                .AddColumn("[blue]Max People[/]");
 
             foreach (var room in availableRooms)
             {
@@ -352,7 +401,7 @@ namespace HotelBookingApp.Services.BookingServices
 
             var roomBookingConflict = _bookingRepository.GetBookingsByRoomId(roomId)
                 .FirstOrDefault(b =>
-                    (b.CheckInDate < endDate && startDate < b.CheckOutDate) && 
+                    (b.CheckInDate < endDate && startDate < b.CheckOutDate) &&
                     !b.IsCheckedOut);
 
             if (roomBookingConflict != null)
@@ -373,6 +422,7 @@ namespace HotelBookingApp.Services.BookingServices
                 BookingCompleted = false
             };
         }
+
 
 
         private DateTime SelectDateWithCalendar(string prompt, string roomType)
